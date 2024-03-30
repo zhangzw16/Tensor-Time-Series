@@ -1,7 +1,7 @@
 # Tensor-Time-Series
 [![Awesome](https://awesome.re/badge.svg)](https://awesome.re) 
 [![Visits Badge](https://badges.pufler.dev/visits/zhangzw16/Tensor-Time-Series)](https://github.com/zhangzw16/Tensor-Time-Series)
-[![Updated Badge](https://badges.pufler.dev/updated/zhangzw16/Tensor-Time-Series)](https://badges.pufler.dev)
+[![Updated Badge](https://badges.pufler.dev/updated/zhangzw16/Tensor-Time-Series)](https://github.com/zhangzw16/Tensor-Time-Series)
 
 
 Papers and datasets for tensor time series.
