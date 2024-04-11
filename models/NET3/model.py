@@ -81,7 +81,7 @@ class NET3_TensorModel(TensorModelBase):
         self.init_others()
 
     def init_model(self, args={}) -> NET3:
-        model_configs_yaml = "/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/models/NET3/model.yml"
+        model_configs_yaml = os.path.join( os.path.dirname(__file__), 'model.yml' )
         model_configs = yaml.safe_load(open(model_configs_yaml))
         self.orthogonal_weight = 1e-3
         self.reconstruction_weight = 1e-3

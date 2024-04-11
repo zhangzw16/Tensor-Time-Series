@@ -15,4 +15,6 @@ Maintained by ChongKaKam - zhuangjx23@mails.tsinghua.edu.cn
 
 + status: [unfinished]
 
++ default n_input = 5, n_pred = 1. The total length of a sample is 6.
+
 + code is completed basically except for the initialization of adjacency matrix used in GCN
