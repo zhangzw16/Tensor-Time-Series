@@ -3,7 +3,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import Parameter
+import numpy as np
 import math
+import yaml
 
 from models.model_base import TensorModelBase
 
@@ -13,9 +15,8 @@ LOG2PI = math.log(2 * math.pi)
 
 class GMRE(nn.Module):
     ''' Gaussian Mixture Representation Extractor (GMRE) '''
-    def __init__(self, device, num_comp, channels, num_nodes, num_source, n_his, dilation):
+    def __init__(self, num_comp, channels, num_nodes, num_source, n_his, dilation):
         super(GMRE, self).__init__()
-        self.device = device
         self.time = n_his - dilation + 1
         self.in_features = num_nodes * num_source * self.time
         # The number of clusters K
@@ -100,14 +101,13 @@ class GMRE(nn.Module):
         return out, loss    
 
 class ResidualBlock(nn.Module):
-    def __init__(self, device, num_comp, num_nodes, num_source, n_pred, n_his, channels, dilation, kernel_size):
+    def __init__(self,num_comp, num_nodes, num_source, n_pred, n_his, channels, dilation, kernel_size):
         super(ResidualBlock, self).__init__()
-        self.device = device
         self.num_source = num_source
         self.dilation = dilation
         self.gmre = nn.ModuleList()
         # GMRE heads
-        self.gmre = GMRE(self.device, num_comp, channels, num_nodes, num_source, n_his, self.dilation)
+        self.gmre = GMRE(num_comp, channels, num_nodes, num_source, n_his, self.dilation)
         
         self.num = 2         
         # Temporal Encoder
@@ -147,7 +147,7 @@ class ResidualBlock(nn.Module):
 
 class HRA(nn.Module):
     ''' Hidden Representation Augmenter (HRA) '''
-    def __init__(self, device, num_nodes, num_source, n_pred, out_dim,channels, hra_bool):
+    def __init__(self, num_nodes, num_source, n_pred, out_dim,channels, hra_bool):
         super(HRA, self).__init__()
         self.hra_bool = hra_bool
         
@@ -156,13 +156,13 @@ class HRA(nn.Module):
             self.memo_dim = channels
             self.flat_hidden = num_source * num_nodes * channels
             # Construct memory M with shape (memo_num, memo_dim)
-            self.memory = nn.Parameter(torch.randn(self.memo_num, self.memo_dim), requires_grad=True).to(device)
+            self.memory = nn.Parameter(torch.randn(self.memo_num, self.memo_dim), requires_grad=True)
             nn.init.xavier_normal_(self.memory)
             # Construct weight matrix W_q with shape (flat_hidden, memo_dim)
-            self.W_q = nn.Parameter(torch.randn(self.flat_hidden, self.memo_dim), requires_grad=True).to(device)
+            self.W_q = nn.Parameter(torch.randn(self.flat_hidden, self.memo_dim), requires_grad=True)
             nn.init.xavier_normal_(self.W_q)
             # Construct weight matrix W_fc with shape (memo_dim, flat_hidden)
-            self.W_fc = nn.Parameter(torch.randn(self.memo_dim, self.flat_hidden), requires_grad=True).to(device)
+            self.W_fc = nn.Parameter(torch.randn(self.memo_dim, self.flat_hidden), requires_grad=True)
             nn.init.xavier_normal_(self.W_fc)
             # Predictor with HRA-augmented representation
             self.outlayer = nn.Sequential(
@@ -196,7 +196,8 @@ class HRA(nn.Module):
     
 class GMRL(nn.Module):
     ''' Gaussian Mixture Representation Learning (GMRL) '''
-    def __init__(self, device, num_comp, num_nodes, num_source, n_his, n_pred, in_dim=1, out_dim=1, channels=16, kernel_size=2,layers=2,hra_bool=True):
+    def __init__(self, num_comp, num_nodes, num_source, n_his, n_pred, 
+                 in_dim=1, out_dim=1, channels=16, kernel_size=2,layers=2,hra_bool=True):
         super(GMRL, self).__init__()
         # The number of GMRE-TE layers
         self.layers = layers
@@ -205,11 +206,11 @@ class GMRL(nn.Module):
         # Linear Projection
         self.proj1 = nn.Conv3d(in_channels = in_dim, out_channels = channels, kernel_size = (1,1,1))
         # Tensor Time Series Embedding (TTSE)
-        self.temporal_embedding = nn.Parameter(torch.randn(channels, n_his), requires_grad=True).to(device)
+        self.temporal_embedding = nn.Parameter(torch.randn(channels, n_his), requires_grad=True)
         nn.init.xavier_normal_(self.temporal_embedding)
-        self.location_embedding = nn.Parameter(torch.randn(channels, num_nodes), requires_grad=True).to(device)
+        self.location_embedding = nn.Parameter(torch.randn(channels, num_nodes), requires_grad=True)
         nn.init.xavier_normal_(self.location_embedding)
-        self.source_embedding = nn.Parameter(torch.randn(channels, num_source), requires_grad=True).to(device)
+        self.source_embedding = nn.Parameter(torch.randn(channels, num_source), requires_grad=True)
         nn.init.xavier_normal_(self.source_embedding)
         # Linear Projection v3
         self.proj3 = nn.Sequential(
@@ -219,10 +220,10 @@ class GMRL(nn.Module):
         self.residualblocks = nn.ModuleList()
         dilation = 1
         for i in range(self.layers):
-            self.residualblocks.append(ResidualBlock(device, num_comp, num_nodes, num_source, n_pred, n_his, 2*channels, dilation, kernel_size))
+            self.residualblocks.append(ResidualBlock(num_comp, num_nodes, num_source, n_pred, n_his, 2*channels, dilation, kernel_size))
             dilation *= 2
         # Predictor with HRA
-        self.hra = HRA(device, num_nodes, num_source, n_pred, out_dim, 2*channels, self.hra_bool)
+        self.hra = HRA(num_nodes, num_source, n_pred, out_dim, 2*channels, self.hra_bool)
 
     def forward(self, input):
         input = input.permute(0, 4, 3, 2, 1) 
@@ -266,16 +267,75 @@ TODO: Tensor Module: GMRL
 class GMRL_TensorModule(TensorModelBase):
     def __init__(self, configs: dict) -> None:
         super().__init__(configs)
+        self.init_model()
+        self.init_others()
 
     def init_model(self, args=...) -> nn.Module:
-        return super().init_model(args)
+        model_configs_yaml = os.path.join( os.path.dirname(__file__), 'model.yml' )
+        model_configs = yaml.safe_load(open(model_configs_yaml))
+        self.n_his = 16  # default
+        self.n_pred = 3  # default
+        num_comp = model_configs['Gussian_Component']
+        tensor_shape = model_configs['Tensor_dim']
+        self.input_tensor_shape = tensor_shape
+        in_dim = model_configs['in_dim']
+        out_dim = model_configs['out_dim']
+        channels = model_configs['Hidden_Channels']
+        kernal_size = model_configs['Kernal_Size']
+        HRA_enable = model_configs['HRA_Enable']
+        if model_configs['Layers'] == 'log':
+            layers = int(np.log2(self.n_his))
+        else:
+            layers = int(model_configs['Layers'])
+        # init model
+        self.model = GMRL(num_comp=num_comp, num_nodes=tensor_shape[0], num_source=tensor_shape[1],
+                          n_his=self.n_his, n_pred=self.n_pred, in_dim=in_dim, out_dim=out_dim, channels=channels, kernel_size=kernal_size,
+                          layers=layers, hra_bool=HRA_enable)
+        for p in self.model.parameters():
+            if p.dim() > 1:
+                nn.init.xavier_uniform_(p)
+            else:
+                nn.init.uniform_(p)
+        # optimizer
+        self.optim = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()), lr=0.0001)
+        # criterion
+        self.criterion = nn.MSELoss()
+        # mix loss?
+        self.mix_loss = model_configs['Mix_Loss']
+        # Lambda: balancing parameters
+        self.lamb = model_configs['Lambda']
+
+    def init_others(self, dataset_name=None):
+        pass
     
-    def init_adj_matrix(self, dataset_name: str):
-        return super().init_adj_matrix(dataset_name)
-    
+    def set_device(self, device='cpu'):
+        self.model.to(device)
+
     def forward(self, x):
-        return super().forward(x)
+        # x [batch, time, tensor]
+        # preprocess, split x and truth
+        bs = x.shape[0]
+        tensor_dim1 = self.input_tensor_shape[0]
+        tensor_dim2 = self.input_tensor_shape[1]
+        input_tensor = x[:,:,:int(tensor_dim1*tensor_dim2)]
+        # print(input_tensor.shape)
+        # exit()
+        input_tensor = input_tensor[:, :self.n_his, ...].view((bs, self.n_his, tensor_dim1, tensor_dim2)).unsqueeze(-1)
+        truth = input_tensor[:, -self.n_pred:, ...].view((bs, self.n_pred, tensor_dim1, tensor_dim2)).unsqueeze(-1)
+        pred, feature_loss = self.model(input_tensor)
+        self.feature_loss = feature_loss
+        return pred, truth
     
+    def backward(self, loss):
+        loss.backward()
+        nn.utils.clip_grad_norm_(self.model.parameters(), 10)
+        self.optim.step()
+
     def get_loss(self, pred, truth):
-        return super().get_loss(pred, truth)
+        if self.mix_loss:
+            loss_reg = self.criterion(pred, truth)
+            loss = loss_reg + self.lamb * self.feature_loss
+        else:
+            loss = self.criterion(pred, truth)
+        return loss
     

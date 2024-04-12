@@ -1,0 +1,17 @@
+Tensor_dim: # Tensor shape = (dim1, dim2)
+  - 98  # dim1: locations
+  - 4   # dim2: sources [bike, taxi] x [inFlow, outFlow]
+
+# parameters
+Lambda: 1               # balancing parameter, default is 1
+Gussian_Component: 17   # [4 - 17] is fine
+HRA_Enable: false       # using HRA or not
+Layers: log             # log: layers = int(log2(n_his)), you can type numbers to replace this setting.
+Mix_Loss: true          # mix loss or reg loss
+
+# recommended fixed parameters
+Hidden_Channels: 24
+Kernal_Size: 2
+in_dim:  1
+out_dim: 1
+
