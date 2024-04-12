@@ -110,6 +110,11 @@ class NET3_TensorModel(TensorModelBase):
         truth = input[..., -1]
         return model_pred, truth
     
+    def backward(self, loss):
+        loss.backward()
+        self.optim.step()
+        
+
     def get_loss(self, pred, truth):
         indicators = torch.ones_like(pred, dtype=torch.float)
         if self.model.configs["TLSTM"]['is_decompose']:

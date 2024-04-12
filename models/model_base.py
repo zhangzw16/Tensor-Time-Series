@@ -17,6 +17,8 @@ class ModelBase(object):
         return nn.Module()        
     def forward(self,x ,y):
         pass
+    def backward(self, loss):
+        pass
     def get_loss(self):
         pass
     # change mode
@@ -26,6 +28,8 @@ class ModelBase(object):
         self.model.eval()
     def set_device(self, device='cpu'):
         self.model.to(device)
+    def load_param(self, path):
+        pass
 
 '''
 GNN based model:
@@ -45,6 +49,9 @@ class TensorModelBase(ModelBase):
         pass
 
     def forward(self, x):
+        pass
+
+    def backward(self, loss):
         pass
 
     def get_loss(self, pred, truth):
