@@ -1,0 +1,33 @@
+# basic configuration
+mode: 'train'
+seed: 2024
+task_device: 'cuda'
+batch_size: 16
+max_epoch: 16
+early_stop_max: 4
+log_dir: ''
+model_save_dir: ''
+
+# model
+model_name: 'NET3'
+
+# dataset
+dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/test/test_data.pkl'
+his_len: 16
+pred_len: 3
+test_ratio: 0.1
+valid_ratio: 0.1
+
+# evaluation
+evaluator_verbose: false
+metrics_list:
+  - mae
+  - rmse
+  # - trunc_rmse
+  # - mape
+  # - trunc_mape
+  # - smape
+  # - trun_smape
+
+metrics_thres: {}
+
