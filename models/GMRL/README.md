@@ -20,6 +20,8 @@ Maintained by ChongKaKam - zhuangjx23@mails.tsinghua.edu.cn
 
 + defualt n_input = 16, n_pred = 3. The total length of a sample is 19
 
++ input tensor shape: (batch_size, time_step, tensor_dim1, tensor_dim2, 1)
+
 + model input args:
     ```python
     '''

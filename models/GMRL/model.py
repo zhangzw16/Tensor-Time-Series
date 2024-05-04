@@ -48,7 +48,7 @@ class GMRE(nn.Module):
         first_item = torch.mean(weightedlogPdf.exp() * log_component_prob)
         # Calculate the Kullback–Leibler divergence: KL( Q(z|c) || P(z|c))
         q_z = weightedlogPdf.mean(2)
-        KL = F.kl_div(q_z, alphas, reduction='mean')
+        KL = F.kl_div(q_z, alphas, reduction='batchmean')
         loss =  torch.mean(KL) - first_item
         return loss        
         
@@ -264,7 +264,7 @@ class GMRL(nn.Module):
 '''
 TODO: Tensor Module: GMRL
 '''
-class GMRL_TensorModule(TensorModelBase):
+class GMRL_TensorModel(TensorModelBase):
     def __init__(self, configs: dict) -> None:
         super().__init__(configs)
         self.init_model()
@@ -273,8 +273,8 @@ class GMRL_TensorModule(TensorModelBase):
     def init_model(self, args=...) -> nn.Module:
         model_configs_yaml = os.path.join( os.path.dirname(__file__), 'model.yml' )
         model_configs = yaml.safe_load(open(model_configs_yaml))
-        self.n_his = 16  # default
-        self.n_pred = 3  # default
+        self.n_his = model_configs['input_len']
+        self.n_pred = model_configs['pred_len']
         num_comp = model_configs['Gussian_Component']
         tensor_shape = model_configs['Tensor_dim']
         self.input_tensor_shape = tensor_shape
@@ -312,17 +312,16 @@ class GMRL_TensorModule(TensorModelBase):
         self.model.to(device)
 
     def forward(self, x):
-        # x [batch, time, tensor]
-        # preprocess, split x and truth
-        bs = x.shape[0]
-        tensor_dim1 = self.input_tensor_shape[0]
-        tensor_dim2 = self.input_tensor_shape[1]
-        input_tensor = x[:,:,:int(tensor_dim1*tensor_dim2)]
-        # print(input_tensor.shape)
-        # exit()
-        input_tensor = input_tensor[:, :self.n_his, ...].view((bs, self.n_his, tensor_dim1, tensor_dim2)).unsqueeze(-1)
-        truth = input_tensor[:, -self.n_pred:, ...].view((bs, self.n_pred, tensor_dim1, tensor_dim2)).unsqueeze(-1)
-        pred, feature_loss = self.model(input_tensor)
+        # x [batch, time, dim1, dim2]
+        # GMRL needs: [batch, time, dim1, dim2, 1]
+        # therefore, we need squeeze
+        value = x.unsqueeze(-1)
+        value = value[:,:,:self.input_tensor_shape[0], :self.input_tensor_shape[1],:]
+        
+        xh = value[:,:self.n_his, :, :]
+        truth = value[:,self.n_his:self.n_his+self.n_pred, :, :]
+
+        pred, feature_loss = self.model(xh)
         self.feature_loss = feature_loss
         return pred, truth
     
@@ -332,6 +331,7 @@ class GMRL_TensorModule(TensorModelBase):
         self.optim.step()
 
     def get_loss(self, pred, truth):
+        # print(pred.shape, truth.shape);exit()
         if self.mix_loss:
             loss_reg = self.criterion(pred, truth)
             loss = loss_reg + self.lamb * self.feature_loss

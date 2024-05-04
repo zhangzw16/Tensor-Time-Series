@@ -15,6 +15,8 @@ Maintained by ChongKaKam - zhuangjx23@mails.tsinghua.edu.cn
 
 + status: [unfinished]
 
++ input tensor shape: (batch_size, tensor_dim1, tensor_dim2, time_step)
+
 + default n_input = 5, n_pred = 1. The total length of a sample is 6.
 
 + code is completed basically except for the initialization of adjacency matrix used in GCN

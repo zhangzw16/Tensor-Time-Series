@@ -75,7 +75,7 @@ class NET3(nn.Module):
 Tensor Model: NET3
 '''
 class NET3_TensorModel(TensorModelBase):
-    def __init__(self, configs: dict) -> None:
+    def __init__(self, configs: dict={}) -> None:
         super().__init__(configs)
         self.init_model()
         self.init_others()
@@ -104,10 +104,17 @@ class NET3_TensorModel(TensorModelBase):
             self.network[n] = self.network[n].to(device)
 
     def forward(self, input):
+        # the shape pf input tensor: (batch, time, dim1, dim2)
+        # but the shape pf input tensor in NET3: (batch, dim1, dim2, time)
+        # therefore, permute the input tensor
+        value = input.permute(0,2,3,1)
+        dim1 = self.model.configs['mode_dims'][0]
+        dim2 = self.model.configs['mode_dims'][1]
+        value = value[:, :dim1, :dim2, :]   # ensure the correct shape (test)
         adj = self.network
-        pred, hx = self.model(values=input[...,:-1], adj=adj)        
+        pred, hx = self.model(values=value[...,:-1], adj=adj)        
         model_pred = pred[..., -1]
-        truth = input[..., -1]
+        truth = value[..., -1]
         return model_pred, truth
     
     def backward(self, loss):

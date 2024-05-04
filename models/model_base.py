@@ -9,9 +9,7 @@ Basic Model API
     - get_loss
 '''
 class ModelBase(object):
-    def __init__(self, configs:dict) -> None:
-        # self.model = self.init_model()
-        # self.configs = configs
+    def __init__(self, configs:dict={}) -> None:
         pass
     def init_model(self, args={})->nn.Module:
         return nn.Module()        
@@ -38,9 +36,8 @@ GNN based model:
     - get_loss
 '''
 class TensorModelBase(ModelBase):
-    def __init__(self, configs: dict) -> None:
+    def __init__(self, configs:dict={}) -> None:
         super().__init__(configs)
-        # self.network = self.init_adj_matrix()
 
     def init_model(self, args={})->nn.Module:
         return nn.Module()
