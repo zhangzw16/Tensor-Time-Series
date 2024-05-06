@@ -2,6 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import os
+import yaml
+import numpy as np
+from models.model_base import TensorModelBase
+from datasets.dataset import TTS_Dataset
+from . import util
 
 class nconv(nn.Module):
     def __init__(self):
@@ -47,7 +53,7 @@ class gcn(nn.Module):
 
 
 class DMSTGCN(nn.Module):
-    def __init__(self, device, num_nodes, dropout=0.3,
+    def __init__(self, num_nodes, dropout=0.3,
                  out_dim=12, residual_channels=16, dilation_channels=16, end_channels=512,
                  kernel_size=2, blocks=4, layers=2, days=288, dims=40, order=2, in_dim=9, normalization="batch"):
         super(DMSTGCN, self).__init__()
@@ -83,18 +89,18 @@ class DMSTGCN(nn.Module):
         receptive_field = 1
 
         self.supports_len = 1
-        self.nodevec_p1 = nn.Parameter(torch.randn(days, dims).to(device), requires_grad=True).to(device)
-        self.nodevec_p2 = nn.Parameter(torch.randn(num_nodes, dims).to(device), requires_grad=True).to(device)
-        self.nodevec_p3 = nn.Parameter(torch.randn(num_nodes, dims).to(device), requires_grad=True).to(device)
-        self.nodevec_pk = nn.Parameter(torch.randn(dims, dims, dims).to(device), requires_grad=True).to(device)
-        self.nodevec_a1 = nn.Parameter(torch.randn(days, dims).to(device), requires_grad=True).to(device)
-        self.nodevec_a2 = nn.Parameter(torch.randn(num_nodes, dims).to(device), requires_grad=True).to(device)
-        self.nodevec_a3 = nn.Parameter(torch.randn(num_nodes, dims).to(device), requires_grad=True).to(device)
-        self.nodevec_ak = nn.Parameter(torch.randn(dims, dims, dims).to(device), requires_grad=True).to(device)
-        self.nodevec_a2p1 = nn.Parameter(torch.randn(days, dims).to(device), requires_grad=True).to(device)
-        self.nodevec_a2p2 = nn.Parameter(torch.randn(num_nodes, dims).to(device), requires_grad=True).to(device)
-        self.nodevec_a2p3 = nn.Parameter(torch.randn(num_nodes, dims).to(device), requires_grad=True).to(device)
-        self.nodevec_a2pk = nn.Parameter(torch.randn(dims, dims, dims).to(device), requires_grad=True).to(device)
+        self.nodevec_p1 = nn.Parameter(torch.randn(days, dims), requires_grad=True)
+        self.nodevec_p2 = nn.Parameter(torch.randn(num_nodes, dims), requires_grad=True)
+        self.nodevec_p3 = nn.Parameter(torch.randn(num_nodes, dims), requires_grad=True)
+        self.nodevec_pk = nn.Parameter(torch.randn(dims, dims, dims), requires_grad=True)
+        self.nodevec_a1 = nn.Parameter(torch.randn(days, dims), requires_grad=True)
+        self.nodevec_a2 = nn.Parameter(torch.randn(num_nodes, dims), requires_grad=True)
+        self.nodevec_a3 = nn.Parameter(torch.randn(num_nodes, dims), requires_grad=True)
+        self.nodevec_ak = nn.Parameter(torch.randn(dims, dims, dims), requires_grad=True)
+        self.nodevec_a2p1 = nn.Parameter(torch.randn(days, dims), requires_grad=True)
+        self.nodevec_a2p2 = nn.Parameter(torch.randn(num_nodes, dims), requires_grad=True)
+        self.nodevec_a2p3 = nn.Parameter(torch.randn(num_nodes, dims), requires_grad=True)
+        self.nodevec_a2pk = nn.Parameter(torch.randn(dims, dims, dims), requires_grad=True)
 
         for b in range(blocks):
             additional_scope = kernel_size - 1
@@ -105,15 +111,15 @@ class DMSTGCN(nn.Module):
                                                    out_channels=dilation_channels,
                                                    kernel_size=(1, kernel_size), dilation=new_dilation))
 
-                self.gate_convs.append(nn.Conv1d(in_channels=residual_channels,
+                self.gate_convs.append(nn.Conv2d(in_channels=residual_channels,
                                                  out_channels=dilation_channels,
                                                  kernel_size=(1, kernel_size), dilation=new_dilation))
 
-                self.residual_convs.append(nn.Conv1d(in_channels=dilation_channels,
+                self.residual_convs.append(nn.Conv2d(in_channels=dilation_channels,
                                                      out_channels=residual_channels,
                                                      kernel_size=(1, 1)))
 
-                self.skip_convs.append(nn.Conv1d(in_channels=dilation_channels,
+                self.skip_convs.append(nn.Conv2d(in_channels=dilation_channels,
                                                  out_channels=skip_channels,
                                                  kernel_size=(1, 1)))
 
@@ -121,12 +127,12 @@ class DMSTGCN(nn.Module):
                                                      out_channels=dilation_channels,
                                                      kernel_size=(1, kernel_size), dilation=new_dilation))
 
-                self.gate_convs_a.append(nn.Conv1d(in_channels=residual_channels,
+                self.gate_convs_a.append(nn.Conv2d(in_channels=residual_channels,
                                                    out_channels=dilation_channels,
                                                    kernel_size=(1, kernel_size), dilation=new_dilation))
 
                 # 1x1 convolution for residual connection
-                self.residual_convs_a.append(nn.Conv1d(in_channels=dilation_channels,
+                self.residual_convs_a.append(nn.Conv2d(in_channels=dilation_channels,
                                                        out_channels=residual_channels,
                                                        kernel_size=(1, 1)))
                 if normalization == "batch":
@@ -232,3 +238,89 @@ class DMSTGCN(nn.Module):
         x = F.relu(self.end_conv_1(x))
         x = self.end_conv_2(x)
         return x
+    
+class DMSTGCN_TensorModel(TensorModelBase):
+    def __init__(self, configs: dict={}):
+        super().__init__(configs)
+        self.configs = configs
+        self.init_model()
+        self.init_others()
+    
+    def init_model(self, args=...) -> nn.Module:
+        model_configs_yaml = os.path.join( os.path.dirname(__file__), 'model.yml' )
+        model_configs = yaml.safe_load(open(model_configs_yaml))
+        # tensor shape
+        self.input_tensor_shape = model_configs['Tensor_dim'] # (170, 2)
+        # IO
+        self.input_len = model_configs['input_len']
+        self.pred_len = model_configs['pred_len']
+        # parameters
+        self.days = model_configs['days']
+        self.emb_dims = model_configs['emb_dims']
+        self.conv_order = model_configs['conv_order']
+        self.normalizer = model_configs['normalizer']
+        # CNN
+        self.dropout = model_configs['dropout']
+        self.conv_in_dim = model_configs['conv_in_dim']
+        self.residual_channels = model_configs['residual_channels']
+        self.dilation_channels = model_configs['dilation_channels']
+        self.end_channels = model_configs['end_channels']
+        self.skip_channels = model_configs['skip_channels']
+        self.kernel_size = model_configs['kernel_size']
+        self.blocks = model_configs['blocks']
+        self.layers = model_configs['layers']
+        # Init model
+        self.clip = 5
+        num_nodes = self.input_tensor_shape[0]
+        num_feature = self.input_tensor_shape[1]
+        self.model = DMSTGCN(num_nodes, self.dropout, self.pred_len, 
+                             self.residual_channels, self.dilation_channels, self.end_channels, self.kernel_size, self.blocks, self.layers, 
+                             self.days, self.emb_dims, self.conv_order, self.conv_in_dim, self.normalizer)
+        self.optim = torch.optim.Adam(self.model.parameters(), lr=0.001, weight_decay=0.0001)
+        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optim, factor=.3, patience=10, threshold=1e-3,
+                                                                    min_lr=1e-5, verbose=True)
+        self.criterion = util.masked_mae
+    
+    def init_others(self, dataset_pkl=None):
+        dataset = TTS_Dataset(self.configs['dataset_pkl'], 
+                              self.configs['his_len'], self.configs['pred_len'], 
+                              self.configs['test_ratio'], self.configs['valid_ratio'], 
+                              self.configs['seed'])
+        train_index = dataset.trainset
+        trian_his_array = []
+        for idx in train_index:
+            his, _ = dataset.get_his_pred_from_idx(idx)
+            trian_his_array.append(his[...,0])
+        trian_his_array = np.array(trian_his_array)
+        # normalization and invserse
+        self.scaler = util.StandardScaler(mean=np.mean(trian_his_array), std=np.std(trian_his_array))
+        
+    def forward(self, x, aux_info:dict={}):
+        # x [batch, time, dim1, dim2], dim1=node, dim2=feature
+        # DMSGCN [batch, featrue, node, time]
+        value = x[:, :, :self.input_tensor_shape[0], :self.input_tensor_shape[1]]
+        value = value.permute(0,3,2,1)
+        in_data = value[:, :, :, :self.input_len]
+        truth = value[:, 0, :, self.input_len:self.input_len+self.pred_len]
+
+        ind = aux_info['idxs'] % self.days
+        in_data = nn.functional.pad(in_data, (1,0,0,0))
+        pred = self.model(in_data, ind)
+
+        pred = pred.transpose(1, 3)
+        pred = self.scaler.inverse_transform(pred)
+        truth = torch.unsqueeze(truth, dim=1)
+        return pred, truth
+    
+    def get_loss(self, pred, truth):
+        # print(pred.shape, truth.shape);exit()
+        loss = self.criterion(pred, truth, 0.0)
+        return loss
+    
+    def backward(self, loss):
+        self.optim.zero_grad()
+        loss.backward()
+        if self.clip is not None:
+            torch.nn.utils.clip_grad_norm(self.model.parameters(), self.clip)
+        self.optim.step()
+    

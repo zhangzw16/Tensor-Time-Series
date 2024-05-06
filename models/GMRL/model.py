@@ -311,7 +311,7 @@ class GMRL_TensorModel(TensorModelBase):
     def set_device(self, device='cpu'):
         self.model.to(device)
 
-    def forward(self, x):
+    def forward(self, x, aux_info:dict={}):
         # x [batch, time, dim1, dim2]
         # GMRL needs: [batch, time, dim1, dim2, 1]
         # therefore, we need squeeze
@@ -326,6 +326,7 @@ class GMRL_TensorModel(TensorModelBase):
         return pred, truth
     
     def backward(self, loss):
+        self.optim.zero_grad()
         loss.backward()
         nn.utils.clip_grad_norm_(self.model.parameters(), 10)
         self.optim.step()
@@ -339,3 +340,14 @@ class GMRL_TensorModel(TensorModelBase):
             loss = self.criterion(pred, truth)
         return loss
     
+    def load_model(self, path: str):
+        checkpoint = torch.load(path, map_location='cpu')
+        own_state = self.model.state_dict()
+        for name, param in checkpoint:
+            if isinstance(param, Parameter):
+                param = param.data
+                try:
+                    own_state[name].copy_(param)
+                except:
+                    print(f"{name}: {param.shape}")
+        # --- END ---

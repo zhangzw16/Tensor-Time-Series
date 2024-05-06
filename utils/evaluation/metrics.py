@@ -115,4 +115,52 @@ def trunc_smape(prediction, target, threshold=0):
     target_value[target_value<=threshold] = threshold
     
     return np.mean(np.abs(predict_value - target_value) / ((np.abs(predict_value) + np.abs(target_value))*0.5))
-   
+
+'''
+refer to DMSTGCN
+'''
+
+def masked_mse(preds, labels, null_val=np.nan):
+    if np.isnan(null_val):
+        mask = ~np.isnan(labels)
+    else:
+        mask = (labels != null_val)
+    mask = mask.astype(float)
+    mask /= np.mean(mask)
+    mask = np.where(np.isnan(mask), np.zeros_like(mask), mask)
+    loss = (preds - labels) ** 2
+    loss = loss * mask
+    loss = np.where(np.isnan(loss), np.zeros_like(loss), loss)
+    return np.mean(loss)
+
+
+def masked_rmse(preds, labels, null_val=np.nan):
+    return np.sqrt(masked_mse(preds=preds, labels=labels, null_val=null_val))
+
+
+def masked_mae(preds, labels, null_val=np.nan):
+    if np.isnan(null_val):
+        mask = ~np.isnan(labels)
+    else:
+        mask = (labels != null_val)
+    mask = mask.astype(float)
+    mask /= np.mean(mask)
+    mask = np.where(np.isnan(mask), np.zeros_like(mask), mask)
+    loss = np.abs(preds - labels)
+    loss = loss * mask
+    loss = np.where(np.isnan(loss), np.zeros_like(loss), loss)
+    return np.mean(loss)
+
+
+def masked_mape(preds, labels, null_val=np.nan):
+    if np.isnan(null_val):
+        mask = ~np.isnan(labels)
+    else:
+        mask = (labels != null_val)
+    mask = mask.astype(float)
+    mask /= np.mean(mask)
+    mask = np.where(np.isnan(mask), np.zeros_like(mask), mask)
+    loss = np.abs(preds - labels) / labels
+    loss = loss * mask
+    loss = np.where(np.isnan(loss), np.zeros_like(loss), loss)
+    return np.mean(loss)

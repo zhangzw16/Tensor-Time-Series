@@ -22,10 +22,12 @@ class TTS_DataLoader:
         self.batch_index = 0
 
     def get_batch(self, separate=False):
+        auxiliary_info = {}
         for i in range(self.num_batch):
             begin = i * self.batch_size
             end = begin + self.batch_size
             batch_data_index = self.data_index[begin: end]
+            auxiliary_info['idxs'] = np.array(batch_data_index)
             if separate==False:    
                 # separate his and pred, if separate == True, return a whole seq
                 seq_list = []
@@ -34,7 +36,7 @@ class TTS_DataLoader:
                     seq_list.append(seq)
                 seq = np.stack(seq_list)
                 seq = torch.from_numpy(seq).float()
-                yield seq
+                yield seq, auxiliary_info
             else:   
                 # if separate == False, return [his, pred]
                 his_list = []
@@ -49,4 +51,4 @@ class TTS_DataLoader:
                 pred = torch.from_numpy(pred).float()
                 # his: (batch_size, time, dim1, dim2)
                 # pred: (batch_szie, time, dim1, dim2) TODO: tensor or value?
-                yield his, pred
+                yield his, pred, auxiliary_info

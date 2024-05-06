@@ -103,7 +103,7 @@ class NET3_TensorModel(TensorModelBase):
         for n in self.network:
             self.network[n] = self.network[n].to(device)
 
-    def forward(self, input):
+    def forward(self, input, aux_info:dict={}):
         # the shape pf input tensor: (batch, time, dim1, dim2)
         # but the shape pf input tensor in NET3: (batch, dim1, dim2, time)
         # therefore, permute the input tensor
@@ -118,6 +118,7 @@ class NET3_TensorModel(TensorModelBase):
         return model_pred, truth
     
     def backward(self, loss):
+        self.optim.zero_grad()
         loss.backward()
         self.optim.step()
         

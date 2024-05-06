@@ -1,0 +1,27 @@
+Tensor_dim: # Tensor shape = (dim1, dim2)
+  - 170  # dim1: num_nodes
+  - 2   # dim2: features
+
+
+# input and output
+input_len: 12
+pred_len:  12
+
+# parameters
+days: 288 # related to datasets
+emb_dims: 40  # dimension of embeddings for dynamic graph
+conv_order: 2  # oder of graph convolution --> GCN
+normalizer: 'batch'
+
+# CNN
+dropout: 0.3
+conv_in_dim: 1 # start_conv inputs dimension
+# residual_channels = dilation_channels = 32
+residual_channels: 32
+dilation_channels: 32
+# end_channels = dilation_channels * 16 = 512
+end_channels: 512  
+skip_channels: 8
+kernel_size: 2
+blocks: 4
+layers: 2

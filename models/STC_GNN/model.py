@@ -2,7 +2,7 @@ import os
 import yaml
 import torch
 from torch import nn
-
+import numpy as np
 from models.model_base import TensorModelBase
 '''
 STC-GNN Model Components
@@ -287,9 +287,9 @@ class ComboLoss(nn.Module):
         return torch.mean(1 - numerator / denominator)
 
 '''
-Tensor Model: STG-GNN
+Tensor Model: STC-GNN
 '''
-class STG_GNN_TensorModel(TensorModelBase):
+class STC_GNN_TensorModel(TensorModelBase):
     def __init__(self, configs: dict) -> None:
         super().__init__(configs)
         self.init_model()
@@ -299,11 +299,15 @@ class STG_GNN_TensorModel(TensorModelBase):
         model_configs_yaml = os.path.join( os.path.dirname(__file__), 'model.yml' )
         model_configs = yaml.safe_load(open(model_configs_yaml))
         tensor_shape = model_configs['Tensor_dim']
+        self.tensor_shape = tensor_shape
         cheby_order = model_configs['Cheby_Order']
         in_dim = model_configs['in_dim']
         hidden_dim = model_configs['hidden_dim']
         num_layers = model_configs['num_layers']
+        input_len = model_configs['input_len']
         pred_len = model_configs['pred_len']
+        self.input_len = input_len
+        self.pred_len = pred_len
         use_bias = model_configs['use_bias']
         self.model = STCGNN(tensor_shape[0], tensor_shape[1], 
                             cheby_order, cheby_order,
@@ -314,24 +318,43 @@ class STG_GNN_TensorModel(TensorModelBase):
 
     
     def init_others(self, dataset_name=None):
-        # TODO: load 
-        data = None
-        self.prior_graph = [torch.from_numpy(data['s_adj']).float(),
-                            torch.from_numpy(data['c_cor']).float()]
+        # TODO: init the propr graph through dataset
+        As_dim = self.tensor_shape[0]
+        Ac_dim = self.tensor_shape[1]
+        self.As = np.random.rand(As_dim, As_dim)
+        self.Ac = np.random.rand(Ac_dim, Ac_dim)
+
+        self.As = torch.from_numpy(self.As).float()
+        self.Ac = torch.from_numpy(self.Ac).float()
+        
+        # data = None
+        # self.prior_graph = [torch.from_numpy(data['s_adj']).float(),
+        #                     torch.from_numpy(data['c_cor']).float()]
+        # self.mask = data['mask']
+        # self.threshold = data['HA']
     
     def set_device(self, device='cpu'):
         self.model.to(device)
-        for i in range(len(self.prior_graph)):
-            self.prior_graph[i] = self.prior_graph[i].to(device)
+        self.As = self.As.to(device)
+        self.Ac = self.Ac.to(device)
 
             
-    def forward(self, x):
-        y_pred = self.model(X_seq=x_seq, As=self.prior_graph[0], Ac=self.prior_graph[1])
-        return super().forward(x)
+    def forward(self, x, axu_info:dict={}):
+        # x [batch, time, dim1, dm2], dim=graid * grid, dim2=categories
+        # STC-GNN: (batch, time, grids, categories)
+        value = x[:, :, :self.tensor_shape[0], :self.tensor_shape[1]] # ensure the input shape
+        in_data = value[:, :self.input_len, :, :]
+        truth = value[:, self.input_len:self.input_len+self.pred_len, :, :]
+        pred = self.model(X_seq=in_data, As=self.As, Ac=self.Ac)
+        return pred, truth
     
     def backward(self, loss):
-        return super().backward(loss)
+        self.optim.zero_grad()
+        loss.backward()
+        self.optim.step()
+        torch.cuda.empty_cache()
     
     def get_loss(self, pred, truth):
-        return super().get_loss(pred, truth)
+        loss = self.criterion(pred, truth)
+        return loss
     

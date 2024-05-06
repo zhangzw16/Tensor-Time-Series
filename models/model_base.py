@@ -26,8 +26,10 @@ class ModelBase(object):
         self.model.eval()
     def set_device(self, device='cpu'):
         self.model.to(device)
-    def load_param(self, path):
-        pass
+    def save_model(self, path:str):
+        torch.save(self.model.state_dict(), path)
+    def load_model(self, path:str):
+        self.model.load_state_dict(torch.load(path))
 
 '''
 GNN based model:
@@ -45,7 +47,7 @@ class TensorModelBase(ModelBase):
     def init_others(self, dataset_name=None):
         pass
 
-    def forward(self, x):
+    def forward(self, x, aux_info:dict={}):
         pass
 
     def backward(self, loss):

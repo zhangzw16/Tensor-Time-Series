@@ -13,6 +13,8 @@
 
 Maintained by ChongKaKam - zhuangjx23@mails.tsinghua.edu.cn
 
++ data shape: (5124, 10, 10, 5) = (time, grid1, grid2, categories)
+
 + input tensor shape: (batch_size, time_step, num_grids, categories) where num_grids = (H x W), categories = C. The H,W,C are related to the dataset -- (32, 9, 100, 5) (32, 3, 100, 5)
 
 +  
