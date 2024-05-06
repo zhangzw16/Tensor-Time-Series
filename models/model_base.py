@@ -10,9 +10,10 @@ Basic Model API
 '''
 class ModelBase(object):
     def __init__(self, configs:dict={}) -> None:
-        pass
-    def init_model(self, args={})->nn.Module:
-        return nn.Module()        
+        self.configs = configs
+        
+    def init_model(self, args={}):
+        pass        
     def forward(self,x ,y):
         pass
     def backward(self, loss):
@@ -41,8 +42,8 @@ class TensorModelBase(ModelBase):
     def __init__(self, configs:dict={}) -> None:
         super().__init__(configs)
 
-    def init_model(self, args={})->nn.Module:
-        return nn.Module()
+    def init_model(self, args={}):
+        pass
 
     def init_others(self, dataset_name=None):
         pass

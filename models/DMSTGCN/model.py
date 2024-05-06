@@ -301,6 +301,7 @@ class DMSTGCN_TensorModel(TensorModelBase):
         value = x[:, :, :self.input_tensor_shape[0], :self.input_tensor_shape[1]]
         value = value.permute(0,3,2,1)
         in_data = value[:, :, :, :self.input_len]
+        in_data = self.scaler.transform(in_data)
         truth = value[:, 0, :, self.input_len:self.input_len+self.pred_len]
 
         ind = aux_info['idxs'] % self.days

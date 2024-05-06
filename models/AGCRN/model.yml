@@ -1,0 +1,23 @@
+Tensor_dim:   # related to datest!!!
+  - 307       # grids: HxW
+  - 1         # categories: C
+
+# IO
+input_len: 12
+pred_len:  12
+
+# parameters
+loss_func: 'mae'  # ['mae', 'mask_mae', 'mse']
+input_dim: 1
+output_dim: 1
+embed_dim: 2  # PEMSD4: 10; PEMSD8: 2
+rnn_units: 64 # rnn_units = hidden_dim
+num_layers: 2
+cheb_order: 2
+
+
+# data
+default_graph: true
+normalizer: 'std'
+grad_norm: false
+max_grad_norm: 5
