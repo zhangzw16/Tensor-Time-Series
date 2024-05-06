@@ -16,8 +16,8 @@ class TensorTask(TaskBase):
         # load configuration
         self.seed = configs['seed']
         self.device = configs['task_device']
-        self.log_dir = configs['log_dir']
-        self.model_save_dir = configs['model_save_dir']
+        self.output_dir = configs['output_dir']
+        self.model_path = configs['model_path']
         self.batch_size = configs['batch_size']
         self.max_epoch = configs['max_epoch']
         self.early_stop_max = configs['early_stop_max']
@@ -30,7 +30,7 @@ class TensorTask(TaskBase):
         # prepare for model
         model_manager = ModelManager()
         self.model_name = configs['model_name']
-        model_configs = {}
+        model_configs = configs
         self.model = model_manager.get_model_class(self.model_name)(model_configs)
         self.model.set_device(self.device)
 
@@ -47,6 +47,10 @@ class TensorTask(TaskBase):
         self.metrics_thres = configs['metrics_thres']
         self.evaluator = Evaluator(self.metrics_list, self.metrics_thres)
 
+        # ensure output_dir
+        self.output_dir = os.path.join(self.output_dir, f'{self.model_name}-out')
+        self.ensure_output_dir(self.output_dir)
+
     def train(self):
         for i in range(self.max_epoch):
             epoch_mean_train_loss = self.epoch_train()
@@ -54,17 +58,19 @@ class TensorTask(TaskBase):
             early_stop_flag = self.early_stop(epoch_mean_valid_loss)
             print(f"epoch: {i}, mean_train_loss: {epoch_mean_train_loss:.3f}, mean_valid_loss:{epoch_mean_valid_loss:.3f}")
             if early_stop_flag:
-                # TODO: save model ...
                 break
+        # TODO: save model ...
+        save_path = os.path.join(self.output_dir, 'model.pth')
+        self.model.save_model(save_path)
         # TODO: show training summary
         print('training finished...')
 
     def epoch_train(self):
         self.model.train()
         loss_list = []
-        for seq in self.trainloader.get_batch(separate=False):
+        for seq, aux_info in self.trainloader.get_batch(separate=False):
             seq = seq.to(self.device)
-            pred, truth = self.model.forward(seq)
+            pred, truth = self.model.forward(seq, aux_info)
             epoch_train_loss = self.model.get_loss(pred, truth)
             self.model.backward(epoch_train_loss)
             loss_list.append(epoch_train_loss.item())
@@ -77,9 +83,9 @@ class TensorTask(TaskBase):
         pred_list = []
         truth_list = []
         with torch.no_grad():
-            for seq in self.validloader.get_batch(separate=False):
+            for seq, aux_info in self.validloader.get_batch(separate=False):
                 seq = seq.to(self.device)
-                pred, truth = self.model.forward(seq)
+                pred, truth = self.model.forward(seq, aux_info)
                 epoch_valid_loss = self.model.get_loss(pred, truth)
                 loss_list.append(epoch_valid_loss.item())
                 pred = pred.cpu().numpy()
@@ -93,10 +99,17 @@ class TensorTask(TaskBase):
         return mean_loss, result
 
     def test(self):
+        # load model
+        if not os.path.exists(self.model_path):
+            self.model_path = os.path.join(self.output_dir, 'model.pth')
+            if not os.path.exists(self.model_path):
+                raise FileExistsError(f"can not find .pth file... {self.model_path}")
+        self.model.load_model(self.model_path)
+        # eval mode
         self.model.eval()
-        pred_list = []
-        truth_list = []
         with torch.no_grad():
+            pred_list = []
+            truth_list = []
             for seq in self.testloader.get_batch(separate=False):
                 seq = seq.to(self.device)
                 pred, truth = self.model.forward(seq)

@@ -1,5 +1,5 @@
-
 import os
+import sys
 import math
 import torch
 
@@ -9,8 +9,10 @@ class TaskBase:
         self.best_valid_loss =  math.inf
         self.early_stop_max = configs['early_stop_max']
         self.early_stop_cnt = 0
-    def ensure_work_dir(self, path:str):
-        raise NotImplemented
+
+    def ensure_output_dir(self, path:str):
+        if not os.path.exists(path):
+            os.mkdir(path)
 
     def early_stop(self, valid_loss)->bool:
         # check loss and update
