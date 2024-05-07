@@ -1,6 +1,6 @@
-mode_dims:
-  0: 54
-  1: 4
+# mode_dims:  # defualt tensor shape
+#   0: 54
+#   1: 4
 
 TGCN:
   dim_input: 1

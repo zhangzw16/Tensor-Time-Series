@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch
 import yaml
+import numpy as np
 import pickle
 import os
 
@@ -77,6 +78,7 @@ Tensor Model: NET3
 class NET3_TensorModel(TensorModelBase):
     def __init__(self, configs: dict={}) -> None:
         super().__init__(configs)
+        self.configs = configs
         self.init_model()
         self.init_others()
 
@@ -85,18 +87,27 @@ class NET3_TensorModel(TensorModelBase):
         model_configs = yaml.safe_load(open(model_configs_yaml))
         self.orthogonal_weight = 1e-3
         self.reconstruction_weight = 1e-3
+        tensor_shape = self.configs['tensor_shape']
+        self.tensor_shape = tensor_shape
+        model_configs['mode_dims'] = {0: tensor_shape[0], 1:tensor_shape[1]}       
+        self.normalizer = self.configs['normalizer']
         self.model = NET3(model_configs) 
         self.optim = torch.optim.Adam(self.model.parameters(), lr=0.01)
         self.criterion = utils.mse_loss
 
     def init_others(self, dataset_name=None):
-        network_dir = "/home/zhuangjiaxin/workspace/Tensor-Time-Series/repos/NET3/dataset_processed/future/networks.pkl"
-        networks = pickle.load(
-            open(os.path.join(network_dir), 'rb')
-        )
-        for n in networks:
-            networks[n] = torch.from_numpy(networks[n]).float()
-        self.network = networks
+        # network_dir = "/home/zhuangjiaxin/workspace/Tensor-Time-Series/repos/NET3/dataset_processed/future/networks.pkl"
+        # networks = pickle.load(
+        #     open(os.path.join(network_dir), 'rb')
+        # )
+        # for n in networks:
+        #     networks[n] = torch.from_numpy(networks[n]).float()
+        self.network = {}
+        for i in range(len(self.tensor_shape)):
+            dim = self.tensor_shape[i]
+            adj_matrix = np.random.rand(dim, dim)
+            adj_matrix = torch.from_numpy(adj_matrix).float()
+            self.network[i] = adj_matrix
     
     def set_device(self, device='cpu'):
         self.model.to(device)
@@ -111,9 +122,11 @@ class NET3_TensorModel(TensorModelBase):
         dim1 = self.model.configs['mode_dims'][0]
         dim2 = self.model.configs['mode_dims'][1]
         value = value[:, :dim1, :dim2, :]   # ensure the correct shape (test)
+        value = self.normalizer.transform(value)
         adj = self.network
         pred, hx = self.model(values=value[...,:-1], adj=adj)        
         model_pred = pred[..., -1]
+        model_pred = self.normalizer.inverse_transform(model_pred)
         truth = value[..., -1]
         return model_pred, truth
     
