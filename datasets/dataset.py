@@ -3,6 +3,7 @@ import pickle as pkl
 import numpy as np
 import random
 
+from .normalizer import StandNormalizer, DoNothing
 
 class TTS_Dataset:
     def __init__(self, pkl_path:str, his_len:int, pred_len:int,
@@ -55,6 +56,25 @@ class TTS_Dataset:
 
     def show_info(self):
         pass
+
+    def get_tensor_shape(self):
+        return (self.dim1_range, self.dim2_range)
+    
+    def get_normalizer(self, norm='none'):
+        if norm == 'none':
+            return DoNothing()
+        elif norm == 'std':
+            data_index = self.trainset
+            train_data = []
+            for idx in data_index:
+                data, _ = self.get_his_pred_from_idx(idx)
+                train_data.append(data)
+            train_data = np.array(train_data)
+            # normalization and inverse
+            scaler = StandNormalizer(mean=np.mean(train_data), std=np.std(train_data))
+            return scaler
+        else:
+            raise ValueError(f'unknown normalizer: {norm}...')
 
 
 
