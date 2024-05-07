@@ -17,20 +17,22 @@ class AGCRN_TensorModel(TensorModelBase):
         self.init_others()
 
     def init_model(self, args=...):
+        # task configs
+        self.tensor_shape = self.configs['tensor_shape']
+        self.normalizer = self.configs['normalizer']
+        self.input_len = self.configs['his_len']
+        self.pred_len = self.configs['pred_len']
+        # read model configs
         model_configs_yaml = os.path.join( os.path.dirname(__file__), 'model.yml' )
         model_configs = yaml.safe_load(open(model_configs_yaml))
-        self.tensor_shape = model_configs['Tensor_dim']
-        self.input_len = model_configs['input_len']
-        self.pred_len = model_configs['pred_len']
-        self.input_dim = model_configs['input_dim']
-        self.output_dim = model_configs['output_dim']
+        self.input_dim = self.tensor_shape[1]
+        self.output_dim = self.input_dim
         self.embed_dim = model_configs['embed_dim']
         self.rnn_units = model_configs['rnn_units']
         self.hidden_dim = self.rnn_units
         self.num_layers = model_configs['num_layers']
         self.cheb_order = model_configs['cheb_order']
         self.default_graph = model_configs['default_graph']
-        self.normalizer = model_configs['normalizer']
         self.loss_func_name = model_configs['loss_func']
         self.grad_norm = model_configs['grad_norm']
         self.max_grad_norm = model_configs['max_grad_norm']
@@ -41,22 +43,6 @@ class AGCRN_TensorModel(TensorModelBase):
                                       weight_decay=0, amsgrad=False)
 
     def init_others(self, dataset_name=None):
-        # get scaler
-        dataset = TTS_Dataset(self.configs['dataset_pkl'], 
-                              self.configs['his_len'], self.configs['pred_len'], 
-                              self.configs['test_ratio'], self.configs['valid_ratio'], 
-                              self.configs['seed'])
-        train_index = dataset.trainset
-        trian_his_array = []
-        for idx in train_index:
-            his, _ = dataset.get_his_pred_from_idx(idx)
-            trian_his_array.append(his[...,0])
-        trian_his_array = np.array(trian_his_array)
-        if self.normalizer == 'std':
-            self.scaler = StandardScaler(mean=np.mean(trian_his_array), std=np.std(trian_his_array))
-        else:
-            raise NotImplementedError('only support std normalizer so far')
-        # init criterion
         if self.loss_func_name == 'mask_mae':
             self.criterion = masked_mae_loss(self.scaler, mask_value=0.0)
         elif self.loss_func_name == 'mae':
@@ -70,14 +56,14 @@ class AGCRN_TensorModel(TensorModelBase):
         # x [batch, time, dim1, dim2]
         # AGCRN: [batch, time, dim1, dim2]
         value = x[:, :, :self.tensor_shape[0], :self.tensor_shape[1]]
-        value = self.scaler.transform(value)
         in_data = value[:, :self.input_len, :, :]
         truth = value[:, self.input_len:self.input_len+self.pred_len, :, :]
         # use label as input in the decoder for all steps (teaching_forcing is false)
         teacher_forcing_ratio = 1
+        in_data = self.normalizer.transform(in_data)
         pred = self.model(in_data, truth, teacher_forcing_ratio=teacher_forcing_ratio)
         # invserse
-        truth = self.scaler.inverse_transform(truth)
+        pred = self.normalizer.inverse_transform(pred)
         return pred, truth
     
     def backward(self, loss):
