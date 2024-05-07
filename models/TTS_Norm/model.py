@@ -256,19 +256,24 @@ class TTSNorm(nn.Module):
 class TTS_Norm_TensorModel(TensorModelBase):
     def __init__(self, configs: dict = ...) -> None:
         super().__init__(configs)
+        self.configs = configs
         self.init_model()
         self.init_others()
 
     def init_model(self, args=...) -> nn.Module:
+        # task configs
+        self.tensor_shape = self.configs['tensor_shape']
+        self.input_len = self.configs['his_len']
+        self.pred_len  = self.configs['pred_len']
+        self.normalizer = self.configs['normalizer']
+
+        # model parameters config
         model_configs_yaml = os.path.join( os.path.dirname(__file__), 'model.yml' )
         model_configs = yaml.safe_load(open(model_configs_yaml))
-        self.tensor_shape = model_configs['Tensor_dim']
-        self.input_len = model_configs['input_len']
-        self.pred_len  = model_configs['pred_len']
+        
         self.fusion = model_configs['fusion']
         self.mix_loss = model_configs['mix_loss']
         self.hidden_channels = model_configs['hidden_channels']
-        self.scaler = model_configs['scaler']
         self.schemeA = model_configs['schemeA']
         self.schemeB = model_configs['schemeB']
         self.schemeC = model_configs['schemeC']
@@ -276,9 +281,14 @@ class TTS_Norm_TensorModel(TensorModelBase):
         self.schemeE = model_configs['schemeE']
         self.schemeF = model_configs['schemeF']
         
-        self.layer = int(np.log2(self.input_len))
+        layer = int(np.log2(self.input_len))
+        self.delta = self.input_len - int(2**layer)
+        if self.delta > 0:
+            layer += 1
+        self.layer = layer
+        input_len_of_model = int(2**self.layer)
 
-        self.model = TTSNorm(num_nodes=self.tensor_shape[0], num_source=self.tensor_shape[1], n_his=self.input_len, n_pred=self.pred_len, 
+        self.model = TTSNorm(num_nodes=self.tensor_shape[0], num_source=self.tensor_shape[1], n_his=input_len_of_model, n_pred=self.pred_len, 
                              schemeA_bool=self.schemeA, schemeB_bool=self.schemeB, schemeC_bool=self.schemeC,
                              schemeD_bool=self.schemeD, schemeE_bool=self.schemeE, schemeF_bool=self.schemeF,
                              in_dim=1, out_dim=1, channels=self.hidden_channels, kernel_size=2, layers=self.layer, fusion_bool=self.fusion)
@@ -295,8 +305,11 @@ class TTS_Norm_TensorModel(TensorModelBase):
         value = x[:, :, :self.tensor_shape[0], :self.tensor_shape[1]].unsqueeze(-1)
         in_data = value[:, :self.input_len, :, :, :]
         truth = value[:, self.input_len:self.input_len+self.pred_len, :, :, :]
-        # self.model.zero_grad()
+        in_data = self.normalizer.transform(in_data)
+        n_padding = (0, 0, 0, 0, 0, 0, 0, self.delta)
+        in_data = F.pad(in_data, n_padding, 'constant', 0)
         pred = self.model(in_data)
+        pred = self.normalizer.inverse_transform(pred)
         return pred, truth
     
     def backward(self, loss):
