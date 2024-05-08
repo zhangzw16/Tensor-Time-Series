@@ -9,6 +9,7 @@ from datasets.dataset import TTS_Dataset
 from datasets.dataloader import TTS_DataLoader
 from utils.evaluation import Evaluator
 from utils.logger.Logger import LoggerManager
+from utils.graph.graphGenerator import GraphGenerator
 
 
 class TensorTask(TaskBase):
@@ -49,6 +50,7 @@ class TensorTask(TaskBase):
         model_configs = configs
         normalizer_name = model_configs['normalizer']
         model_configs['normalizer'] = self.dataset.get_normalizer(norm=normalizer_name)
+        model_configs['graphGenerator'] = GraphGenerator(self.dataset)
         model_configs['tensor_shape'] = self.dataset.get_tensor_shape()
         self.model = model_manager.get_model_class(self.model_type, self.model_name)(model_configs)
         self.model.set_device(self.device)
