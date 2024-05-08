@@ -25,7 +25,7 @@ class TTS_Dataset:
             self.data_pkl = pkl.load(file)
         # TTS format:
         # shape = (t, dim1, dim2)
-        self.set_data_mode()
+        self.set_data_mode(data_mode)
         self.data = self.data_pkl['data']
         data_shape = self.data.shape
         self.time_range = data_shape[0]
