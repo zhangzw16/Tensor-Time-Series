@@ -1,28 +1,38 @@
-# basic configuration
-mode: 'train' # ['train', 'test', 'train-test']
+# Basic configuration
+mode: 'train' # ['train', 'test']
 seed: 2024
 task_device: 'cuda'
-batch_size: 16
-max_epoch: 16
+max_epoch: 100
 early_stop_max: 4
-# output dir
+
+# Output path & Logger
 output_dir: './output/'
-# the model parameters loaded in test phase.
-# setting '' will turn to '{output_dir}/model.pth'
-model_path: ''
+logger: 'none'
+project_name: 'TensorTS'
 
-# model
+# Model
+model_type: 'Tensor'
 model_name: 'AGCRN'
+model_path: '' # the model parameters loaded in test phase. Setting '' will turn to '{output_dir}/model.pth'
 
-# dataset
-dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/test/test_data.pkl'
-his_len: 12
-pred_len: 12
-test_ratio: 0.1
+# Dataset & Dataloader
+dataset_pkl: 'data/Processed_Data/Metr-LA/Metr-LA.pkl'
+# the shape of data read from .pkl is (time, dim1, dim2),
+# set data mode to change the shape
+# - 0: (time, dim1, dim2)
+# - 1: (time, dim1, 1) * dim2
+# - 2: (time, dim2, 1) * dim1
+# - 3: (time, dim1*dim2, 1) 
+data_mode: 0
+batch_size: 16
+his_len:  12
+pred_len: 3
+normalizer: 'std' # ['none', 'std']
+test_ratio:  0.1
 valid_ratio: 0.1
 
-# evaluation
-evaluator_verbose: true
+# Evaluation
+evaluator_verbose: false
 metrics_list:
   - mae
   - rmse
