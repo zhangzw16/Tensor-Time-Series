@@ -44,7 +44,7 @@ class NET3(nn.Module):
         """
         if indicators is None:
             indicators = torch.ones_like(values, dtype=torch.float)
-
+        # print(values.shape);exit()
         n_steps = values.shape[-1]
         out_list = []
         for t in range(n_steps):
@@ -58,7 +58,10 @@ class NET3(nn.Module):
             h_t, hx = self.tlstm(emb_gcn, hx)
             h_t = torch.cat([h_t, emb_gcn], dim=-1)
             out_t = self.output(h_t).squeeze()
+            if len(out_t.shape) == 2:
+                out_t = out_t.unsqueeze(-1)
             out_list.append(out_t)
+            # print(emb.shape, emb_gcn.shape, h_t.shape, out_t.shape)
         output = torch.stack(out_list, dim=-1)
         return output, hx
 
@@ -91,6 +94,7 @@ class NET3_TensorModel(TensorModelBase):
         self.tensor_shape = tensor_shape
         model_configs['mode_dims'] = {0: tensor_shape[0], 1:tensor_shape[1]}       
         self.normalizer = self.configs['normalizer']
+        self.graph_generator = self.configs['graphGenerator']
         self.model = NET3(model_configs) 
         self.optim = torch.optim.Adam(self.model.parameters(), lr=0.01)
         self.criterion = utils.mse_loss
@@ -103,11 +107,14 @@ class NET3_TensorModel(TensorModelBase):
         # for n in networks:
         #     networks[n] = torch.from_numpy(networks[n]).float()
         self.network = {}
-        for i in range(len(self.tensor_shape)):
-            dim = self.tensor_shape[i]
-            adj_matrix = np.random.rand(dim, dim)
-            adj_matrix = torch.from_numpy(adj_matrix).float()
-            self.network[i] = adj_matrix
+        # data_shape: (time, dim1, dim2)
+        #                     0     1
+        # print(self.tensor_shape)
+        self.network[0] = torch.from_numpy(self.graph_generator.cosine_similarity_matrix(n_dim=0, normal=True)).float()
+        self.network[1] = torch.from_numpy(self.graph_generator.pearson_matrix(n_dim=1, normal=True)).float()
+        # print(self.network[0].shape)
+        # print(self.network[1].shape)
+        # exit()
     
     def set_device(self, device='cpu'):
         self.model.to(device)
