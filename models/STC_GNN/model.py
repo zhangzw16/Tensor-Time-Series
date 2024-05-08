@@ -276,6 +276,8 @@ class ComboLoss(nn.Module):
         self.binary_crossentropy = nn.BCELoss(reduction='mean')
 
     def forward(self, y_pred:torch.Tensor, y_true:torch.Tensor):
+        y_pred = torch.sigmoid(y_pred)
+        y_true = torch.sigmoid(y_true)
         bce_loss = self.binary_crossentropy(y_pred, y_true)
         dice_loss = self.dice_loss(y_pred, y_true)
         return bce_loss + dice_loss
@@ -292,27 +294,30 @@ Tensor Model: STC-GNN
 class STC_GNN_TensorModel(TensorModelBase):
     def __init__(self, configs: dict) -> None:
         super().__init__(configs)
+        self.configs = configs
         self.init_model()
         self.init_others()
 
     def init_model(self, args=...) -> nn.Module:
+        # task configs
+        self.tensor_shape = self.configs['tensor_shape']
+        self.input_len = self.configs['his_len']
+        self.pred_len = self.configs['pred_len']
+        self.normalizer = self.configs['normalizer']
+        # model parameters configs
         model_configs_yaml = os.path.join( os.path.dirname(__file__), 'model.yml' )
         model_configs = yaml.safe_load(open(model_configs_yaml))
-        tensor_shape = model_configs['Tensor_dim']
-        self.tensor_shape = tensor_shape
+        
         cheby_order = model_configs['Cheby_Order']
         in_dim = model_configs['in_dim']
         hidden_dim = model_configs['hidden_dim']
         num_layers = model_configs['num_layers']
-        input_len = model_configs['input_len']
-        pred_len = model_configs['pred_len']
-        self.input_len = input_len
-        self.pred_len = pred_len
+        
         use_bias = model_configs['use_bias']
-        self.model = STCGNN(tensor_shape[0], tensor_shape[1], 
+        self.model = STCGNN(self.tensor_shape[0], self.tensor_shape[1], 
                             cheby_order, cheby_order,
                             in_dim, hidden_dim, num_layers,
-                            pred_len,use_bias) 
+                            self.pred_len,use_bias) 
         self.criterion = ComboLoss()
         self.optim = torch.optim.Adam(params=self.model.parameters(), lr=2e-3, weight_decay=1e-4)
 
@@ -345,7 +350,9 @@ class STC_GNN_TensorModel(TensorModelBase):
         value = x[:, :, :self.tensor_shape[0], :self.tensor_shape[1]] # ensure the input shape
         in_data = value[:, :self.input_len, :, :]
         truth = value[:, self.input_len:self.input_len+self.pred_len, :, :]
+        in_data = self.normalizer.transform(in_data)
         pred = self.model(X_seq=in_data, As=self.As, Ac=self.Ac)
+        pred = self.normalizer.inverse_transform(pred)
         return pred, truth
     
     def backward(self, loss):

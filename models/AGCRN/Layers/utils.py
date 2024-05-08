@@ -17,22 +17,4 @@ def masked_mae_loss(scaler, mask_value):
         return mae
     return loss
 
-class StandardScaler:
-    """
-    Standard the input
-    """
-
-    def __init__(self, mean, std):
-        self.mean = mean
-        self.std = std
-
-    def transform(self, data):
-        return (data - self.mean) / self.std
-
-    def inverse_transform(self, data):
-        if type(data) == torch.Tensor and type(self.mean) == np.ndarray:
-            self.std = torch.from_numpy(self.std).to(data.device).type(data.dtype)
-            self.mean = torch.from_numpy(self.mean).to(data.device).type(data.dtype)
-        return (data * self.std) + self.mean
-
     

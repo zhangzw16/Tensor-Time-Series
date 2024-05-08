@@ -11,7 +11,7 @@ Basic Model API
 class ModelBase(object):
     def __init__(self, configs:dict={}) -> None:
         self.configs = configs
-        
+        self.ModelType = 'BaseModel'
     def init_model(self, args={}):
         pass        
     def forward(self,x ,y):
@@ -33,19 +33,32 @@ class ModelBase(object):
         self.model.load_state_dict(torch.load(path))
 
 '''
-GNN based model:
-    - adjacency matrix
-    - forward
-    - get_loss
+Tensor based model:
 '''
 class TensorModelBase(ModelBase):
     def __init__(self, configs:dict={}) -> None:
         super().__init__(configs)
-
+        self.ModelType = 'Tensor'
     def init_model(self, args={}):
         pass
-
     def init_others(self, dataset_name=None):
+        pass
+    def forward(self, x, aux_info:dict={}):
+        pass
+    def backward(self, loss):
+        pass
+    def get_loss(self, pred, truth):
+        pass
+
+'''
+Multivariate based model:
+'''
+class MultiVarModelBase(ModelBase):
+    def __init__(self, configs:dict={}) -> None:
+        super().__init__(configs)
+        self.ModelType = 'MultiVar'
+        
+    def init_model(self, args={}):
         pass
 
     def forward(self, x, aux_info:dict={}):

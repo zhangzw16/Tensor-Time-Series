@@ -20,9 +20,8 @@ dataset_pkl: 'data/Processed_Data/Metr-LA/Metr-LA.pkl'
 # the shape of data read from .pkl is (time, dim1, dim2),
 # set data mode to change the shape
 # - 0: (time, dim1, dim2)
-# - 1: (time, dim1, 1) * dim2
-# - 2: (time, dim2, 1) * dim1
-# - 3: (time, dim1*dim2, 1) 
+# - 1: (time, dim2, dim1)
+# - 2: (time, dim1*dim2, 1) 
 data_mode: 0
 batch_size: 16
 his_len:  12
