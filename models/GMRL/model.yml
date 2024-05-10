@@ -1,11 +1,11 @@
-Tensor_dim: # Tensor shape = (dim1, dim2)
-  - 98  # dim1: locations
-  - 4   # dim2: sources [bike, taxi] x [inFlow, outFlow]
+# Tensor_dim: # Tensor shape = (dim1, dim2)
+#   - 98  # dim1: locations
+#   - 4   # dim2: sources [bike, taxi] x [inFlow, outFlow]
 
 # IO
 # the default input/output lengths are 16 and 3
-input_len: 16
-pred_len: 3
+# input_len: 16
+# pred_len: 3
 
 # parameters
 Lambda: 1               # balancing parameter, default is 1

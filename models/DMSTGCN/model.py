@@ -247,18 +247,24 @@ class DMSTGCN_TensorModel(TensorModelBase):
         self.init_others()
     
     def init_model(self, args=...) -> nn.Module:
+        # task config
+        self.input_tensor_shape = self.configs['tensor_shape']
+        self.input_len = self.configs['his_len']
+        self.pred_len = self.configs['pred_len']
+        self.normalizer = self.configs['normalizer']
+        # 
         model_configs_yaml = os.path.join( os.path.dirname(__file__), 'model.yml' )
         model_configs = yaml.safe_load(open(model_configs_yaml))
         # tensor shape
-        self.input_tensor_shape = model_configs['Tensor_dim'] # (170, 2)
+        # self.input_tensor_shape = model_configs['Tensor_dim'] # (170, 2)
         # IO
-        self.input_len = model_configs['input_len']
-        self.pred_len = model_configs['pred_len']
+        # self.input_len = model_configs['input_len']
+        # self.pred_len = model_configs['pred_len']
         # parameters
         self.days = model_configs['days']
         self.emb_dims = model_configs['emb_dims']
         self.conv_order = model_configs['conv_order']
-        self.normalizer = model_configs['normalizer']
+        self.model_normalizer = model_configs['normalizer']
         # CNN
         self.dropout = model_configs['dropout']
         self.conv_in_dim = model_configs['conv_in_dim']
@@ -275,33 +281,34 @@ class DMSTGCN_TensorModel(TensorModelBase):
         num_feature = self.input_tensor_shape[1]
         self.model = DMSTGCN(num_nodes, self.dropout, self.pred_len, 
                              self.residual_channels, self.dilation_channels, self.end_channels, self.kernel_size, self.blocks, self.layers, 
-                             self.days, self.emb_dims, self.conv_order, self.conv_in_dim, self.normalizer)
+                             self.days, self.emb_dims, self.conv_order, self.conv_in_dim, self.model_normalizer)
         self.optim = torch.optim.Adam(self.model.parameters(), lr=0.001, weight_decay=0.0001)
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optim, factor=.3, patience=10, threshold=1e-3,
                                                                     min_lr=1e-5, verbose=True)
         self.criterion = util.masked_mae
     
     def init_others(self, dataset_pkl=None):
-        dataset = TTS_Dataset(self.configs['dataset_pkl'], 
-                              self.configs['his_len'], self.configs['pred_len'], 
-                              self.configs['test_ratio'], self.configs['valid_ratio'], 
-                              self.configs['seed'])
-        train_index = dataset.trainset
-        trian_his_array = []
-        for idx in train_index:
-            his, _ = dataset.get_his_pred_from_idx(idx)
-            trian_his_array.append(his[...,0])
-        trian_his_array = np.array(trian_his_array)
-        # normalization and invserse
-        self.scaler = util.StandardScaler(mean=np.mean(trian_his_array), std=np.std(trian_his_array))
-        
+        # dataset = TTS_Dataset(self.configs['dataset_pkl'], 
+        #                       self.configs['his_len'], self.configs['pred_len'], 
+        #                       self.configs['test_ratio'], self.configs['valid_ratio'], 
+        #                       self.configs['seed'])
+        # train_index = dataset.trainset
+        # trian_his_array = []
+        # for idx in train_index:
+        #     his, _ = dataset.get_his_pred_from_idx(idx)
+        #     trian_his_array.append(his[...,0])
+        # trian_his_array = np.array(trian_his_array)
+        # # normalization and invserse
+        # self.scaler = util.StandardScaler(mean=np.mean(trian_his_array), std=np.std(trian_his_array))
+        pass
+
     def forward(self, x, aux_info:dict={}):
         # x [batch, time, dim1, dim2], dim1=node, dim2=feature
         # DMSGCN [batch, featrue, node, time]
         value = x[:, :, :self.input_tensor_shape[0], :self.input_tensor_shape[1]]
         value = value.permute(0,3,2,1)
         in_data = value[:, :, :, :self.input_len]
-        in_data = self.scaler.transform(in_data)
+        in_data = self.normalizer.transform(in_data)
         truth = value[:, 0, :, self.input_len:self.input_len+self.pred_len]
 
         ind = aux_info['idxs'] % self.days
@@ -309,7 +316,7 @@ class DMSTGCN_TensorModel(TensorModelBase):
         pred = self.model(in_data, ind)
 
         pred = pred.transpose(1, 3)
-        pred = self.scaler.inverse_transform(pred)
+        pred = self.normalizer.inverse_transform(pred)
         truth = torch.unsqueeze(truth, dim=1)
         return pred, truth
     

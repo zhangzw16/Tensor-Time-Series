@@ -9,7 +9,7 @@ import yaml
 
 from models.model_base import TensorModelBase
 
-os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
+# os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 LOG2PI = math.log(2 * math.pi)
 
@@ -191,6 +191,7 @@ class HRA(nn.Module):
             h_aug = torch.cat([h_sc, h_me], dim=1)
             out = self.outlayer(h_aug)
         else:
+            # print(h_sc.shape);exit()
             out = self.outlayer(h_sc)
         return out
     
@@ -235,6 +236,7 @@ class GMRL(nn.Module):
         ttse = ttse.repeat(b,1,1,1,1)
         # Linear Projection: 
         x = self.proj3(torch.cat((x, ttse), dim=1))
+        
         # GMRE-TE layers
         skip = 0        
         for i in range(self.layers):           
@@ -267,17 +269,22 @@ TODO: Tensor Module: GMRL
 class GMRL_TensorModel(TensorModelBase):
     def __init__(self, configs: dict) -> None:
         super().__init__(configs)
+        self.configs = configs
         self.init_model()
         self.init_others()
 
     def init_model(self, args=...) -> nn.Module:
+        # task configs
+        tensor_shape = self.configs['tensor_shape']
+        self.input_tensor_shape = tensor_shape
+        self.n_his = self.configs['his_len']
+        self.n_pred = self.configs['pred_len']
+        self.normalzier = self.configs['normalizer']
+        # model parameters configs
         model_configs_yaml = os.path.join( os.path.dirname(__file__), 'model.yml' )
         model_configs = yaml.safe_load(open(model_configs_yaml))
-        self.n_his = model_configs['input_len']
-        self.n_pred = model_configs['pred_len']
+        
         num_comp = model_configs['Gussian_Component']
-        tensor_shape = model_configs['Tensor_dim']
-        self.input_tensor_shape = tensor_shape
         in_dim = model_configs['in_dim']
         out_dim = model_configs['out_dim']
         channels = model_configs['Hidden_Channels']
@@ -285,11 +292,16 @@ class GMRL_TensorModel(TensorModelBase):
         HRA_enable = model_configs['HRA_Enable']
         if model_configs['Layers'] == 'log':
             layers = int(np.log2(self.n_his))
+            self.len_delta = self.n_his - 2**layers
+            if self.len_delta > 0:
+                layers += 1
         else:
             layers = int(model_configs['Layers'])
+        self.layers = layers
+        n_his_of_model = int(2**self.layers)
         # init model
         self.model = GMRL(num_comp=num_comp, num_nodes=tensor_shape[0], num_source=tensor_shape[1],
-                          n_his=self.n_his, n_pred=self.n_pred, in_dim=in_dim, out_dim=out_dim, channels=channels, kernel_size=kernal_size,
+                          n_his=n_his_of_model, n_pred=self.n_pred, in_dim=in_dim, out_dim=out_dim, channels=channels, kernel_size=kernal_size,
                           layers=layers, hra_bool=HRA_enable)
         for p in self.model.parameters():
             if p.dim() > 1:
@@ -321,7 +333,13 @@ class GMRL_TensorModel(TensorModelBase):
         xh = value[:,:self.n_his, :, :]
         truth = value[:,self.n_his:self.n_his+self.n_pred, :, :]
 
+        xh = self.normalzier.transform(xh)
+        # padding: ensure input_len = 2**(layers)
+        n_padding = (0, 0, 0, 0, 0, 0, 0, self.len_delta)
+        xh = F.pad(xh, n_padding, 'constant', 0)
         pred, feature_loss = self.model(xh)
+        pred = self.normalzier.inverse_transform(pred)
+
         self.feature_loss = feature_loss
         return pred, truth
     

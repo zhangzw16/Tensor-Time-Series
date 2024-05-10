@@ -1,6 +1,6 @@
-Tensor_dim: # Tensor shape = (dim1, dim2)
-  - 170  # dim1: num_nodes
-  - 2   # dim2: features
+# Tensor_dim: # Tensor shape = (dim1, dim2)
+#   - 170  # dim1: num_nodes
+#   - 2   # dim2: features
 
 
 # input and output

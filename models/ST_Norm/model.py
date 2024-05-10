@@ -6,7 +6,7 @@ from torch.nn import Parameter
 
 import os
 import yaml
-from models.model_base import TensorModelBase
+from models.model_base import MultiVarModelBase 
 
 class SNorm(nn.Module):
     def __init__(self,  channels):
@@ -175,6 +175,7 @@ class Wavenet(nn.Module):
         x = F.relu(skip)
         rep = F.relu(self.end_conv_1(x))
         out = self.end_conv_2(rep)
+        # print(f"out: {out.shape}, rep: {rep.shape}")
         return out
 
     def load_my_state_dict(self, state_dict):
@@ -189,18 +190,23 @@ class Wavenet(nn.Module):
                 print(param.shape)
 
 
-class ST_Norm_TensorModel(TensorModelBase):
+class ST_Norm_MultiVarModel(MultiVarModelBase):
     def __init__(self, configs: dict = ...) -> None:
         super().__init__(configs)
+        self.configs = configs
         self.init_model()
         self.init_others()
 
     def init_model(self, args=...) -> nn.Module:
+        # task configs
+        self.tensor_shape = self.configs['tensor_shape']
+        self.input_len = self.configs['his_len']
+        self.pred_len = self.configs['pred_len']
+        self.normalizer = self.configs['normalizer']
+        # model parameters config
         model_configs_yaml = os.path.join( os.path.dirname(__file__), 'model.yml' )
         model_configs = yaml.safe_load(open(model_configs_yaml))
-        self.tensor_shape = model_configs['Tensor_dim']
-        self.input_len = model_configs['input_len']
-        self.pred_len = model_configs['pred_len']
+        
         self.snorm = model_configs['snorm']
         self.tnorm = model_configs['tnorm']
         self.n_layers = model_configs['n_layers']
@@ -208,14 +214,11 @@ class ST_Norm_TensorModel(TensorModelBase):
         
         self.model = Wavenet(num_nodes=self.tensor_shape[0], 
                              tnorm_bool=self.tnorm, snorm_bool=self.snorm, 
-                             in_dim=1, out_dim=self.pred_len, channels=self.hidden_channels,
+                             in_dim=self.tensor_shape[1], out_dim=self.pred_len, channels=self.hidden_channels,
                              kernel_size=2, blocks=1, layers=self.n_layers)
         self.optim = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()), lr=0.0001)
         self.criterion = nn.MSELoss()
         torch.cuda.empty_cache()
-    
-    def init_others(self, dataset_name=None):
-        pass
     
     def forward(self, x, aux_info: dict = ...):
         # x: (batch, time, dim1, dim2)
@@ -223,7 +226,10 @@ class ST_Norm_TensorModel(TensorModelBase):
         value = x[:, :, :self.tensor_shape[0], :self.tensor_shape[1]]
         in_data = value[:, :self.input_len, :, :]
         truth = value[:, self.input_len:self.input_len+self.pred_len, :, :]
+        # normal
+        in_data = self.normalizer.transform(in_data)
         pred = self.model(in_data)
+        pred = self.normalizer.inverse_transform(pred)
         return pred, truth
     
     def backward(self, loss):

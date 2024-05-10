@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch
 import yaml
+import numpy as np
 import pickle
 import os
 
@@ -43,7 +44,7 @@ class NET3(nn.Module):
         """
         if indicators is None:
             indicators = torch.ones_like(values, dtype=torch.float)
-
+        # print(values.shape);exit()
         n_steps = values.shape[-1]
         out_list = []
         for t in range(n_steps):
@@ -57,7 +58,10 @@ class NET3(nn.Module):
             h_t, hx = self.tlstm(emb_gcn, hx)
             h_t = torch.cat([h_t, emb_gcn], dim=-1)
             out_t = self.output(h_t).squeeze()
+            if len(out_t.shape) == 2:
+                out_t = out_t.unsqueeze(-1)
             out_list.append(out_t)
+            # print(emb.shape, emb_gcn.shape, h_t.shape, out_t.shape)
         output = torch.stack(out_list, dim=-1)
         return output, hx
 
@@ -77,6 +81,7 @@ Tensor Model: NET3
 class NET3_TensorModel(TensorModelBase):
     def __init__(self, configs: dict={}) -> None:
         super().__init__(configs)
+        self.configs = configs
         self.init_model()
         self.init_others()
 
@@ -85,18 +90,31 @@ class NET3_TensorModel(TensorModelBase):
         model_configs = yaml.safe_load(open(model_configs_yaml))
         self.orthogonal_weight = 1e-3
         self.reconstruction_weight = 1e-3
+        tensor_shape = self.configs['tensor_shape']
+        self.tensor_shape = tensor_shape
+        model_configs['mode_dims'] = {0: tensor_shape[0], 1:tensor_shape[1]}       
+        self.normalizer = self.configs['normalizer']
+        self.graph_generator = self.configs['graphGenerator']
         self.model = NET3(model_configs) 
         self.optim = torch.optim.Adam(self.model.parameters(), lr=0.01)
         self.criterion = utils.mse_loss
 
     def init_others(self, dataset_name=None):
-        network_dir = "/home/zhuangjiaxin/workspace/Tensor-Time-Series/repos/NET3/dataset_processed/future/networks.pkl"
-        networks = pickle.load(
-            open(os.path.join(network_dir), 'rb')
-        )
-        for n in networks:
-            networks[n] = torch.from_numpy(networks[n]).float()
-        self.network = networks
+        # network_dir = "/home/zhuangjiaxin/workspace/Tensor-Time-Series/repos/NET3/dataset_processed/future/networks.pkl"
+        # networks = pickle.load(
+        #     open(os.path.join(network_dir), 'rb')
+        # )
+        # for n in networks:
+        #     networks[n] = torch.from_numpy(networks[n]).float()
+        self.network = {}
+        # data_shape: (time, dim1, dim2)
+        #                     0     1
+        # print(self.tensor_shape)
+        self.network[0] = torch.from_numpy(self.graph_generator.cosine_similarity_matrix(n_dim=0, normal=True)).float()
+        self.network[1] = torch.from_numpy(self.graph_generator.pearson_matrix(n_dim=1, normal=True)).float()
+        # print(self.network[0].shape)
+        # print(self.network[1].shape)
+        # exit()
     
     def set_device(self, device='cpu'):
         self.model.to(device)
@@ -111,9 +129,11 @@ class NET3_TensorModel(TensorModelBase):
         dim1 = self.model.configs['mode_dims'][0]
         dim2 = self.model.configs['mode_dims'][1]
         value = value[:, :dim1, :dim2, :]   # ensure the correct shape (test)
+        value = self.normalizer.transform(value)
         adj = self.network
         pred, hx = self.model(values=value[...,:-1], adj=adj)        
         model_pred = pred[..., -1]
+        model_pred = self.normalizer.inverse_transform(model_pred)
         truth = value[..., -1]
         return model_pred, truth
     
