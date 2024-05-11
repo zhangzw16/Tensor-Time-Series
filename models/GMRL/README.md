@@ -8,17 +8,15 @@
 
 **Paper**: https://arxiv.org/abs/2306.00390
 
-**Github**: https://github.com/beginner-sketch/GMRL
+**Github**: https://github.com/beginner-sketch/GMRL 
+
+**Type**: Gaussian
 
 # Work Recurrence
 
 Maintained by ChongKaKam - zhuangjx23@mails.tsinghua.edu.cn
 
 + status: complete. 
-
-+ data shape (4368, 98, 4). There are 98 locations with 4 types of flow (source) and the total timesteps are 4368
-
-+ defualt n_input = 16, n_pred = 3. The total length of a sample is 19
 
 + input tensor shape: (batch_size, time_step, tensor_dim1, tensor_dim2, 1)
 
