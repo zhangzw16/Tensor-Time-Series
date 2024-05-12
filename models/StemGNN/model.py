@@ -44,14 +44,14 @@ class StemGNN_MultiVarModel(MultiVarModelBase):
     
     def forward(self, x, aux_info: dict = ...):
         # x: (batch, time, dim1, dim2)
-        # STemGNN: (batch, time, N)
+        # STemGNN: (batch, time, N, 1)
         batch, time, dim1, dim2 = x.size()
-        value = x.view(batch, time, dim1*dim2)
-        in_data = value[:, :self.input_len, :]
-        truth = value[:, self.input_len:self.input_len+self.pred_len, :]
+        value = x.view(batch, time, dim1*dim2, 1)
+        in_data = value[:, :self.input_len, :, :]
+        truth = value[:, self.input_len:self.input_len+self.pred_len, :, :]
         # normalization
         in_data = self.normalizer.transform(in_data)
-        pred, _ = self.model(in_data)
+        pred = self.model(in_data)
         # inverse
         pred = self.normalizer.inverse_transform(pred)
 
