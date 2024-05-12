@@ -195,7 +195,6 @@ class ST_Norm_MultiVarModel(MultiVarModelBase):
         super().__init__(configs)
         self.configs = configs
         self.init_model()
-        self.init_others()
 
     def init_model(self, args=...) -> nn.Module:
         # task configs
@@ -222,8 +221,10 @@ class ST_Norm_MultiVarModel(MultiVarModelBase):
     
     def forward(self, x, aux_info: dict = ...):
         # x: (batch, time, dim1, dim2)
-        # ST_Norm: ()
+        # ST_Norm: (batch, time, N, 1)
         value = x[:, :, :self.tensor_shape[0], :self.tensor_shape[1]]
+        batch, time, dim1, dim2 = value.size()
+        value = value.view(batch, time, dim1*dim2, 1)
         in_data = value[:, :self.input_len, :, :]
         truth = value[:, self.input_len:self.input_len+self.pred_len, :, :]
         # normal

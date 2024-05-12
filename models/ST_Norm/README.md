@@ -1,4 +1,4 @@
-# TensorModel - ST_Norm
+# MultivariateModel - ST_Norm
 **Title**: ST-Norm: Spatial and Temporal Normalization for Multi-variate Time Series Forecasting
 
 **Authors**: Jinliang Deng, Xiusi Chen, Renhe Jiang, ...
@@ -15,8 +15,4 @@ Maintained by ChongKaKam - zhuangjx23@mails.tsinghua.edu.cn
 
 + status: finished
 
-+ data shape: (4368, 98, 4) 
-
-+ n_his = 16, n_pred = 3
-
-+ input tensor shape: (batch, time, dim1, dim2, 1)
++ input MT shape: (batch, time, N, 1)
