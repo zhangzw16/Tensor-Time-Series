@@ -12,7 +12,7 @@ project_name: 'TensorTS'
 
 # Model
 model_type: 'Tensor'
-model_name: 'AGCRN'
+model_name: 'MTGNN'
 model_path: '' # the model parameters loaded in test phase. Setting '' will turn to '{output_dir}/model.pth'
 
 # Dataset & Dataloader
