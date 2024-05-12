@@ -26,12 +26,12 @@ class TTS_Dataset:
         # TTS format:
         # shape = (t, dim1, dim2)
         self.set_data_mode(data_mode)
-        self.data = self.data_pkl['data']
-        data_shape = self.data.shape
-        self.time_range = data_shape[0]
-        self.dim1_range = data_shape[1]
-        self.dim2_range = data_shape[2]
-        self.sample = 1
+        # self.data = self.data_pkl['data']
+        # data_shape = self.data.shape
+        # self.time_range = data_shape[0]
+        # self.dim1_range = data_shape[1]
+        # self.dim2_range = data_shape[2]
+        # self.sample = 1
         # split data
         train_ratio = 1 - test_ratio - valid_ratio
         if train_ratio < 0:
@@ -77,11 +77,13 @@ class TTS_Dataset:
         elif data_mode == 1:
             self.data = self.data.transpose(0,2,1)
             data_shape = self.data.shape
+            self.time_range = data_shape[0]
             self.dim1_range = data_shape[1]
             self.dim2_range = data_shape[2]
         elif data_mode == 2:
             self.data = self.data.reshape(self.data.shape[0], -1, 1)
             data_shape = self.data.shape
+            self.time_range = data_shape[0]
             self.dim1_range = data_shape[1]
             self.dim2_range = data_shape[2]
 
