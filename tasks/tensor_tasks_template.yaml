@@ -11,18 +11,18 @@ logger: 'none'
 project_name: 'TensorTS'
 
 # Model
-model_type: 'Tensor'
-model_name: 'MTGNN'
+model_type: 'MultiVar'  # ['Tensor', 'MultiVar']
+model_name: 'TimesNet'
 model_path: '' # the model parameters loaded in test phase. Setting '' will turn to '{output_dir}/model.pth'
 
 # Dataset & Dataloader
-dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/data/Processed_Data/JONAS_NYC_taxi/JONAS_NYC_taxi.pkl' #'/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/data/Processed_Data/Metr-LA/Metr-LA.pkl'
+dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/data/Processed_Data/JONAS_NYC_taxi/JONAS_NYC_taxi.pkl'
 # the shape of data read from .pkl is (time, dim1, dim2),
 # set data mode to change the shape
 # - 0: (time, dim1, dim2)
 # - 1: (time, dim2, dim1)
-# - 2: (time, dim1*dim2, 1) 
-data_mode: 0
+# - 2: (time, dim1*dim2, 1)
+data_mode: 2
 batch_size: 16
 his_len:  12
 pred_len: 3

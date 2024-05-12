@@ -33,22 +33,30 @@ class TensorTask(TaskBase):
         self.data_mode = configs['data_mode']
         self.his_len = configs['his_len']
         self.pred_len = configs['pred_len']
+        normalizer_name = configs['normalizer']
+        self.model_type = configs['model_type']
+        self.model_name = configs['model_name']
+        if self.model_type == 'MultiVar':
+            self.data_mode = 2
+
+        # ensure output_dir
+        run_id = f"{self.data_mode}-{self.his_len}-{self.pred_len}-{normalizer_name}"
+        self.output_dir = os.path.join(self.output_dir, f'{self.model_name}-out', run_id)
+        self.ensure_output_dir(self.output_dir)
+        with open(os.path.join(self.output_dir, 'snapshot.yml'), 'w') as file:
+            yaml.dump(configs, file)
 
         # prepare for dataset
         self.dataset = TTS_Dataset(self.pkl_path, 
-                                   his_len=self.his_len, pred_len=self.pred_len ,test_ratio=0.1, valid_ratio=0.1, seed=2024)
-        self.trainloader = TTS_DataLoader(self.dataset, 'train', batch_size=16, drop_last=False)
-        self.validloader = TTS_DataLoader(self.dataset, 'valid', batch_size=16, drop_last=False)
-        self.testloader = TTS_DataLoader(self.dataset, 'test', batch_size=1, drop_last=False)
+                                   his_len=self.his_len, pred_len=self.pred_len ,
+                                   test_ratio=0.1, valid_ratio=0.1, seed=self.seed, data_mode=self.data_mode)
+        self.trainloader = TTS_DataLoader(self.dataset, 'train', batch_size=self.batch_size, drop_last=False)
+        self.validloader = TTS_DataLoader(self.dataset, 'valid', batch_size=self.batch_size, drop_last=False)
+        self.testloader  = TTS_DataLoader(self.dataset, 'test' , batch_size=1, drop_last=False)
         
         # prepare for model
         model_manager = ModelManager()
-        self.model_type = configs['model_type']
-        if self.model_type != 'Tensor':
-            raise ValueError(f'TensorTask only supports TensorModel. ERR: {self.model_type}')
-        self.model_name = configs['model_name']
-        model_configs = configs
-        normalizer_name = model_configs['normalizer']
+        model_configs = configs.copy()
         model_configs['normalizer'] = self.dataset.get_normalizer(norm=normalizer_name)
         model_configs['graphGenerator'] = GraphGenerator(self.dataset)
         model_configs['tensor_shape'] = self.dataset.get_tensor_shape()
@@ -60,13 +68,6 @@ class TensorTask(TaskBase):
         self.metrics_list  = configs['metrics_list']
         self.metrics_thres = configs['metrics_thres']
         self.evaluator = Evaluator(self.metrics_list, self.metrics_thres)
-
-        # ensure output_dir
-        run_id = f"{self.data_mode}-{self.his_len}-{self.pred_len}-{normalizer_name}"
-        self.output_dir = os.path.join(self.output_dir, f'{self.model_name}-out', run_id)
-        self.ensure_output_dir(self.output_dir)
-        with open(os.path.join(self.output_dir, 'snapshot.yml'), 'w') as file:
-            yaml.dump(configs, file)        
 
         # logger
         logger_manager = LoggerManager()
@@ -85,6 +86,7 @@ class TensorTask(TaskBase):
         print(f"max_epoch: {self.max_epoch}, early_stop: {self.early_stop_max}")
         print(f"The output path: {self.output_dir}")
         print('-'*40)
+        
     def train(self):
         for i in range(self.max_epoch):
             epoch_info = {}
