@@ -13,6 +13,8 @@
 
 Maintained by ChongKaKam - zhuangjx23@mails.tsinghua.edu.cn
 
-+ status: 
++ status: finished
 
-+ input tensor shape: (batch, time, dim1, dim2)
++ input tensor shape: (batch, time, dim1*dim2)
+
++ !!!Attention: Mmodel only supports 'MSE' loss function so far....
