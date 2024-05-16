@@ -329,6 +329,6 @@ class DMSTGCN_TensorModel(TensorModelBase):
         self.optim.zero_grad()
         loss.backward()
         if self.clip is not None:
-            torch.nn.utils.clip_grad_norm(self.model.parameters(), self.clip)
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.clip)
         self.optim.step()
     

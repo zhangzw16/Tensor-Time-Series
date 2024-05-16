@@ -70,10 +70,11 @@ class TensorTask(TaskBase):
         self.evaluator = Evaluator(self.metrics_list, self.metrics_thres)
 
         # logger
-        logger_manager = LoggerManager()
-        run_name = f"{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}-{normalizer_name}"
-        self.logger = logger_manager.init_logger(self.logger_name, self.output_dir, self.project_name, run_name)
-        self.logger.init()
+        if self.configs['mode'] == 'train':
+            logger_manager = LoggerManager()
+            run_name = f"{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}-{normalizer_name}"
+            self.logger = logger_manager.init_logger(self.logger_name, self.output_dir, self.project_name, run_name, self.configs)
+            self.logger.init()
 
         # basic info:
         print('-'*40)
@@ -88,11 +89,11 @@ class TensorTask(TaskBase):
         print('-'*40)
         
     def train(self):
+        # self.best_epoch_info = {}
         for i in range(self.max_epoch):
             epoch_info = {}
             epoch_mean_train_loss = self.epoch_train()
             epoch_mean_valid_loss, valid_result = self.epoch_valid()
-            early_stop_flag = self.early_stop(epoch_mean_valid_loss)
             print(f"epoch: {i}, mean_train_loss: {epoch_mean_train_loss:.3f}, mean_valid_loss:{epoch_mean_valid_loss:.3f}")
             # logger info
             epoch_info['train/loss'] = epoch_mean_train_loss
@@ -100,7 +101,7 @@ class TensorTask(TaskBase):
             for metric in valid_result:
                 epoch_info[f'valid/{metric}'] = valid_result[metric]
             self.logger.log(epoch_info)
-
+            early_stop_flag = self.early_stop(epoch_mean_valid_loss, epoch_info)
             # early stop
             if early_stop_flag:
                 break
@@ -113,11 +114,17 @@ class TensorTask(TaskBase):
         # TODO: show training summary
         print('training finished...')
         print(f'The best valid loss: {self.best_valid_loss}')
+        if self.best_epoch_info is not None:
+            print('='*40)
+            for key in self.best_epoch_info:
+                print(f"{key}: {self.best_epoch_info[key]}")
+            print('='*40)
 
     def epoch_train(self):
         self.model.train()
         loss_list = []
         for seq, aux_info in self.trainloader.get_batch(separate=False):
+            # print(f"train: {seq.shape}");exit()
             seq = seq.to(self.device)
             pred, truth = self.model.forward(seq, aux_info)
             # print(seq.shape, pred.shape, truth.shape);exit()
@@ -160,12 +167,16 @@ class TensorTask(TaskBase):
         with torch.no_grad():
             pred_list = []
             truth_list = []
-            for seq in self.testloader.get_batch(separate=False):
+            for seq,aux_info in self.testloader.get_batch(separate=False):
+                # print(f'seq: {seq.shape}')
                 seq = seq.to(self.device)
-                pred, truth = self.model.forward(seq)
+                pred, truth = self.model.forward(seq,aux_info)
+                pred = pred.cpu().numpy()
+                truth = truth.cpu().numpy()
                 pred_list.append(pred)
                 truth_list.append(truth)
         pred = np.array(pred_list)
         truth = np.array(truth_list)
         result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
+        print(result)
         return result

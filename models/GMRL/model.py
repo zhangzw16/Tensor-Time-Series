@@ -361,7 +361,7 @@ class GMRL_TensorModel(TensorModelBase):
     def load_model(self, path: str):
         checkpoint = torch.load(path, map_location='cpu')
         own_state = self.model.state_dict()
-        for name, param in checkpoint:
+        for name, param in checkpoint.items():
             if isinstance(param, Parameter):
                 param = param.data
                 try:

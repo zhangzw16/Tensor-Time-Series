@@ -16,11 +16,12 @@ class LoggerBase:
         pass
 
 class Logger_none(LoggerBase):
-    def __init__(self, dir: str, project: str, name: str) -> None:
+    def __init__(self, dir: str, project: str, name: str, configs:dict) -> None:
         super().__init__(dir, project, name)
         self.log_dir = dir
         self.project = project
         self.name = name
+        self.configs = configs
     def init(self):
         print(f'logger-none init:')
         print(f"project: {self.project}")
@@ -34,13 +35,14 @@ class Logger_none(LoggerBase):
         print('Logger_none: Goodbye...')
 
 class Logger_wandb(LoggerBase):
-    def __init__(self, dir:str, project:str, name:str) -> None:
+    def __init__(self, dir:str, project:str, name:str, configs:dict) -> None:
         super().__init__(dir, project, name)
         self.log_dir = os.path.join(dir, 'wandb_log')
         self.project_name = project
         self.run_name = name
-
+        self.configs = configs
     def init(self):
+        os.makedirs(self.log_dir, exist_ok=True)
         self.logger =wandb.init(
             project=self.project_name, name=self.run_name,
             config=self.configs, dir=self.log_dir)
@@ -60,8 +62,8 @@ class LoggerManager:
             'wandb': Logger_wandb,
         }
 
-    def init_logger(self, logger_name:str, dir:str, project:str, name:str):
+    def init_logger(self, logger_name:str, dir:str, project:str, name:str, configs:dict):
         logger = self.log_map[logger_name]
-        logger = logger(dir=dir, project=project, name=name)
+        logger = logger(dir=dir, project=project, name=name, configs=configs)
         return logger
     

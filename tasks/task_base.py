@@ -12,9 +12,9 @@ class TaskBase:
 
     def ensure_output_dir(self, path:str):
         if not os.path.exists(path):
-            os.makedirs(path)
+            os.makedirs(path,)
 
-    def early_stop(self, valid_loss)->bool:
+    def early_stop(self, valid_loss, epoch_info:dict={})->bool:
         # check loss and update
         if valid_loss < self.best_valid_loss:
             self.best_valid_loss = valid_loss
@@ -23,6 +23,7 @@ class TaskBase:
                 save_path = os.path.join(self.output_dir, 'model.pth')
                 self.model.save_model(save_path)
                 print(f'model saved in: {save_path}')
+                self.best_epoch_info = epoch_info
         else:
             self.early_stop_cnt += 1
         # check cnt and return stop flag

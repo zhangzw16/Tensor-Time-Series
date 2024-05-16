@@ -44,14 +44,21 @@ class NET3(nn.Module):
         """
         if indicators is None:
             indicators = torch.ones_like(values, dtype=torch.float)
-        # print(values.shape);exit()
+        # print(values.shape, indicators.shape);exit()
         n_steps = values.shape[-1]
         out_list = []
         for t in range(n_steps):
             if t == 0:
                 emb = (values[..., t]*indicators[..., t]).unsqueeze(-1)   # [batch_size, n_1, n_2, ..., n_M, dim]
             else:
-                v = indicators[..., t]*values[..., t] + (1 - indicators[..., t])*out_list[-1]  # fill the missing values
+                
+                out_last = out_list[-1]
+                if out_last.size(-1) != 2:
+                    # out_last = out_last.permute(2,0,1)
+                    out_last = out_last.squeeze(-1)
+                    out_last = out_last.unsqueeze(0)
+                # print(indicators.shape, values.shape, out_last.shape);exit()
+                v = indicators[..., t]*values[..., t] + (1 - indicators[..., t])*out_last  # fill the missing values
                 emb = (v * torch.ones_like(v)).unsqueeze(-1)
 
             emb_gcn = self.tgcn(inputs=emb, adj=adj)
@@ -132,9 +139,14 @@ class NET3_TensorModel(TensorModelBase):
         value = self.normalizer.transform(value)
         adj = self.network
         pred, hx = self.model(values=value[...,:-1], adj=adj)        
+        # print(f"out: pred:{pred.shape}, truth: {value.shape}");exit()
+        if value.shape[0] != pred.shape[0]:
+            d1, d2, d3, d4 = value.size()
+            pred = pred.view((d1,d2,d3,d4-1))
         model_pred = pred[..., -1]
         model_pred = self.normalizer.inverse_transform(model_pred)
         truth = value[..., -1]
+        
         return model_pred, truth
     
     def backward(self, loss):
