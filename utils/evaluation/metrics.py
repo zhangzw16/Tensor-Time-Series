@@ -13,8 +13,10 @@ def rmse(prediction, target, threshold=None):
         target(ndarray): same shape with prediction, [batch_size, ...]
         threshold(float): data smaller or equal to threshold in target will be removed in computing the rmse
     """
+    # print(prediction.shape)
     if threshold is None:
         return np.sqrt(np.mean(np.square(prediction - target)))
+        # return (np.mean((prediction-target)**2, axis=(0,2))**0.5)
     else:
         return np.sqrt(np.dot(np.square(prediction - target).reshape([1, -1]),
                               target.reshape([-1, 1]) > threshold) / np.sum(target > threshold))[0][0]
@@ -46,9 +48,12 @@ def mape(prediction, target, threshold=0):
         target(ndarray): same shape with prediction, [batch_size, ...]
         threshold(float): data smaller than threshold in target will be removed in computing the mape.
     """
-    assert threshold >= 0
-    return (np.dot((np.abs(prediction - target) / (target + (1 - (target > threshold)))).reshape([1, -1]),
-                   target.reshape([-1, 1]) > threshold) / np.sum(target > threshold))[0, 0]
+    prediction = prediction.reshape(-1)
+    target = target.reshape(-1)
+    
+    # Avoid division by zero
+    mask = target != 0
+    return np.mean(np.abs((prediction[mask] - target[mask]) / target[mask]))
 
 
 def mae(prediction, target, threshold=None):
