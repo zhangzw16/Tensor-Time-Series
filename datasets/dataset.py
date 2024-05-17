@@ -37,17 +37,21 @@ class TTS_Dataset:
         if train_ratio < 0:
             raise ValueError(f"invalid ratio. train:{train_ratio}, valid:{valid_ratio}, test:{test_ratio}")
         data_index = list(range(int(self.time_range)-(his_len+pred_len)))
-        random.shuffle(data_index)
+        # random.shuffle(data_index)
         train_index_end = int(self.time_range*train_ratio)
         valid_index_end = int(self.time_range*valid_ratio) + train_index_end
         self.trainset = data_index[:train_index_end]
+        random.shuffle(self.trainset)
         self.validset = data_index[train_index_end:valid_index_end]
+        random.shuffle(self.validset)
         self.testset  = data_index[valid_index_end:]
+        random.shuffle(self.testset)
         self.dataset_map = {
             'train': self.trainset,
             'valid': self.validset,
             'test' : self.testset
         }
+        # print(len(self.trainset), len(self.validset), len(self.testset));exit()
 
     def get_dataset(self, name:str):
         return self.dataset_map[name]
