@@ -4,12 +4,12 @@ There are two types of models, 'Tensor' or 'MultiVar'.
 
 Tensor model supports (batch, time, dim1, dim2) input and output, while Multivariate model only supports (batch, time, dim1) input and output.
 
-## Tensor Model (6)
+## Tensor Model (5)
 + TTS_Norm: Normalization - (ACM Trans 2023)
 + GMRL:  Gaussian  - (IJCAI 2023)
 + NET3:            - (WWW 2021)
-<!-- + STC_GNN:         - (CIKM 2021) -->
-+ DMSTGCN:         - (KDD 2021)
+<!-- + STC_GNN:         - (CIKM 2021)  -->
+<!-- + DMSTGCN:         - (KDD 2021) -->
 + AGCRN: GCN + RNN - (NeurIPS 2020)
 + MTGNN: GCN + TCN - (KDD 2020)
 

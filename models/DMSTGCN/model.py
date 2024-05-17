@@ -144,6 +144,7 @@ class DMSTGCN(nn.Module):
                 new_dilation *= 2
                 receptive_field += additional_scope
                 additional_scope *= 2
+                # print(f'rec: {receptive_field}, add: {additional_scope}')
                 self.gconv.append(
                     gcn(dilation_channels, residual_channels, dropout, support_len=self.supports_len, order=order))
                 self.gconv_a.append(
@@ -164,6 +165,7 @@ class DMSTGCN(nn.Module):
                                     bias=True)
 
         self.receptive_field = receptive_field
+        # print(f'rec:{self.receptive_field}')
 
     def dgconstruct(self, time_embedding, source_embedding, target_embedding, core_embedding):
         adp = torch.einsum('ai, ijk->ajk', time_embedding, core_embedding)
@@ -181,6 +183,7 @@ class DMSTGCN(nn.Module):
             xo = nn.functional.pad(inputs, (self.receptive_field - in_len, 0, 0, 0))
         else:
             xo = inputs
+        # print(inputs.shape, xo.shape);exit()
         x = self.start_conv(xo[:, [0]])
         x_a = self.start_conv_a(xo[:, [1]])
         skip = 0
@@ -218,7 +221,7 @@ class DMSTGCN(nn.Module):
                 skip = s.transpose(2, 3).reshape([s.shape[0], -1, s.shape[2], 1]).contiguous()
             else:
                 skip = torch.cat([s.transpose(2, 3).reshape([s.shape[0], -1, s.shape[2], 1]), skip], dim=1).contiguous()
-
+            
             # dynamic graph convolutions
             x = self.gconv[i](x, new_supports)
             x_a = self.gconv_a[i](x_a, new_supports_a)
@@ -232,9 +235,11 @@ class DMSTGCN(nn.Module):
             x = x + residual[:, :, :, -x.size(3):]
             x = self.normal[i](x)
             x_a = self.normal_a[i](x_a)
-
+            print(f"skip: {skip.shape}")
         # output layer
+        # print(skip.shape);exit()
         x = F.relu(skip)
+        # x = x.view(512,416,1,1)
         x = F.relu(self.end_conv_1(x))
         x = self.end_conv_2(x)
         return x
@@ -273,7 +278,8 @@ class DMSTGCN_TensorModel(TensorModelBase):
         self.end_channels = model_configs['end_channels']
         self.skip_channels = model_configs['skip_channels']
         self.kernel_size = model_configs['kernel_size']
-        self.blocks = model_configs['blocks']
+        # self.blocks = model_configs['blocks']
+        self.blocks = int((self.input_len-1)/3)+1      # blocks >= int((L-1)/3), given layer=2
         self.layers = model_configs['layers']
         # Init model
         self.clip = 5
@@ -305,14 +311,16 @@ class DMSTGCN_TensorModel(TensorModelBase):
     def forward(self, x, aux_info:dict={}):
         # x [batch, time, dim1, dim2], dim1=node, dim2=feature
         # DMSGCN [batch, featrue, node, time]
+        
         value = x[:, :, :self.input_tensor_shape[0], :self.input_tensor_shape[1]]
         value = value.permute(0,3,2,1)
+        # print(f'value: {value.shape}, {self.input_len}, {self.pred_len}');exit()
         in_data = value[:, :, :, :self.input_len]
         in_data = self.normalizer.transform(in_data)
         truth = value[:, 0, :, self.input_len:self.input_len+self.pred_len]
-
+        # print(f'truth: {truth.shape}');exit()
         ind = aux_info['idxs'] % self.days
-        in_data = nn.functional.pad(in_data, (1,0,0,0))
+        # in_data = nn.functional.pad(in_data, (1,0,0,0))
         pred = self.model(in_data, ind)
 
         pred = pred.transpose(1, 3)
