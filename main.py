@@ -15,9 +15,9 @@ if __name__ == '__main__':
     task = TensorTask(configs)
 
     # mode = ['train', 'test', 'train-test']
-    if mode=='train' or mode == 'train-test':
+    if mode=='train':
         task.train()
-    
-    if mode=='test' or mode == 'train-test':
+        task.test()
+    if mode=='test':
         res = task.test()
 

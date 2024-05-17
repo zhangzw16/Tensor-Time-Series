@@ -40,8 +40,9 @@ class TensorTask(TaskBase):
             self.data_mode = 2
 
         # ensure output_dir
-        run_id = f"{self.data_mode}-{self.his_len}-{self.pred_len}-{normalizer_name}"
-        self.output_dir = os.path.join(self.output_dir, f'{self.model_name}-out', run_id)
+        run_id = f"{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}-{normalizer_name}"
+        # self.output_dir = os.path.join(self.output_dir, f'{self.model_name}-out', run_id)
+        self.output_dir = os.path.join(self.output_dir, f"{self.project_name}", run_id)
         self.ensure_output_dir(self.output_dir)
         with open(os.path.join(self.output_dir, 'snapshot.yml'), 'w') as file:
             yaml.dump(configs, file)
