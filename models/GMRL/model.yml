@@ -8,9 +8,9 @@
 # pred_len: 3
 
 # parameters
-Lambda: 1               # balancing parameter, default is 1
+Lambda: 1             # balancing parameter, default is 1
 Gussian_Component: 17   # [4 - 17] is fine
-HRA_Enable: false       # using HRA or not
+HRA_Enable: true       # using HRA or not
 Layers: log             # log: layers = int(log2(n_his)), you can type numbers to replace this setting.
 Mix_Loss: true          # mix loss or reg loss
 

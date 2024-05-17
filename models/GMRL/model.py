@@ -303,11 +303,12 @@ class GMRL_TensorModel(TensorModelBase):
         self.model = GMRL(num_comp=num_comp, num_nodes=tensor_shape[0], num_source=tensor_shape[1],
                           n_his=n_his_of_model, n_pred=self.n_pred, in_dim=in_dim, out_dim=out_dim, channels=channels, kernel_size=kernal_size,
                           layers=layers, hra_bool=HRA_enable)
-        for p in self.model.parameters():
-            if p.dim() > 1:
-                nn.init.xavier_uniform_(p)
-            else:
-                nn.init.uniform_(p)
+        if self.configs['mode'] == 'train':
+            for p in self.model.parameters():
+                if p.dim() > 1:
+                    nn.init.xavier_uniform_(p)
+                else:
+                    nn.init.uniform_(p)
         # optimizer
         self.optim = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()), lr=0.0001)
         # criterion
@@ -344,9 +345,9 @@ class GMRL_TensorModel(TensorModelBase):
         return pred, truth
     
     def backward(self, loss):
-        self.optim.zero_grad()
+        self.model.zero_grad()
         loss.backward()
-        nn.utils.clip_grad_norm_(self.model.parameters(), 10)
+        # nn.utils.clip_grad_norm_(self.model.parameters(), 10)
         self.optim.step()
 
     def get_loss(self, pred, truth):
@@ -358,14 +359,14 @@ class GMRL_TensorModel(TensorModelBase):
             loss = self.criterion(pred, truth)
         return loss
     
-    def load_model(self, path: str):
-        checkpoint = torch.load(path, map_location='cpu')
-        own_state = self.model.state_dict()
-        for name, param in checkpoint.items():
-            if isinstance(param, Parameter):
-                param = param.data
-                try:
-                    own_state[name].copy_(param)
-                except:
-                    print(f"{name}: {param.shape}")
+    # def load_model(self, path: str):
+    #     checkpoint = torch.load(path)
+    #     own_state = self.model.state_dict()
+    #     for name, param in checkpoint.items():
+    #         if isinstance(param, Parameter):
+    #             param = param.data
+    #             try:
+    #                 own_state[name].copy_(param)
+    #             except:
+    #                 print(f"{name}: {param.shape}")
         # --- END ---
