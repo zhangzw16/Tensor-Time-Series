@@ -105,11 +105,11 @@ class TensorTask(TaskBase):
             # early stop
             if early_stop_flag:
                 break
-        # TODO: save model ...
         self.logger.close()
-        save_path = os.path.join(self.output_dir, 'model.pth')
-        self.model.save_model(save_path)
-        print(f'model saved in: {save_path}')
+        # save_path = os.path.join(self.output_dir, 'model.pth')
+        # self.model.save_model(save_path)
+        # print(f'model saved in: {save_path}')
+
 
         # TODO: show training summary
         print('training finished...')
@@ -161,22 +161,25 @@ class TensorTask(TaskBase):
             self.model_path = os.path.join(self.output_dir, 'model.pth')
             if not os.path.exists(self.model_path):
                 raise FileExistsError(f"can not find .pth file... {self.model_path}")
+        print(f'load model from {self.model_path}')
         self.model.load_model(self.model_path)
         # eval mode
         self.model.eval()
         with torch.no_grad():
             pred_list = []
             truth_list = []
-            for seq,aux_info in self.testloader.get_batch(separate=False):
+            for seq, aux_info in self.testloader.get_batch(separate=False):
                 # print(f'seq: {seq.shape}')
                 seq = seq.to(self.device)
-                pred, truth = self.model.forward(seq,aux_info)
+                pred, truth = self.model.forward(seq, aux_info)
                 pred = pred.cpu().numpy()
                 truth = truth.cpu().numpy()
                 pred_list.append(pred)
                 truth_list.append(truth)
-        pred = np.array(pred_list)
-        truth = np.array(truth_list)
-        result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
+                # result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
+                # print(result)
+        pred_list = np.array(pred_list).squeeze()
+        truth_list = np.array(truth_list).squeeze()
+        result = self.evaluator.eval(pred_list, truth_list, verbose=self.eval_verbose)
         print(result)
         return result
