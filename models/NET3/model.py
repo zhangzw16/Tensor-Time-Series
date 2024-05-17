@@ -53,11 +53,15 @@ class NET3(nn.Module):
             else:
                 
                 out_last = out_list[-1]
-                if out_last.size(-1) != 2:
-                    # out_last = out_last.permute(2,0,1)
-                    out_last = out_last.squeeze(-1)
-                    out_last = out_last.unsqueeze(0)
+                # print(out_last.shape)
+                # if out_last.size(-1) != 2:
+                #     # out_last = out_last.permute(2,0,1)
+                #     out_last = out_last.squeeze(-1)
+                #     out_last = out_last.unsqueeze(0)
                 # print(indicators.shape, values.shape, out_last.shape);exit()
+                # print(out_last.shape, indicators[...,t].shape);exit()
+                dim1, dim2, dim3 = indicators[..., t].size()
+                out_last = out_last.view((dim1,dim2,dim3))
                 v = indicators[..., t]*values[..., t] + (1 - indicators[..., t])*out_last  # fill the missing values
                 emb = (v * torch.ones_like(v)).unsqueeze(-1)
 
@@ -136,17 +140,17 @@ class NET3_TensorModel(TensorModelBase):
         dim1 = self.model.configs['mode_dims'][0]
         dim2 = self.model.configs['mode_dims'][1]
         value = value[:, :dim1, :dim2, :]   # ensure the correct shape (test)
-        value = self.normalizer.transform(value)
+        in_value = self.normalizer.transform(value[...,:-1])
         adj = self.network
-        pred, hx = self.model(values=value[...,:-1], adj=adj)        
+        pred, hx = self.model(values=in_value, adj=adj)        
         # print(f"out: pred:{pred.shape}, truth: {value.shape}");exit()
         if value.shape[0] != pred.shape[0]:
             d1, d2, d3, d4 = value.size()
             pred = pred.view((d1,d2,d3,d4-1))
+        model_pred = self.normalizer.inverse_transform(pred)
         model_pred = pred[..., -1]
-        model_pred = self.normalizer.inverse_transform(model_pred)
         truth = value[..., -1]
-        
+        # print(model_pred.shape, truth.shape);exit()
         return model_pred, truth
     
     def backward(self, loss):
@@ -167,5 +171,4 @@ class NET3_TensorModel(TensorModelBase):
     def get_loss_orthogonal(self):
         return self.model.tlstm.get_orthogonal_loss()
     def get_loss_reconstruction(self):
-        return self.model.tlstm.get_reconstruction_loss()
-    
+        return self.model.tlstm.get_reconstruction_loss() 
