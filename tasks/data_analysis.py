@@ -65,9 +65,20 @@ def find_top_k_periods(ts, k):
 
     # 找到最大的k个频率
     indices = np.argsort(np.abs(fft[1:-1]))[-k:]
-    periods = 1 / frequencies[indices]
+    periods = 1 / (frequencies[indices]+1e-10)
     strength = fft[indices]/np.sum(fft)
     return np.abs(periods.astype(int)), strength
+
+def find_top_k_periods_acf(ts,k):
+    if np.nonzero(ts)[0].shape[0] == 0:
+        return np.ones(k), np.ones(k)
+    acf = np.correlate(ts,ts,mode = 'full')
+    acf = acf[acf.size//2:]
+    indices = np.argsort(np.abs(acf))[-k:]
+    periods = indices
+    return np.abs(periods.astype(int))
+
+
 
 def sliding_window(sequence, embedding_dim = 10, time_delay = 1):
     # 生成滑动窗口
@@ -97,6 +108,7 @@ def permutation_entropy(windows):
     probs = np.array([counts[inv_mapdict[i]] for i in range(len(perms))]) / (num_windows)
 
     # 计算置换熵
+    probs = probs[probs > 0]
     pe = -np.nansum(probs * np.log2(probs))
 
     return pe
@@ -151,6 +163,31 @@ class DataAnalysis:
                 distances[j, i] = distances[i, j]
         return distances
 
+    def find_periods_byacf(self, k = 3):
+
+        # 对每个元素分别计算其最可能的周期
+        merge_feature = self.data.reshape(self.data.shape[0], -1)
+        res = np.array([find_top_k_periods_acf(merge_feature[:, i], k) for i in range(merge_feature.shape[1])])
+        periods = res
+        top_k_periods = []
+        for i in range(k):
+            period = periods[:,i].flatten()
+            # mean = np.mean(period)
+            # sigma = np.std(period)
+            # outliers = np.where(abs(period - mean)> 2*sigma)
+            # np.delete(period, outliers)
+            mode = stats.mode(period)[0]
+            var  = np.var(periods[:,i])
+            ratio = np.sum(periods[:,i] == mode) / periods.shape[0]
+            # strength_p = strength[periods[:,i] == mode]
+            # avg_strength = np.mean(strength_p)
+            dict = {'period': mode, 'ratio_across_variants': ratio, 'varience': var}
+            top_k_periods.append(dict)
+
+        #for large to small
+        top_k_periods = top_k_periods[::-1]
+        return top_k_periods
+
     def find_periods(self, k = 3):
 
         # 对每个元素分别计算其最可能的周期
@@ -161,12 +198,17 @@ class DataAnalysis:
         
         top_k_periods = []
         for i in range(k):
-            mode = stats.mode(periods[:,i].flatten())[0]
-            var  = np.var(periods[:,i])
-            ratio = np.sum(periods[:,i] == mode) / periods.shape[0]
-            strength_p = strength[periods[:,i] == mode]
+            period = periods[:,i].flatten()
+            mean = np.mean(period)
+            sigma = np.std(period)
+            outliers = np.where(abs(period - mean)> 2*sigma)
+            np.delete(period, outliers)
+            mode = stats.mode(period)[0]
+            var  = np.var(period)
+            ratio = np.sum(period == mode) / period.shape[0]
+            strength_p = strength[period == mode]
             avg_strength = np.mean(strength_p)
-            dict = {'period': mode, 'ratio_across_variants': ratio, 'varience': var,'amplitude': avg_strength}
+            dict = {'period': mode, 'ratio_across_variants': ratio, 'varience': var,'energy_density': avg_strength}
             top_k_periods.append(dict)
 
         #for large to small
@@ -182,23 +224,26 @@ class DataAnalysis:
 
 
 if __name__ == "__main__":
-    pkl_path = "/home/ysc/workspace/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/JONAS_NYC_bike/JONAS_NYC_bike.pkl"
+    pkl_path = '/home/ysc/workspace/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/Metr-LA/Metr-LA.pkl'
+    # pkl_path = "/home/ysc/workspace/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/JONAS_NYC_bike/JONAS_NYC_bike.pkl"
     data_analysis = DataAnalysis(pkl_path)
-    pe = data_analysis.tensor_permutation_entropy(embedding = 48, time_delay = 7)
-    sequence=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    sequence = np.linspace(0,479,480)
-    sequence = np.random.permutation(sequence)
-    sequence = np.reshape(sequence,(10,4,3,4))
-    # sequence = np.array(sequence)
-    sequence = tensor_to_value(sequence)
-    en = permutation_entropy(sequence)
+    # periods = data_analysis.find_periods_byacf(k = 3)
+    corr = data_analysis.eval_tensor(axis = 2, method = 'corelation')
+    # pe = data_analysis.tensor_permutation_entropy(embedding = 48, time_delay = 7)
+    # sequence=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    # sequence = np.linspace(0,479,480)
+    # sequence = np.random.permutation(sequence)
+    # sequence = np.reshape(sequence,(10,4,3,4))
+    # # sequence = np.array(sequence)
+    # sequence = tensor_to_value(sequence)
+    # en = permutation_entropy(sequence)
 
-    windows = sliding_window(sequence, embedding_dim = 3, time_delay = 2)
-    print(windows)
-    # evals = data_analysis.find_periods(k = 10)
-    # evels = np.where(evals > 0)[0]
-    # evals = np.mean(evals[evels])
-    matrix1 = data_analysis.data[:,:,0]
-    matrix2 = data_analysis.data[:,:,1]
-    correlation = data_analysis.calculate_correlation(matrix1, matrix2)
-    print(f"Correlation between matrix1 and matrix2: {correlation}")
+    # windows = sliding_window(sequence, embedding_dim = 3, time_delay = 2)
+    # print(windows)
+    # # evals = data_analysis.find_periods(k = 10)
+    # # evels = np.where(evals > 0)[0]
+    # # evals = np.mean(evals[evels])
+    # matrix1 = data_analysis.data[:,:,0]
+    # matrix2 = data_analysis.data[:,:,1]
+    # correlation = data_analysis.calculate_correlation(matrix1, matrix2)
+    # print(f"Correlation between matrix1 and matrix2: {correlation}")

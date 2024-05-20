@@ -88,9 +88,15 @@ def data_maker(args, flag):
         save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'_taxi','taxi')
         save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'_bike','bike')
         return None
+    elif args.data == 'PEMS':
+        maker = PEMS_data
+        # save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'04',extra_para='PEMS04')
+        # save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'08',extra_para='PEMS08')
+        save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'20',extra_para='PEMS20')
+
     else:
         raise ValueError('Invalid dataset')
-    save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name)
+    # save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name)
     return None
 
 def Metr_LA_data():
@@ -137,12 +143,35 @@ def JONAS_NYC_data(type):
     data = np.reshape(data,(raw_shape[0],raw_shape[1]*raw_shape[2],-1))
     return data, data.shape, data_type, raw_shape
 
+def PEMS_data(d_type):
+    if d_type == 'PEMS04':
+        graph_signal_matrix_filename = os.path.join(dataset_dir,'PEMS04','pems04.npz')
+        # graph_signal_matrix_filename = os.path.join(dataset_dir,'PEMS04','distance.csv')
+    elif d_type == 'PEMS08':
+        graph_signal_matrix_filename = os.path.join(dataset_dir,'PEMS08','pems08.npz')
+    elif d_type == 'PEMS20':
+        graph_signal_matrix_filename = os.path.join(dataset_dir,'PeMS20','data.csv')
+    if d_type == 'PEMS20':
+        data = pd.read_csv(graph_signal_matrix_filename,header=None)
+        data = data.fillna(0)
+        data = data.values
+        raw_shape = data.shape
+        data = np.expand_dims(data, axis=-1)
+    else:
+        # data = pd.read_csv(graph_signal_matrix_filename,header=None)
+        data = np.load(graph_signal_matrix_filename)['data']
+        raw_shape = data.shape
+    data_type = 'traffic'
+    # data = np.expand_dims(data, axis=-1)
+    return data, data.shape, data_type, raw_shape
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='pipe_sir_main: 训练与测试模型')
     # 添加参数
     # parser.add_argument('-m', '--mode', choices=['train', 'test'], required=True,
     #                     help='mode of operation')
-    parser.add_argument( '--data', type=str, default='JONAS_NYC', 
+    parser.add_argument( '--data', type=str, default='PEMS', 
                         help='config file path')
     # 解析参数
     args = parser.parse_args()
