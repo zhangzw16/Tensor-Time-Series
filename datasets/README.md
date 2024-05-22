@@ -14,7 +14,7 @@ Stay tuned for more datasets for tensor time series.
 | Transport  | [TaxiBJ](https://github.com/TolicWang/DeepST/tree/master/data/TaxiBJ)    | 30 minutes           | 4*(7220, 2, 32, 32)   | Crowd flows               | Tensor |
 | Transport  | [JONAS-NYC](https://github.com/underdoc-wang/EAST-Net/tree/main) | 30 minutes           | 2*(4800, 16, 8, 2)    | Demand & Supply          | Tensor |
 | Transport  | [JONAS-DC](https://github.com/underdoc-wang/EAST-Net/tree/main)  | 1 hour               | 2*(2400, 9, 12, 2)    | Demand & Supply          | Tensor |
-| Transport  | [COVID-CHI](https://github.com/deepkashiwa20/Urban_Concept_Drift) | 2 hours              | (6600,112)    | Demand & Supply          | MTS |
+| Transport  | [COVID-CHI](https://github.com/deepkashiwa20/Urban_Concept_Drift) | 2 hours              | (6600,14,8)    | scooters Demand & Supply          | Tensor |
 | Travel  | [COVID-US](https://github.com/underdoc-wang/EAST-Net/tree/main)  | 1 hour               | (4800, 51, 10)        | Travel purpose            | Tensor |
 | Transport  | [BikeNYC](https://citibikenyc.com/system-data)   |   -\| -     | trip records from June,2013 to January,2024            | Bike trip records         | Record |
 | Transport  | [TaxiNYC](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page)   | -\| -           | 22394,490 trip records           | Taxi trip records         | Record |
