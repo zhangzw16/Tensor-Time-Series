@@ -7,13 +7,13 @@ Stay tuned for more datasets for tensor time series.
 | Traffic  | [PEMS-2](https://drive.google.com/drive/folders/17R3RiKrDaV4nsXb-ADY7l51RRPTUx8vr)    | 5 minutes            | (61,056, 325)         | Traffic speeds           | MTS |
 | Traffic  | [LargeST](https://github.com/liuxu77/LargeST)   | 5 minutes            | (525,888, 8600)       | Traffic sensors          | MTS |
 | Traffic  | [TrafficBJ](https://github.com/deepkashiwa20/Urban_Concept_Drift) | 5 minutes            | (21,600, 3126)        | Traffic speeds           | MTS |
-| Traffic  | [TaxiBJ](https://github.com/TolicWang/DeepST/tree/master/data/TaxiBJ)    | 30 minutes           | 4*(7220, 2, 32, 32)   | Crowd flows               | Tensor |
-| Traffic  | [JONAS-NYC](https://github.com/underdoc-wang/EAST-Net/tree/main) | 30 minutes           | 2*(4800, 16, 8, 2)    | Demand & Supply          | Tensor |
-| Traffic  | [JONAS-DC](https://github.com/underdoc-wang/EAST-Net/tree/main)  | 1 hour               | 2*(2400, 9, 12, 2)    | Demand & Supply          | Tensor |
-| Traffic  | [COVID-CHI](https://github.com/underdoc-wang/EAST-Net/tree/main) | 2 hours              | 3*(6600, 14, 8, 2)    | Demand & Supply          | Tensor |
-| Traffic  | [COVID-US](https://github.com/underdoc-wang/EAST-Net/tree/main)  | 1 hour               | (4800, 51, 10)        | Travel purpose            | Tensor |
-| Traffic  | [BikeNYC](https://citibikenyc.com/system-data)   |   -\| -     | trip records from June,2013 to January,2024            | Bike trip records         | Record |
-| Traffic  | [TaxiNYC](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page)   | -\| -           | 22,394,490 trip records           | Taxi trip records         | Record |
+| Transport  | [TaxiBJ](https://github.com/TolicWang/DeepST/tree/master/data/TaxiBJ)    | 30 minutes           | 4*(7220, 2, 32, 32)   | Crowd flows               | Tensor |
+| Transport  | [JONAS-NYC](https://github.com/underdoc-wang/EAST-Net/tree/main) | 30 minutes           | 2*(4800, 16, 8, 2)    | Demand & Supply          | Tensor |
+| Transport  | [JONAS-DC](https://github.com/underdoc-wang/EAST-Net/tree/main)  | 1 hour               | 2*(2400, 9, 12, 2)    | Demand & Supply          | Tensor |
+| Transport  | [COVID-CHI](https://github.com/underdoc-wang/EAST-Net/tree/main) | 2 hours              | 3*(6600, 14, 8, 2)    | Demand & Supply          | Tensor |
+| Travel  | [COVID-US](https://github.com/underdoc-wang/EAST-Net/tree/main)  | 1 hour               | (4800, 51, 10)        | Travel purpose            | Tensor |
+| Transport  | [BikeNYC](https://citibikenyc.com/system-data)   |   -\| -     | trip records from June,2013 to January,2024            | Bike trip records         | Record |
+| Transport  | [TaxiNYC](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page)   | -\| -           | 22,394,490 trip records           | Taxi trip records         | Record |
 | Finance  | [M4](https://github.com/Mcompetitions/M4-methods)        | 1 hour ~ 1 year      | 100,000 time series   | Time series               | TS |
 | Finance  | [M5](https://www.kaggle.com/competitions/m5-forecasting-accuracy/data)        | 1 day                | (30490, 1947), (30490, 1919) (train & valid) | Walmart sales forecast   | MTS |
 | Finance  | [NASDAQ 100](https://cseweb.ucsd.edu/~yaq007/NASDAQ100_stock_data.html)   | 1 minute              | (391*191, 104), (390*191, 104) | Stock prices             | MTS |
