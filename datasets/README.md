@@ -32,3 +32,4 @@ Stay tuned for more datasets for tensor time series.
 | Health   | [PTB Diagnostic ECG Database](https://www.physionet.org/content/ptbdb/1.0.0/)    | 1 ms                  | 549 records, 16 input channels           | ECG dataset               | MTS |
 | Weather  | [Shifts-Weather](https://github.com/Shifts-Project/shifts/tree/main/weather)   |  -\| -   | (3129592, 129)        | Weather prediction        | MTS |
 | Energy   | [ElectricityLoad](http://archive.ics.uci.edu/dataset/321/electricityloaddiagrams20112014)| 15 minutes           | (140256,370)         | Electricity consumption   | MTS |
+| Natural   | [COVID-DEATHS](forecastingdata.org)| 1 day          | (140256,370)         | Electricity consumption   | MTS |
