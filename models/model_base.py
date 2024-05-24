@@ -69,3 +69,23 @@ class MultiVarModelBase(ModelBase):
 
     def get_loss(self, pred, truth):
         pass
+
+'''
+Statistic based model:
+'''
+class StatModelBase(ModelBase):
+    def __init__(self, configs:dict={}) -> None:
+        super().__init__(configs)
+        self.ModelType = 'Statistic'
+        
+    def init_model(self, args={}):
+        pass
+
+    def forward(self, x, aux_info:dict={}):
+        pass
+
+    def backward(self, loss):
+        pass
+
+    def get_loss(self, pred, truth):
+        pass

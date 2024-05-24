@@ -11,8 +11,8 @@ logger: 'none'
 project_name: 'TensorTS_NYC_Bike_16_3'
 
 # Model
-model_type: 'Tensor'  # ['Tensor', 'MultiVar']
-model_name: 'NET3'
+model_type: 'Stat'  # ['Tensor', 'MultiVar', 'Stat']
+model_name: 'HM'
 model_path: '' # the model parameters loaded in test phase. Setting '' will turn to '{output_dir}/model.pth'
 
 # Dataset & Dataloader

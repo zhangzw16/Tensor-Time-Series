@@ -21,6 +21,6 @@ Tensor model supports (batch, time, dim1, dim2) input and output, while Multivar
 + StemGNN:  GCN + TCN + Spectral  - (NeurIPS 2020)
 
 
-## TODO: Statistic Model (2)
+## Statistic Model (2)
 + HM
 + ARIMA
