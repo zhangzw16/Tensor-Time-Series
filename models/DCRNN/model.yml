@@ -1,0 +1,6 @@
+# enc_input_dim: 2
+dec_input_dim: 1
+max_diffusion_step: 2
+num_rnn_layers: 2
+rnn_units: 64
+filter_type: 'dual_random_walk'
