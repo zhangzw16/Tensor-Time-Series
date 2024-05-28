@@ -26,7 +26,8 @@ class AGCRN_TensorModel(TensorModelBase):
         model_configs = yaml.safe_load(open(model_configs_yaml))
         self.input_dim = self.tensor_shape[1]
         self.output_dim = self.input_dim
-        self.embed_dim = model_configs['embed_dim']
+        # self.embed_dim = model_configs['embed_dim']
+        self.embed_dim = self.tensor_shape[1]
         self.rnn_units = model_configs['rnn_units']
         self.hidden_dim = self.rnn_units
         self.num_layers = model_configs['num_layers']

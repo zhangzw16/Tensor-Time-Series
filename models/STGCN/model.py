@@ -225,7 +225,8 @@ class STGCN_MultiVarModel(MultiVarModelBase):
         self.device = self.configs["task_device"]
 
         # use graph generator implemented in utils.graph
-        self.normalizer = preprocessing.StandardScaler() #self.configs["normalizer"]
+        # self.normalizer = preprocessing.StandardScaler() 
+        self.normalizer = self.configs["normalizer"]
 
         # configure model parameters
         model_configs_yaml = os.path.join(os.path.dirname(__file__), "model.yml")
@@ -331,7 +332,7 @@ class STGCN_MultiVarModel(MultiVarModelBase):
         #                    0         1
         self.graph_generator = self.configs['graphGenerator']
         self.adj = torch.from_numpy(
-            self.graph_generator.cosine_similarity_matrix(n_dim=0, normal=True)
+            self.graph_generator.gen_graph(n_dim=0, normal=True)
         ).float()
         self.n_vertex = self.adj.size(0)
 
@@ -346,7 +347,11 @@ class STGCN_MultiVarModel(MultiVarModelBase):
         x_hist = x1.permute(0, 3, 1, 2)
         y = x[:, self.input_len + self.pred_len - 1, :, :]
         truth = y.squeeze()
+        x_hist = self.normalizer.transform(x_hist)
         y_pred = self.model(x_hist).view(len(x), -1)  # y_pred: [batch_size, n_vertex]
+        y_pred = self.normalizer.inverse_transform(y_pred)
+        # print(f"{y_pred.shape}, {truth.shape}")
+        # exit()
         return y_pred, truth
 
     def backward(self, loss):

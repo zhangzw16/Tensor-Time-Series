@@ -111,22 +111,12 @@ class NET3_TensorModel(TensorModelBase):
         self.criterion = utils.mse_loss
 
     def init_others(self, dataset_name=None):
-        # network_dir = "/home/zhuangjiaxin/workspace/Tensor-Time-Series/repos/NET3/dataset_processed/future/networks.pkl"
-        # networks = pickle.load(
-        #     open(os.path.join(network_dir), 'rb')
-        # )
-        # for n in networks:
-        #     networks[n] = torch.from_numpy(networks[n]).float()
         self.network = {}
-        # data_shape: (time, dim1, dim2)
-        #                     0     1
-        # print(self.tensor_shape)
-        self.network[0] = torch.from_numpy(self.graph_generator.cosine_similarity_matrix(n_dim=0, normal=True)).float()
-        self.network[1] = torch.from_numpy(self.graph_generator.pearson_matrix(n_dim=1, normal=True)).float()
-        # print(self.network[0].shape)
-        # print(self.network[1].shape)
-        # exit()
-    
+        # self.network[0] = torch.from_numpy(self.graph_generator.cosine_similarity_matrix(n_dim=0, normal=True)).float()
+        # self.network[1] = torch.from_numpy(self.graph_generator.pearson_matrix(n_dim=1, normal=True)).float()
+        self.network[0] = torch.from_numpy(self.graph_generator.gen_graph(n_dim=0, normal=True)).float()
+        self.network[1] = torch.from_numpy(self.graph_generator.gen_graph(n_dim=1, normal=True)).float()
+
     def set_device(self, device='cpu'):
         self.model.to(device)
         for n in self.network:
