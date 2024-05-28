@@ -41,7 +41,7 @@ metrics_list:
   - rmse
   - mape
   - smape
-  - pcc
+  # - pcc
 
 metrics_thres: {}
 
