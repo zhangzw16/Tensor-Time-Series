@@ -4,12 +4,11 @@ import torch
 import numpy as np
 from tasks.task_base import TaskBase
 from models import ModelManager
-from models.model_base import TensorModelBase
 from datasets.dataset import TTS_Dataset
 from datasets.dataloader import TTS_DataLoader
 from utils.evaluation import Evaluator
 from utils.logger.Logger import LoggerManager
-from utils.graph.graphGenerator import GraphGenerator
+from utils.graph.graphGenerator import GraphGeneratorManager
 
 
 class TensorTask(TaskBase):
@@ -59,7 +58,9 @@ class TensorTask(TaskBase):
         model_manager = ModelManager()
         model_configs = configs.copy()
         model_configs['normalizer'] = self.dataset.get_normalizer(norm=normalizer_name)
-        model_configs['graphGenerator'] = GraphGenerator(self.dataset)
+        # model_configs['graphGenerator'] = GraphGenerator(self.dataset)
+        graph_init = model_configs['graph_init']
+        model_configs['graphGenerator'] = GraphGeneratorManager(graph_init, self.dataset)
         model_configs['tensor_shape'] = self.dataset.get_tensor_shape()
         self.model = model_manager.get_model_class(self.model_type, self.model_name)(model_configs)
         self.model.set_device(self.device)
@@ -90,7 +91,7 @@ class TensorTask(TaskBase):
         print('-'*40)
         
     def train(self):
-        # self.best_epoch_info = {}
+        self.best_epoch_info = {}
         for i in range(self.max_epoch):
             epoch_info = {}
             epoch_mean_train_loss = self.epoch_train()
@@ -128,7 +129,6 @@ class TensorTask(TaskBase):
             # print(f"train: {seq.shape}");exit()
             seq = seq.to(self.device)
             pred, truth = self.model.forward(seq, aux_info)
-            # print(seq.shape, pred.shape, truth.shape);exit()
             epoch_train_loss = self.model.get_loss(pred, truth)
             self.model.backward(epoch_train_loss)
             loss_list.append(epoch_train_loss.item())

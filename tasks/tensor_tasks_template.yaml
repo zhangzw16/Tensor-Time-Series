@@ -8,16 +8,16 @@ early_stop_max: 32
 # Output path & Logger
 output_dir: './output/'
 logger: 'none'
-project_name: 'TensorTS_NYC_Bike_16_3'
+project_name: 'TensorTS_NYC_Taxi_16_3'
 
 # Model
-model_type: 'Stat'  # ['Tensor', 'MultiVar', 'Stat']
-model_name: 'HM'
+model_type: 'Tensor'  # ['Tensor', 'MultiVar', 'Stat']
+model_name: 'GraphWaveNet'
 model_path: '' # the model parameters loaded in test phase. Setting '' will turn to '{output_dir}/model.pth'
 
 # Dataset & Dataloader
-# dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/data/Processed_Data/JONAS_NYC_taxi/JONAS_NYC_taxi.pkl'
-dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/JONAS_NYC_bike/JONAS_NYC_bike.pkl'
+dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/JONAS_NYC_taxi/JONAS_NYC_taxi.pkl'
+# dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/JONAS_NYC_bike/JONAS_NYC_bike.pkl'
 # dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/Metr-LA/Metr-LA.pkl'
 # dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/temp/GRML_datta.pkl'
 # the shape of data read from .pkl is (time, dim1, dim2),
@@ -26,10 +26,11 @@ dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series
 # - 1: (time, dim2, dim1)
 # - 2: (time, dim1*dim2, 1)
 data_mode: 0
-batch_size: 16
+batch_size: 32
 his_len:  16
-pred_len: 3
+pred_len: 12
 normalizer: 'std' # ['none', 'std']
+graph_init: 'pearson'  # ['pearson', 'invers_pearson', 'random', 'cosine']
 test_ratio:  0.1
 valid_ratio: 0.1
 
@@ -38,14 +39,9 @@ evaluator_verbose: false
 metrics_list:
   - mae
   - rmse
-  # - trunc_rmse
   - mape
-  # - trunc_mape
-  # - smape
-  # - trun_smape
-  # - masked_rmse
-  # - masked_mae
-  # - masked_mape
+  - smape
+  - pcc
 
 metrics_thres: {}
 
