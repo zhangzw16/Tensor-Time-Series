@@ -8,11 +8,19 @@ early_stop_max: 32
 # Output path & Logger
 output_dir: './output/'
 logger: 'none'
+<<<<<<< HEAD
+project_name: 'AutoTest_NYC_Bike_16_3'
+
+# Model
+model_type: 'MultiVar'  # ['Tensor', 'MultiVar']
+model_name: 'CrossFormer'
+=======
 project_name: 'TensorTS_NYC_Taxi_16_3'
 
 # Model
 model_type: 'Tensor'  # ['Tensor', 'MultiVar', 'Stat']
 model_name: 'GraphWaveNet'
+>>>>>>> d656c09fec08cdffbc649a075f4e758afa2aaeff
 model_path: '' # the model parameters loaded in test phase. Setting '' will turn to '{output_dir}/model.pth'
 
 # Dataset & Dataloader
