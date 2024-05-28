@@ -8,6 +8,7 @@ class ModelManager:
         self.model_type_map = {
             'Tensor': 'TensorModel',
             'MultiVar': 'MultiVarModel',
+            'Stat': 'StatModel',
         }
     def get_model_class(self, model_type:str, name:str)->ModelBase:
         try:

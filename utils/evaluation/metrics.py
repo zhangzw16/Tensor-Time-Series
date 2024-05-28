@@ -20,24 +20,6 @@ def rmse(prediction, target, threshold=None):
     else:
         return np.sqrt(np.dot(np.square(prediction - target).reshape([1, -1]),
                               target.reshape([-1, 1]) > threshold) / np.sum(target > threshold))[0][0]
-
-def trunc_rmse(prediction, target, threshold=0):
-    
-    """
-    Root Mean Square Error with Truncation (trunc_RMSE)
-    Args:
-        prediction(ndarray): prediction with shape [batch_size, ...]
-        target(ndarray): same shape with prediction, [batch_size, ...]
-        threshold(float): data smaller or equal to threshold in target
-            will be replaced by threshold in computing the s_rmse
-    """
-    predict_value = prediction.copy()
-    target_value = target.copy()
-    
-    predict_value[predict_value<=threshold] = threshold
-    target_value[target_value<=threshold] = threshold
-
-    return np.sqrt(np.mean(np.square(predict_value - target_value)))
     
 def mape(prediction, target, threshold=0):
     """
@@ -71,25 +53,6 @@ def mae(prediction, target, threshold=None):
         return (np.dot(np.abs(prediction - target).reshape([1, -1]),
                               target.reshape([-1, 1]) > threshold) / np.sum(target > threshold))[0, 0]
 
-def trunc_mae(prediction, target, threshold=0):
-    
-    """
-        Mean Absolute Error with Truncation (Trunc_MAE)
-    
-    Args:
-        prediction(ndarray): prediction with shape [batch_size, ...]
-        target(ndarray): same shape with prediction, [batch_size, ...]
-        threshold(float): data smaller or equal to threshold in target will be replaced in computing the mae
-    """
-
-    predict_value=prediction.copy()
-    target_value = target.copy()
-
-    predict_value[predict_value<=threshold] = threshold
-    target_value[target_value<=threshold] = threshold
-
-    return np.mean(np.abs(predict_value - target_value))
-
 def smape(prediction, target, threshold=0):
     """
     Symmetric Mean Absolute Percentage Error (SMAPE)
@@ -99,73 +62,15 @@ def smape(prediction, target, threshold=0):
         target(ndarray): same shape with prediction, [batch_size, ...]
         threshold(float): data smaller than threshold in target will be removed in computing the smape.
     """
-    assert threshold >= 0
+    prediction = prediction.reshape(-1)
+    target = target.reshape(-1)
+    denominator = (np.abs(target) + np.abs(prediction)) / 2.0
+    diff = np.abs(target - prediction) / denominator
+    diff[denominator == 0] = 0.0
+    return np.nanmean(diff)
 
-    predict_value = prediction[prediction >threshold]
-    target_value = target[target >threshold]
-    return np.mean(np.abs(predict_value - target_value) / ((np.abs(predict_value) + np.abs(target_value))*0.5))
-
-def trunc_smape(prediction, target, threshold=0):
-    """
-    Symmetric Mean Absolute Percentage Error with Truncation (Trunc_SMAPE)
-    
-    Args:
-        prediction(ndarray): prediction with shape [batch_size, ...]
-        target(ndarray): same shape with prediction, [batch_size, ...]
-        threshold(float): data smaller than threshold in target will be replaced in computing the trunc_smape.
-    """
-    predict_value = prediction.copy()
-    target_value = target.copy()
-    predict_value[predict_value<=threshold] = threshold
-    target_value[target_value<=threshold] = threshold
-    
-    return np.mean(np.abs(predict_value - target_value) / ((np.abs(predict_value) + np.abs(target_value))*0.5))
-
-'''
-refer to DMSTGCN
-'''
-
-def masked_mse(preds, labels, null_val=np.nan):
-    if np.isnan(null_val):
-        mask = ~np.isnan(labels)
-    else:
-        mask = (labels != null_val)
-    mask = mask.astype(float)
-    mask /= np.mean(mask)
-    mask = np.where(np.isnan(mask), np.zeros_like(mask), mask)
-    loss = (preds - labels) ** 2
-    loss = loss * mask
-    loss = np.where(np.isnan(loss), np.zeros_like(loss), loss)
-    return np.mean(loss)
-
-
-def masked_rmse(preds, labels, null_val=np.nan):
-    return np.sqrt(masked_mse(preds=preds, labels=labels, null_val=null_val))
-
-
-def masked_mae(preds, labels, null_val=np.nan):
-    if np.isnan(null_val):
-        mask = ~np.isnan(labels)
-    else:
-        mask = (labels != null_val)
-    mask = mask.astype(float)
-    mask /= np.mean(mask)
-    mask = np.where(np.isnan(mask), np.zeros_like(mask), mask)
-    loss = np.abs(preds - labels)
-    loss = loss * mask
-    loss = np.where(np.isnan(loss), np.zeros_like(loss), loss)
-    return np.mean(loss)
-
-
-def masked_mape(preds, labels, null_val=np.nan):
-    if np.isnan(null_val):
-        mask = ~np.isnan(labels)
-    else:
-        mask = (labels != null_val)
-    mask = mask.astype(float)
-    mask /= np.mean(mask)
-    mask = np.where(np.isnan(mask), np.zeros_like(mask), mask)
-    loss = np.abs(preds - labels) / labels
-    loss = loss * mask
-    loss = np.where(np.isnan(loss), np.zeros_like(loss), loss)
-    return np.mean(loss)
+def pcc(pred, labels, threshold=None):
+    pred = pred.reshape(-1)
+    labels = labels.reshape(-1)
+    pcc = np.corrcoef(pred, labels)[0, 1]
+    return pcc
