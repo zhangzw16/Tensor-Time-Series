@@ -1,8 +1,9 @@
 __pycache__
 test
 test.py
-task_test.py
+auto_run.py
 output
 data
+log
 GTS
 myGNN
