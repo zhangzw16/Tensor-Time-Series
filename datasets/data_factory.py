@@ -92,12 +92,12 @@ def data_maker(args, flag):
         return None
     elif args.data == 'PEMS':
         maker = PEMS_data
-        save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'03',extra_para='PEMS03')
-        save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'04',extra_para='PEMS04')
-        save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'07',extra_para='PEMS07')
-        save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'08',extra_para='PEMS08')
+        # save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'03',extra_para='PEMS03')
+        # save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'04',extra_para='PEMS04')
+        # save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'07',extra_para='PEMS07')
+        # save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'08',extra_para='PEMS08')
         save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'20',extra_para='PEMS20')
-        save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'BAY',extra_para='PEMS_BAY')
+        # save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'BAY',extra_para='PEMS_BAY')
     elif args.data == 'METRO':
         maker = Metro_data
         save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'_SH',extra_para='SHMETRO')
@@ -241,7 +241,11 @@ def PEMS_data(d_type):
         signal = os.path.join(dataset_dir,'PeMS20','data.csv')
         data = pd.read_csv(signal,header=None)
         data = data.fillna(0)
+        data = data.drop(data.columns[0],axis=1)
+        data = data.drop(data.index[0])
+        print(data)
         data = data.values
+        print(data)
         raw_shape = data.shape
         data = np.expand_dims(data, axis=-1)
     elif d_type == 'PEMS_BAY':
@@ -279,7 +283,7 @@ if __name__ == '__main__':
     # 添加参数
     # parser.add_argument('-m', '--mode', choices=['train', 'te], required=True,
     #                     help='mode of operation')
-    parser.add_argument( '--data', type=str, default='METRO', 
+    parser.add_argument( '--data', type=str, default='PEMS', 
                         help='config file path')
     # 解析参数
     args = parser.parse_args()
