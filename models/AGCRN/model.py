@@ -39,6 +39,13 @@ class AGCRN_TensorModel(TensorModelBase):
 
         self.model = AGCRN(self.tensor_shape[0], self.input_dim, self.hidden_dim, self.output_dim,
                            self.pred_len, self.num_layers, self.default_graph, self.embed_dim, self.cheb_order)
+        #initialize model weights
+        for p in self.model.parameters():
+            if p.dim() > 1:
+                nn.init.xavier_uniform_(p)
+            else:
+                nn.init.uniform_(p)
+        
         self.optim = torch.optim.Adam(self.model.parameters(),lr=0.003, eps=1.0e-8,
                                       weight_decay=0, amsgrad=False)
 
