@@ -18,6 +18,7 @@ class AGCRN_TensorModel(TensorModelBase):
     def init_model(self, args=...):
         # task configs
         self.tensor_shape = self.configs['tensor_shape']
+        # print('tensor_shape:', self.tensor_shape)
         self.normalizer = self.configs['normalizer']
         self.input_len = self.configs['his_len']
         self.pred_len = self.configs['pred_len']
@@ -39,12 +40,18 @@ class AGCRN_TensorModel(TensorModelBase):
 
         self.model = AGCRN(self.tensor_shape[0], self.input_dim, self.hidden_dim, self.output_dim,
                            self.pred_len, self.num_layers, self.default_graph, self.embed_dim, self.cheb_order)
+        for p in self.model.parameters():
+            if p.dim() > 1:
+                nn.init.xavier_uniform_(p)
+            else:
+                nn.init.uniform_(p)
+                
         self.optim = torch.optim.Adam(self.model.parameters(),lr=0.003, eps=1.0e-8,
                                       weight_decay=0, amsgrad=False)
 
     def init_others(self, dataset_name=None):
         if self.loss_func_name == 'mask_mae':
-            self.criterion = masked_mae_loss(self.scaler, mask_value=0.0)
+            self.criterion = masked_mae_loss(self.normalizer, mask_value=0.0)
         elif self.loss_func_name == 'mae':
             self.criterion = torch.nn.L1Loss()
         elif self.loss_func_name == 'mse':
@@ -59,7 +66,7 @@ class AGCRN_TensorModel(TensorModelBase):
         in_data = value[:, :self.input_len, :, :]
         truth = value[:, self.input_len:self.input_len+self.pred_len, :, :]
         # use label as input in the decoder for all steps (teaching_forcing is false)
-        teacher_forcing_ratio = 1
+        teacher_forcing_ratio = 0
         in_data = self.normalizer.transform(in_data)
         pred = self.model(in_data, truth, teacher_forcing_ratio=teacher_forcing_ratio)
         # invserse

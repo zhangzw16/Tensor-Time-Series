@@ -10,9 +10,9 @@
 # output_dim: 1
 
 # parameters
-loss_func: 'mae'  # ['mae', 'mask_mae', 'mse']
+loss_func: 'mse'  # ['mae', 'mask_mae', 'mse']
 
-embed_dim: 2  # PEMSD4: 10; PEMSD8: 2
+embed_dim: 10  # PEMSD4: 10; PEMSD8: 2
 rnn_units: 64 # rnn_units = hidden_dim
 num_layers: 2
 cheb_order: 2

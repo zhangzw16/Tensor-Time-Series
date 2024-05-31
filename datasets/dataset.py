@@ -102,6 +102,7 @@ class TTS_Dataset:
             train_data = []
             for idx in data_index:
                 data, _ = self.get_his_pred_from_idx(idx)
+                # print(data)
                 train_data.append(data)
             train_data = np.array(train_data)
             # normalization and inverse

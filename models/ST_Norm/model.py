@@ -3,10 +3,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.nn import Parameter
+import numpy as np
 
 import os
 import yaml
-from models.model_base import MultiVarModelBase 
+from models.model_base import MultiVarModelBase, TensorModelBase
 
 class SNorm(nn.Module):
     def __init__(self,  channels):
@@ -52,7 +53,7 @@ class TNorm(nn.Module):
 
 
 class Wavenet(nn.Module):
-    def __init__(self, num_nodes, tnorm_bool=False, snorm_bool=False, in_dim=1,out_dim=12, channels=16,kernel_size=2,blocks=4,layers=2):
+    def __init__(self, num_nodes, tnorm_bool=False, snorm_bool=False, in_dim=1, out_dim=1, pred_len=12, channels=16,kernel_size=2,blocks=4,layers=2):
         super(Wavenet, self).__init__()
         self.blocks = blocks
         self.layers = layers
@@ -78,7 +79,7 @@ class Wavenet(nn.Module):
                                     out_channels=channels,
                                     kernel_size=(1,1))
 
-        receptive_field = 1
+        receptive_field = pred_len
         self.dropout = nn.Dropout(0.2)
 
         self.dilation = []
@@ -113,6 +114,7 @@ class Wavenet(nn.Module):
                 new_dilation *=2
                 receptive_field += additional_scope
                 additional_scope *= 2
+                # print(receptive_field)
 
 
 
@@ -129,7 +131,6 @@ class Wavenet(nn.Module):
         self.receptive_field = receptive_field
 
     def forward(self, input):
-        input = input.permute(0, 3, 2, 1)
         in_len = input.size(3)
         if in_len<self.receptive_field:
             x = nn.functional.pad(input,(self.receptive_field-in_len,0,0,0))
@@ -190,7 +191,7 @@ class Wavenet(nn.Module):
                 print(param.shape)
 
 
-class ST_Norm_MultiVarModel(MultiVarModelBase):
+class ST_Norm_TensorModel(TensorModelBase):
     def __init__(self, configs: dict = ...) -> None:
         super().__init__(configs)
         self.configs = configs
@@ -210,25 +211,31 @@ class ST_Norm_MultiVarModel(MultiVarModelBase):
         self.tnorm = model_configs['tnorm']
         self.n_layers = model_configs['n_layers']
         self.hidden_channels = model_configs['hidden_channels']
+        # !!! abs(his_len - pred_len) <= block*(2**layer-1)
+        kernel_size = 2
+        block_channel_sum = kernel_size**self.n_layers - 1
+        blocks = int(np.abs(self.input_len - self.pred_len)//block_channel_sum)+1
         
         self.model = Wavenet(num_nodes=self.tensor_shape[0], 
                              tnorm_bool=self.tnorm, snorm_bool=self.snorm, 
-                             in_dim=self.tensor_shape[1], out_dim=self.pred_len, channels=self.hidden_channels,
-                             kernel_size=2, blocks=1, layers=self.n_layers)
+                             in_dim=self.tensor_shape[1], out_dim=self.tensor_shape[1], pred_len=self.pred_len, channels=self.hidden_channels,
+                             kernel_size=kernel_size, blocks=blocks, layers=self.n_layers)
         self.optim = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()), lr=0.0001)
         self.criterion = nn.MSELoss()
         torch.cuda.empty_cache()
     
     def forward(self, x, aux_info: dict = ...):
         # x: (batch, time, dim1, dim2)
-        # ST_Norm: (batch, time, N, 1)
+        # ST_Norm: (batch, time, dim1, dim2)
         value = x[:, :, :self.tensor_shape[0], :self.tensor_shape[1]]
         batch, time, dim1, dim2 = value.size()
-        value = value.view(batch, time, dim1*dim2, 1)
-        in_data = value[:, :self.input_len, :, :]
-        truth = value[:, self.input_len:self.input_len+self.pred_len, :, :]
+        value = value.view(batch, time, dim1, dim2)
+        value = value.permute(0, 3, 2, 1)
+        in_data = value[:, :, :, :self.input_len]
+        truth = value[:, :, :, self.input_len:self.input_len+self.pred_len]
         # normal
         in_data = self.normalizer.transform(in_data)
+        # print(in_data.shape);exit()
         pred = self.model(in_data)
         pred = self.normalizer.inverse_transform(pred)
         return pred, truth
