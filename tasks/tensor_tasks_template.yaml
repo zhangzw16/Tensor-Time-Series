@@ -27,7 +27,7 @@ dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series
 # - 1: (time, dim2, dim1)
 # - 2: (time, dim1*dim2, 1)
 data_mode: 0
-batch_size: 128
+batch_size: 64
 his_len:  16
 pred_len: 5
 normalizer: 'std' # ['none', 'std']
