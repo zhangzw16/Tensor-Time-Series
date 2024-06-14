@@ -3,7 +3,7 @@ mode: 'train' # ['train', 'test']
 seed: 2024
 task_device: 'cuda'
 max_epoch: 1024
-early_stop_max: 16
+early_stop_max: 8
 
 # Output path & Logger
 output_dir: './output/'
