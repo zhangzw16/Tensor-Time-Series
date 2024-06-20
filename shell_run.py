@@ -139,6 +139,8 @@ if __name__ == '__main__':
                         help='specify the model name')
     parser.add_argument('--dataset_type', type=str, default='Traffic',
                         help="['Traffic', 'Natural', 'Energy']")
+    parser.add_argument('--data_mode', type=int, default=0, required=False,
+                        help='default is 0, and if you chose Multivar model, data_mode will be 2.\n0:(time, dim1, dim2); 1:(time, dim2, dim1); 2:(time, dim1 x dim2, 1)') 
     
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--output_dir', type=str, default='./output')
@@ -164,7 +166,7 @@ if __name__ == '__main__':
             model_list = ModelMap[model_type]
 
     runner = Runner(args.output_dir, args.config_template)
-    runner.auto_run(args.his_len, args.pred_len, model_type, model_list, args.dataset_type)
+    runner.auto_run(args.his_len, args.pred_len, model_type, model_list, args.dataset_type, args.data_mode)
     
 
 
