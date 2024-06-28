@@ -1,0 +1,20 @@
+# Tensor_dim:   # related to datest!!!
+#   - 98        # grids: 98
+#   - 4         # features: 4
+
+# # IO
+# input_len: 16
+# pred_len:  3
+
+# parameters
+fusion: false
+mix_loss: true  # mix loss or total loss
+hidden_channels: 16 # hidden channels
+# scaler: "global_scaler"
+# if use scheme
+schemeA: 1
+schemeB: 1
+schemeC: 1
+schemeD: 1
+schemeE: 1
+schemeF: 1

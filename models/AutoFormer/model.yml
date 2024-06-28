@@ -1,0 +1,21 @@
+# Tensor_dim:   # related to datest!!!
+#   - 336        
+#   - 1         
+
+# # IO
+# input_len: 16
+# pred_len:  3
+
+# parameters
+# if use snorm/tnorm
+
+task_name: long_term_forecast
+d_model: 512
+e_layers: 2 
+d_layers: 1 
+factor: 1 
+enc_in: 7
+dec_in: 7 
+c_out: 7 
+itr: 1
+loss: 'mse'

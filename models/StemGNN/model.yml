@@ -1,0 +1,9 @@
+# param
+stack_cnt: 2
+multi_layer: 1
+dropout: 0.5
+leaky_rate: 0.2
+
+# optimizer
+# ['RMSProp', 'Adam']
+optimizer: 'RMSProp'

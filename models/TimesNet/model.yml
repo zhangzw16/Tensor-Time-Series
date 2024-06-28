@@ -1,0 +1,16 @@
+# criterion: ['MSE', 'MAPE', 'MASE', 'SMAPE']
+criterion: 'MSE' 
+# parameters
+enc_in: 1
+dec_in: 1
+c_out: 1
+e_layers: 2
+d_layers: 1
+d_model: 32
+d_ff: 32
+factor: 3
+top_k: 5
+dropout: 0.1
+freq: 'h'
+embed: 'timeF'
+num_kernels: 6

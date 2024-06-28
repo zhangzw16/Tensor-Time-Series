@@ -1,0 +1,9 @@
+#model params
+stblock_num: 2
+gso_type: 'sym_norm_lap'
+graph_conv_type: 'cheb_graph_conv'
+batch_size: 32
+droprate: 0.5
+weight_decay_rate: 0.0005
+lr: 0.001
+epochs: 10000

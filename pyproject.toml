@@ -1,0 +1,22 @@
+[project]
+name = 'TensorTSL'
+requires-python = '3.11'
+version = "0.0.1"
+authors = [{name='GuLab'}]
+description = ""
+readme = "README.md"
+
+dependencies = [
+    "pyyaml",
+    "wandb",
+    "torch>=2.0",
+    "h5py",
+    "scipy",
+    "scikit_learn",
+    "transformers",
+    "sympy",
+    "tensorly",
+    "mxnet",
+    "pandas",
+]
+
