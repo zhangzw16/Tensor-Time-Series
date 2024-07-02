@@ -1,9 +1,12 @@
 __pycache__
 test
 test.py
-auto_run.py
+# auto_run.py
 output
 data
 log
 GTS
 myGNN
+auto_run
+delta_prediction
+TTM

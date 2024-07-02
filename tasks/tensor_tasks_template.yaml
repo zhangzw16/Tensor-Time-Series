@@ -3,20 +3,21 @@ mode: 'train' # ['train', 'test']
 seed: 2024
 task_device: 'cuda'
 max_epoch: 1024
-early_stop_max: 32
+early_stop_max: 8
 
 # Output path & Logger
 output_dir: './output/'
 logger: 'none'
-project_name: 'TensorTS_NYC_Taxi_16_3'
+project_name: 'AutoTest_NYC_Bike_16_3'
 
 # Model
-model_type: 'Tensor'  # ['Tensor', 'MultiVar', 'Stat']
-model_name: 'AGCRN'
+model_type: 'Tensor'  # ['Tensor', 'MultiVar']
+model_name: 'ST_Norm'
 model_path: '' # the model parameters loaded in test phase. Setting '' will turn to '{output_dir}/model.pth'
 
 # Dataset & Dataloader
-dataset_pkl: './datasets/Tensor-Time-Series-Dataset/Processed_Data/Metr-LA/Metr-LA.pkl'
+dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/JONAS_NYC_taxi/JONAS_NYC_taxi.pkl'
+# dataset_pkl: '/data4t/zjx_dataset/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/PEMS20/PEMS20.pkl'
 # dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/JONAS_NYC_bike/JONAS_NYC_bike.pkl'
 # dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/Metr-LA/Metr-LA.pkl'
 # dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/temp/GRML_datta.pkl'
@@ -26,9 +27,9 @@ dataset_pkl: './datasets/Tensor-Time-Series-Dataset/Processed_Data/Metr-LA/Metr-
 # - 1: (time, dim2, dim1)
 # - 2: (time, dim1*dim2, 1)
 data_mode: 0
-batch_size: 32
+batch_size: 64
 his_len:  16
-pred_len: 12
+pred_len: 5
 normalizer: 'std' # ['none', 'std']
 graph_init: 'pearson'  # ['pearson', 'invers_pearson', 'random', 'cosine']
 test_ratio:  0.1
@@ -41,7 +42,7 @@ metrics_list:
   - rmse
   - mape
   - smape
-  - pcc
+  # - pcc
 
 metrics_thres: {}
 
