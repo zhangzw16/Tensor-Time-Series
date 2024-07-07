@@ -49,9 +49,8 @@ class Runner:
         for file in files:
             if file.endswith('.pkl'):
                 pkl_path = os.path.join(pkl_path, file)
-                break
-            raise ValueError(f"no pkl file in {pkl_path}")
-        return pkl_path
+                return pkl_path
+        raise ValueError(f"no pkl file in {pkl_path}")
 
     # def _run(self, dataset_name, model_type:str, model_list:list,config:dict):
     #     run_config = config.copy()

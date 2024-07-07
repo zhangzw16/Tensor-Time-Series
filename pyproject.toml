@@ -18,5 +18,11 @@ dependencies = [
     "tensorly",
     "mxnet",
     "pandas",
+    "einops",
+    "scipy",
+    "pathlib",
+    "datasets",
+    "sympy",
+    "reformer-pytorch",
 ]
 

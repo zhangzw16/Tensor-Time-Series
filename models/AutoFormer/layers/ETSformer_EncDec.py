@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.fft as fft
 from einops import rearrange, reduce, repeat
-import math, random
+import math
 from scipy.fftpack import next_fast_len
 
 
