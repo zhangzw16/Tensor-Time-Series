@@ -39,7 +39,11 @@ class TensorTask(TaskBase):
             self.data_mode = 2
 
         # ensure output_dir
-        run_id = f"{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}-{normalizer_name}"
+        if self.model_type == 'Tensor':
+            graph_init = configs['graph_init']
+        else:
+            graph_init = ''
+        run_id = f"{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}-{graph_init}-{normalizer_name}"
         # self.output_dir = os.path.join(self.output_dir, f'{self.model_name}-out', run_id)
         self.output_dir = os.path.join(self.output_dir, f"{self.project_name}", run_id)
         self.ensure_output_dir(self.output_dir)
