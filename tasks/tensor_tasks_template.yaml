@@ -8,7 +8,7 @@ early_stop_max: 8
 # Output path & Logger
 output_dir: './output/'
 logger: 'none'
-project_name: 'AutoTest_NYC_Bike_16_3'
+project_name: 'auto_run'
 
 # Model
 model_type: 'Tensor'  # ['Tensor', 'MultiVar']
