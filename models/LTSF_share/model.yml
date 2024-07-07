@@ -1,0 +1,4 @@
+#model params
+lr: 0.5
+weight_decay: 0
+loss: 'mae'
