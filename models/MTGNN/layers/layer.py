@@ -183,7 +183,8 @@ class graph_constructor(nn.Module):
         adj = F.relu(torch.tanh(self.alpha*a))
         mask = torch.zeros(idx.size(0), idx.size(0)).to(self.device)
         mask.fill_(float('0'))
-        s1,t1 = (adj + torch.rand_like(adj)*0.01).topk(self.k,1)
+        k = min(self.k, adj.size(1))
+        s1,t1 = (adj + torch.rand_like(adj)*0.01).topk(k,1)
         mask.scatter_(1,t1,s1.fill_(1))
         adj = adj*mask
         return adj
@@ -245,7 +246,8 @@ class graph_undirected(nn.Module):
         adj = F.relu(torch.tanh(self.alpha*a))
         mask = torch.zeros(idx.size(0), idx.size(0)).to(self.device)
         mask.fill_(float('0'))
-        s1,t1 = adj.topk(self.k,1)
+        k = min(self.k, adj.size(1))
+        s1,t1 = adj.topk(k,1)
         mask.scatter_(1,t1,s1.fill_(1))
         adj = adj*mask
         return adj
@@ -287,7 +289,8 @@ class graph_directed(nn.Module):
         adj = F.relu(torch.tanh(self.alpha*a))
         mask = torch.zeros(idx.size(0), idx.size(0)).to(self.device)
         mask.fill_(float('0'))
-        s1,t1 = adj.topk(self.k,1)
+        k = min(self.k, adj.size(1))
+        s1,t1 = adj.topk(k,1)
         mask.scatter_(1,t1,s1.fill_(1))
         adj = adj*mask
         return adj
