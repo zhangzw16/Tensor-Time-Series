@@ -54,10 +54,15 @@ class DCRNN_TensorModel(TensorModelBase):
         value = x[:, :, :self.tensor_shape[0], :self.tensor_shape[1]]
         source_data = value[:, :self.input_len, :, :]
         truth = value[:, self.input_len:self.input_len+self.pred_len, :, :]
+        if self.model.training:
+            target = truth
+        else:
+            # target = torch.rand_like(truth)
+            target = torch.zeros_like(truth)
         # normalize
         source_data = self.normalizer.transform(source_data)
         teacher_forcing_ratio = self._compute_sampling_threshold(self.global_step, self.cl_decay_steps)
-        pred = self.model(source_data, truth, teacher_forcing_ratio)
+        pred = self.model(source_data, target, teacher_forcing_ratio)
         self.global_step += 1
         # inverse transform
         pred = self.normalizer.inverse_transform(pred)
