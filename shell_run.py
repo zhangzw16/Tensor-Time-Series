@@ -13,19 +13,19 @@ DatasetMap = {
     "Natural": ['COVID_DEATHS'],
     "Energy":  ['ETT_hour', 'electricity'],
     "Weather": ['weather', 'Jena_climate'],
-    "Finance": ['nasdaq100'],
+    "Finance": ['nasdaq100', 'electricity'],
 }
 
 ModelMap = {
     'Tensor':   ['NET3', 'DCRNN', 'GraphWaveNet', 'AGCRN', 'MTGNN', 'TTS_Norm', 'ST_Norm', 'GMRL'],
-    'MultiVar': ['TimesNet', 'StemGNN', 'STGCN', 'AutoFormer', 'CrossFormer', 'PatchTST'],
+    'MultiVar': ['TimesNet', 'StemGNN', 'AutoFormer', 'CrossFormer', 'PatchTST'],
     'Stat':     ['HM'],
 }
 
 TensorGraphMap = {
     "prior":   ['NET3', 'DCRNN', 'GraphWaveNet'],
     'learned': ['AGCRN', 'MTGNN'],
-    'none':    ['TTS_Norm', 'ST_Norm', 'GMRL'],
+    'none':    ['TTS_Norm', 'ST_Norm'],
 }
 
 def ensure_dir(path):
@@ -90,11 +90,13 @@ class Runner:
                 run_output[model_name] = str(exp)
         return run_output
     
-    def auto_run(self, his_len, pred_len, model_type, model_list, dataset_type, data_mode=0):
+    def auto_run(self, his_len, pred_len, model_type, model_list, dataset_type, data_mode=0, graph_init:str='pearson'):
         run_config = self.template.copy()
         run_config['his_len'] = his_len
         run_config['pred_len'] = pred_len
         run_config['model_type'] = model_type
+        run_config['graph_init'] = graph_init
+        
 
         if model_type == 'MultiVar':
             run_config['data_mode'] = 2
@@ -111,10 +113,13 @@ class Runner:
         auto_run_results['pred_len'] = pred_len
         auto_run_results['data_mode'] = data_mode
         auto_run_results['models'] = model_list
+        auto_run_results['graph_init'] = graph_init
 
         for dataset_name in dataset_list:
+            run_config['project_name'] = f'{his_len}_{pred_len}_{model_type}_{dataset_name}'
             run_config['dataset_pkl'] = self.search_pkl(dataset_name)
-            run_output = self._run(dataset_name, model_type, model_list, run_config)
+            run_output = self._run(dataset_name, model_type, model_list, run_config, graph_init)
+            auto_run_results[dataset_name] = run_output
 
         # config_output = open(os.path.join(self.output_dir, f'{model_type}_{his_len}_{pred_len}_{time_stamp}.yaml'), 'w')
         # for key in auto_run_results:
@@ -123,7 +128,8 @@ class Runner:
             model_name = model_list[0]
         else:
             model_name = ''
-        yaml_path = os.path.join(self.output_dir, f'{model_type}_{model_name}_{dataset_type}_{his_len}_{pred_len}_{time_stamp}.yaml')
+        yaml_path = os.path.join(self.output_dir, f'{model_type}_{model_name}_{dataset_type}_{data_mode}_{graph_init}_{his_len}_{pred_len}_{time_stamp}.yaml')
+        # auto_run_results['data_mode'] = 3
         yaml.dump(auto_run_results, open(yaml_path, 'w'))
         
 
@@ -133,15 +139,17 @@ if __name__ == '__main__':
     parser.add_argument('--his_len', type=int, default=12)
     parser.add_argument('--pred_len', type=int, default=12)
 
-    parser.add_argument('--model_type', type=str, default='Tensor-prior', 
+    parser.add_argument('--model_type', type=str, default='MultiVar', 
                         help="['Stat', 'MultiVar', 'Tensor-prior', 'Tensor-learned', 'Tensor-none']")
-    parser.add_argument('--model_name', type=str, default='',
+    parser.add_argument('--model_name', type=str, default='', required=False,
                         help='specify the model name')
     parser.add_argument('--dataset_type', type=str, default='Traffic',
                         help="['Traffic', 'Natural', 'Energy']")
     parser.add_argument('--data_mode', type=int, default=0, required=False,
                         help='default is 0, and if you chose Multivar model, data_mode will be 2.\n0:(time, dim1, dim2); 1:(time, dim2, dim1); 2:(time, dim1 x dim2, 1)') 
-    
+    parser.add_argument('--graph_init', type=str, default='pearson', required=False,
+                        help="[pearson, inverse_pearson, random]")
+
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--output_dir', type=str, default='/data/Blob_EastUS/v-zhenwzhang/log/tensor_ts_log')
     parser.add_argument('--config_template', type=str, default=TEMPLATE_PATH)
@@ -166,7 +174,8 @@ if __name__ == '__main__':
             model_list = ModelMap[model_type]
 
     runner = Runner(args.output_dir, args.config_template)
-    runner.auto_run(args.his_len, args.pred_len, model_type, model_list, args.dataset_type, args.data_mode)
+    # a = input('...')
+    runner.auto_run(args.his_len, args.pred_len, model_type, model_list, args.dataset_type, args.data_mode, args.graph_init)
     
 
 

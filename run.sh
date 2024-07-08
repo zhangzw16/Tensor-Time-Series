@@ -13,7 +13,7 @@ batch_size=16
 model_type='Tensor-prior'
 # 默认是空字符。 设定 model_type 后自动找到对应的模型。
 # 该参数是用于特定模型的补充实验
-model_name=''
+model_name=""
 # ['Traffic', 'Natural', 'Energy'] 
 dataset_type='Traffic'
 # 0: 默认的 (time, dim1, dim2)， 1: 压成一维 (time, dim1 * dim2, 1)
@@ -73,19 +73,25 @@ done
 
 
 # 简单检查一下：
-# echo "历史长度: $his_len"
-# echo "预测长度: $pred_len"
-# echo "批处理大小: $batch_size"
-# echo "模型类型: $model_type"
-# echo "模型名称: $model_name"
-# echo "数据集类型: $dataset_type"
-# echo "数据集模式: $dataset_mode"
-# echo "输出目录: $output_dir"
+echo "历史长度: $his_len"
+echo "预测长度: $pred_len"
+echo "批处理大小: $batch_size"
+echo "模型类型: $model_type"
+echo "模型名称: $model_name"
+echo "数据集类型: $dataset_type"
+echo "数据集模式: $data_mode"
+echo "输出目录: $output_dir"
 
 
 # 冲冲冲
-python3 shell_run.py --his_len $his_len --pred_len $pred_len \
-        --batch_size $batch_size \
-        --model_type $model_type --model_name $model_name \
-        --dataset_type $dataset_type --data_mode $data_mode \
-        --output_dir $output_dir
+# python3 shell_run.py --his_len $his_len --pred_len $pred_len \
+#         --batch_size $batch_size \
+#         --model_type $model_type \
+#         --dataset_type $dataset_type --data_mode $data_mode \
+#         --output_dir $output_dir
+
+python3 shell_run.py --his_len 96 --pred_len 12 \
+        --batch_size 32 \
+        --model_type Tensor-none \
+        --dataset_type Energy    \
+        --output_dir ./output/96-12

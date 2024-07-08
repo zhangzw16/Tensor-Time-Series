@@ -319,7 +319,8 @@ class PatchTST_MultiVarModel(MultiVarModelBase):
         parser.add_argument('--p_hidden_layers', type=int, default=2, help='number of hidden layers in projector')
 
         
-        self.configs = parser.parse_args()
+        # self.configs = parser.parse_args()
+        self.configs, unknown = parser.parse_known_args()
         self.configs.d_ff = self.d_ff
         # args.use_gpu = True if torch.cuda.is_available() and args.use_gpu else False
 
