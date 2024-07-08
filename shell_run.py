@@ -5,13 +5,15 @@ import argparse
 from models import ModelManager
 from tasks.tensor_task import TensorTask
 
-DATASET_PATH = './datasets/Tensor-Time-Series-Dataset/Processed_Data'
+DATASET_PATH = '/data/Blob_EastUS/v-zhenwzhang/tensor_ts_datasets/Processed_Data' # TODO: change the path
 TEMPLATE_PATH = './tasks/tensor_tasks_template.yaml'
 
 DatasetMap = {
-    "Traffic": ['JONAS_NYC_bike', 'JONAS_NYC_taxi', 'Metr-LA','METRO_HZ', 'METRO_SH','PEMS03', 'PEMS07', 'PEMSBAY'],
+    "Traffic": ['JONAS_NYC_bike', 'JONAS_NYC_taxi', 'Metr-LA','METRO_HZ', 'METRO_SH','PEMS03', 'PEMS07'],
     "Natural": ['COVID_DEATHS'],
-    "Energy":  ['ETT_hour'],
+    "Energy":  ['ETT_hour', 'electricity'],
+    "Weather": ['weather', 'Jena_climate'],
+    "Finance": ['nasdaq100'],
 }
 
 ModelMap = {
@@ -46,10 +48,8 @@ class Runner:
         files = os.listdir(pkl_path)
         for file in files:
             if file.endswith('.pkl'):
-                pkl_path = os.path.join(pkl_path, file)
-                break
-            raise ValueError(f"no pkl file in {pkl_path}")
-        return pkl_path
+                return os.path.join(pkl_path, file)
+        raise ValueError(f"no pkl file in {pkl_path}")
 
     # def _run(self, dataset_name, model_type:str, model_list:list,config:dict):
     #     run_config = config.copy()
@@ -143,7 +143,7 @@ if __name__ == '__main__':
                         help='default is 0, and if you chose Multivar model, data_mode will be 2.\n0:(time, dim1, dim2); 1:(time, dim2, dim1); 2:(time, dim1 x dim2, 1)') 
     
     parser.add_argument('--batch_size', type=int, default=8)
-    parser.add_argument('--output_dir', type=str, default='./output')
+    parser.add_argument('--output_dir', type=str, default='/data/Blob_EastUS/v-zhenwzhang/log/tensor_ts_log')
     parser.add_argument('--config_template', type=str, default=TEMPLATE_PATH)
 
     args = parser.parse_args()
