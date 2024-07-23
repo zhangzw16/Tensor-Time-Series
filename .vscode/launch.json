@@ -1,0 +1,32 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            // "name": "Python: Current File",
+            // "type": "python",
+            // "request": "launch",
+            // "program": "${file}",
+            // "console": "integratedTerminal",
+            // "justMyCode": true
+            "name": "Python", // 需要调试的 py文件要打开并选中
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false, //是否进入程序就Stop, 报错false is not defined
+            "python": "/home/ysc/anaconda3/bin/python3", 
+            // 自己的Python环境解释器地址, 很重要，如果有多个Python interpreter 的话，需要设置好
+            "program": "${file}",
+            "cwd": "${workspaceRoot}",
+            "console": "integratedTerminal",
+            "justMyCode": true, //只调试自己的Code
+            // "args": ["examples\\benchmarks\\LightGBM\\workflow_config_lightgbm_Alpha158_l1.yaml"], //需要输入的参数
+            // "env": {},
+            // "envFile": "${workspaceRoot}/.env",
+            // "redirectOutput": true
+
+        }
+    ]
+}

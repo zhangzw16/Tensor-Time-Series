@@ -5,7 +5,7 @@ import argparse
 from models import ModelManager
 from tasks.tensor_task import TensorTask
 
-DATASET_PATH = './datasets/Tensor-Time-Series-Dataset/Processed_Data'
+DATASET_PATH = './datasets/Processed_Data' # TODO: change the path
 TEMPLATE_PATH = './tasks/tensor_tasks_template.yaml'
 
 DatasetMap = {
@@ -13,13 +13,14 @@ DatasetMap = {
     "Natural": ['COVID_DEATHS'],
     "Energy":  ['ETT_hour', 'electricity'],
     "Weather": ['weather', 'Jena_climate'],
-    "Finance": ['nasdaq100'],
+    "Finance": ['nasdaq100', 'electricity'],
 }
 
 ModelMap = {
     'Tensor':   ['NET3', 'DCRNN', 'GraphWaveNet', 'AGCRN', 'MTGNN', 'TTS_Norm', 'ST_Norm', 'GMRL'],
     'MultiVar': ['TimesNet', 'StemGNN', 'AutoFormer', 'CrossFormer', 'PatchTST'],
     'Stat':     ['HM'],
+    'NET3':     ['NET3_MLP']
 }
 
 TensorGraphMap = {
@@ -27,6 +28,8 @@ TensorGraphMap = {
     'learned': ['AGCRN', 'MTGNN'],
     'none':    ['TTS_Norm', 'ST_Norm'],
 }
+
+# NET3 = ['NET3_MLP']
 
 def ensure_dir(path):
     if not os.path.exists(path):
@@ -48,8 +51,7 @@ class Runner:
         files = os.listdir(pkl_path)
         for file in files:
             if file.endswith('.pkl'):
-                pkl_path = os.path.join(pkl_path, file)
-                return pkl_path
+                return os.path.join(pkl_path, file)
         raise ValueError(f"no pkl file in {pkl_path}")
 
     # def _run(self, dataset_name, model_type:str, model_list:list,config:dict):
@@ -137,10 +139,10 @@ class Runner:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--his_len', type=int, default=12)
+    parser.add_argument('--his_len', type=int, default=96)
     parser.add_argument('--pred_len', type=int, default=12)
 
-    parser.add_argument('--model_type', type=str, default='MultiVar', 
+    parser.add_argument('--model_type', type=str, default='NET3', 
                         help="['Stat', 'MultiVar', 'Tensor-prior', 'Tensor-learned', 'Tensor-none']")
     parser.add_argument('--model_name', type=str, default='', required=False,
                         help='specify the model name')
@@ -152,7 +154,7 @@ if __name__ == '__main__':
                         help="[pearson, inverse_pearson, random]")
 
     parser.add_argument('--batch_size', type=int, default=8)
-    parser.add_argument('--output_dir', type=str, default='./output')
+    parser.add_argument('--output_dir', type=str, default='')
     parser.add_argument('--config_template', type=str, default=TEMPLATE_PATH)
 
     args = parser.parse_args()
