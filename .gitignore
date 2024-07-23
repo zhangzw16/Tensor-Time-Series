@@ -11,6 +11,8 @@ myGNN
 auto_run
 delta_prediction
 TTM
+Processed_Data
+Tensor_output
 
 .amltconfig
 amlt.yaml

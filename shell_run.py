@@ -5,7 +5,7 @@ import argparse
 from models import ModelManager
 from tasks.tensor_task import TensorTask
 
-DATASET_PATH = '/data/Blob_EastUS/v-zhenwzhang/tensor_ts_datasets/Processed_Data' # TODO: change the path
+DATASET_PATH = './datasets/Processed_Data' # TODO: change the path
 TEMPLATE_PATH = './tasks/tensor_tasks_template.yaml'
 
 DatasetMap = {
@@ -20,6 +20,7 @@ ModelMap = {
     'Tensor':   ['NET3', 'DCRNN', 'GraphWaveNet', 'AGCRN', 'MTGNN', 'TTS_Norm', 'ST_Norm', 'GMRL'],
     'MultiVar': ['TimesNet', 'StemGNN', 'AutoFormer', 'CrossFormer', 'PatchTST'],
     'Stat':     ['HM'],
+    'NET3':     ['NET3_MLP']
 }
 
 TensorGraphMap = {
@@ -27,6 +28,8 @@ TensorGraphMap = {
     'learned': ['AGCRN', 'MTGNN'],
     'none':    ['TTS_Norm', 'ST_Norm'],
 }
+
+# NET3 = ['NET3_MLP']
 
 def ensure_dir(path):
     if not os.path.exists(path):
@@ -136,10 +139,10 @@ class Runner:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--his_len', type=int, default=12)
+    parser.add_argument('--his_len', type=int, default=96)
     parser.add_argument('--pred_len', type=int, default=12)
 
-    parser.add_argument('--model_type', type=str, default='MultiVar', 
+    parser.add_argument('--model_type', type=str, default='NET3', 
                         help="['Stat', 'MultiVar', 'Tensor-prior', 'Tensor-learned', 'Tensor-none']")
     parser.add_argument('--model_name', type=str, default='', required=False,
                         help='specify the model name')
@@ -151,7 +154,7 @@ if __name__ == '__main__':
                         help="[pearson, inverse_pearson, random]")
 
     parser.add_argument('--batch_size', type=int, default=8)
-    parser.add_argument('--output_dir', type=str, default='/data/Blob_EastUS/v-zhenwzhang/log/tensor_ts_log')
+    parser.add_argument('--output_dir', type=str, default='')
     parser.add_argument('--config_template', type=str, default=TEMPLATE_PATH)
 
     args = parser.parse_args()

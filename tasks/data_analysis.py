@@ -224,11 +224,44 @@ class DataAnalysis:
 
 
 if __name__ == "__main__":
-    pkl_path = '/home/ysc/workspace/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/Metr-LA/Metr-LA.pkl'
+    import os
+    import glob
+    import pandas as pd
+    pkl_path = '/home/ysc/workspace/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data'
+    df = pd.DataFrame(columns = ['Dataset', 'TimePTs', 'Nodes','Features','Freq','TrainMean','TrainStd','TestMean','TestStd','NodeCorrMean','NodeCorrStd','FeatureCorrMean','FeatureCorrStd'])
+    for dataset in os.listdir(pkl_path):
+    # for dataset in ['COVID_CHI']:
+        if dataset == 'temp':
+            pass
+        else:
+            pkl_file = os.path.join(pkl_path, dataset, dataset+'.pkl')
+            data_analysis = DataAnalysis(pkl_file)
+            type = data_analysis.data_type
+            time_pts = data_analysis.data_shape[0]
+            nodes = data_analysis.data_shape[1]
+            features = data_analysis.data_shape[2]
+            try:
+                freq = data_analysis.data_pkl['temporal_resolution']
+            except:
+                freq = '5mins'
+            train_data = data_analysis.data[:int(time_pts*0.8)]
+            test_data = data_analysis.data[int(time_pts*0.8):]
+            train_mean = np.mean(train_data)
+            train_std = np.std(train_data)
+            test_mean = np.mean(test_data)
+            test_std = np.std(test_data)
+            node_corr = data_analysis.eval_tensor(axis = 1, method = 'corelation')
+            feature_corr = data_analysis.eval_tensor(axis = 2, method = 'corelation')
+            node_corr_mean = np.mean(node_corr)
+            node_corr_std = np.std(node_corr)
+            feature_corr_mean = np.mean(feature_corr)
+            feature_corr_std = np.std(feature_corr)
+            df = df.append({'Dataset': dataset, 'TimePTs': time_pts, 'Nodes': nodes, 'Features': features, 'Freq': freq, 'TrainMean': train_mean, 'TrainStd': train_std, 'TestMean': test_mean, 'TestStd': test_std, 'NodeCorrMean': node_corr_mean, 'NodeCorrStd': node_corr_std, 'FeatureCorrMean': feature_corr_mean, 'FeatureCorrStd': feature_corr_std}, ignore_index = True)     
+    df.to_csv(pkl_path+'/datasummary.csv', index=False)
     # pkl_path = "/home/ysc/workspace/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/JONAS_NYC_bike/JONAS_NYC_bike.pkl"
-    data_analysis = DataAnalysis(pkl_path)
+    # data_analysis = DataAnalysis(pkl_path)
     # periods = data_analysis.find_periods_byacf(k = 3)
-    corr = data_analysis.eval_tensor(axis = 2, method = 'corelation')
+    # corr = data_analysis.eval_tensor(axis = 2, method = 'corelation')
     # pe = data_analysis.tensor_permutation_entropy(embedding = 48, time_delay = 7)
     # sequence=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     # sequence = np.linspace(0,479,480)

@@ -12,12 +12,13 @@ project_name: 'auto_run'
 
 # Model
 model_type: 'Tensor'  # ['Tensor', 'MultiVar']
-model_name: 'ST_Norm'
+model_name: 'NET3_MLP'
 model_path: '' # the model parameters loaded in test phase. Setting '' will turn to '{output_dir}/model.pth'
 
 # Dataset & Dataloader
-dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/JONAS_NYC_taxi/JONAS_NYC_taxi.pkl'
+# dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/nasdaq100/nasdaq100.pkl'
 # dataset_pkl: '/data4t/zjx_dataset/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/PEMS20/PEMS20.pkl'
+dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/METRO_SH/METRO_SH.pkl'
 # dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/JONAS_NYC_bike/JONAS_NYC_bike.pkl'
 # dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/Metr-LA/Metr-LA.pkl'
 # dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/temp/GRML_datta.pkl'
@@ -29,7 +30,7 @@ dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series
 data_mode: 0
 batch_size: 64
 his_len:  16
-pred_len: 5
+pred_len: 12
 normalizer: 'std' # ['none', 'std']
 graph_init: 'pearson'  # ['pearson', 'invers_pearson', 'random', 'cosine']
 test_ratio:  0.1

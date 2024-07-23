@@ -53,9 +53,9 @@ def data_maker(args, flag):
         # save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'_HZ',extra_para='HZMETRO')
     elif args.data == 'COVID':
         maker = COVID_data
-        # save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'_CHI','COVID-CHI')
+        save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'_CHI','COVID-CHI')
         # save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'_US','COVID-US')
-        save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'_DEATHS','COVID-DEATHS')
+        # save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name+'_DEATHS','COVID-DEATHS')
     elif args.data == 'electricity':
         maker = electricity_data
         save_pickle(maker,os.path.join(dataset_dir,'Processed_Data'),data_name)
@@ -244,7 +244,7 @@ def COVID_data(d_type):
         data = signal.values
         data = data[:,1:]
         raw_shape = data.shape
-        data = np.reshape(data,(raw_shape[0],14,-1))
+        data = np.reshape(data,(raw_shape[0],14,-1)).astype(float)
         data_type = 'transport'
         resolution = '2hours'
         
@@ -422,7 +422,7 @@ if __name__ == '__main__':
     # 添加参数
     # parser.add_argument('-m', '--mode', choices=['train', 'te], required=True,
     #                     help='mode of operation')
-    parser.add_argument( '--data', type=str, default='crypto12', 
+    parser.add_argument( '--data', type=str, default='stocknet', 
                         help='config file path')
     supported_datasets = ['Meter-LA',
                           'ETT_hour',
