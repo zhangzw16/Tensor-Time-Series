@@ -1,0 +1,13 @@
+# model params
+rnn_units: 64
+num_layers: 3
+cheb_k: 3
+adj_type: 'doubletransition'
+
+# learning params
+lr: 0.0005
+weight_decay: 0
+clip_grad: True
+clip_grad_norm: 5
+milestone: [10, 20]
+lr_decay: 0.1
