@@ -1,0 +1,39 @@
+description: pretrain_t_ts
+
+target:
+  service: sing
+  name: msrresrchvc
+  workspace_name: epeastus
+
+environment:
+  image: amlt-sing/acpt-2.2.1-py3.10-cuda12.1
+  setup:
+    - pip install .
+
+storage:
+  shared_datastore:
+    storage_account_name: epeastus
+    container_name: cov19
+    mount_dir: /data/Blob_EastUS
+
+code:
+  local_dir: $CONFIG_DIR
+  ignore:
+  - outputs/*
+  - log/*
+
+search:
+  job_template:
+    name: "{experiment_name:s}_{pred_len:s}_{dataset:s}_{model:s}__{random_string:s}"
+    sku: 80G1-A100
+    command:
+    - python3 shell_run.py --his_len 96 --pred_len {pred_len} --batch_size 16 --model_type {model} --dataset_type {dataset} --output_dir /data/Blob_EastUS/v-zhenwzhang/log/tensor_log_96_{pred_len}_20240713 --data_mode 0
+  max_trials: 200
+  type: grid
+  params:
+    - name: pred_len
+      values: ['6']
+    - name: dataset
+      values: ['Traffic', 'Energy', 'Weather', 'Finance']
+    - name: model
+      values: ['MultiVar', 'Tensor-prior', 'Tensor-learned', 'Tensor-none']
