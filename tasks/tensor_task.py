@@ -1,4 +1,5 @@
 import os
+import time
 import yaml
 import torch
 import numpy as np
@@ -15,7 +16,7 @@ class TensorTask(TaskBase):
     def __init__(self, configs:dict={}) -> None:
         super().__init__(configs)
         # load configuration
-        
+        self.init_time_stamp = time.strftime("%m-%d-%H-%M-%S", time.localtime())
         self.seed = configs['seed']
         self.device = configs['task_device']
         self.output_dir = configs['output_dir']
@@ -24,10 +25,10 @@ class TensorTask(TaskBase):
         self.max_epoch = configs['max_epoch']
         self.early_stop_max = configs['early_stop_max']
         self.early_stop_cnt = 0
-
+        # project & logger
         self.logger_name = configs['logger']
         self.project_name = configs['project_name']
-
+        # dataset
         self.pkl_path = configs['dataset_pkl']
         self.data_mode = configs['data_mode']
         self.his_len = configs['his_len']
@@ -35,19 +36,17 @@ class TensorTask(TaskBase):
         normalizer_name = configs['normalizer']
         self.model_type = configs['model_type']
         self.model_name = configs['model_name']
-        if self.model_type == 'MultiVar':
-            self.data_mode = 2
-
-        # ensure output_dir
+        
         if self.model_type == 'Tensor':
             graph_init = configs['graph_init']
         else:
             graph_init = ''
-        run_id = f"{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}-{graph_init}-{normalizer_name}"
-        # self.output_dir = os.path.join(self.output_dir, f'{self.model_name}-out', run_id)
-        self.output_dir = os.path.join(self.output_dir, f"{self.project_name}", run_id)
+
+        task_id = f"{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}-{graph_init}-{normalizer_name}-{self.init_time_stamp}"
+        self.output_dir = os.path.join(self.output_dir, self.project_name, task_id)
+        # ensure output_dir
         self.ensure_output_dir(self.output_dir)
-        with open(os.path.join(self.output_dir, 'snapshot.yml'), 'w') as file:
+        with open(os.path.join(self.output_dir, 'configs.yml'), 'w') as file:
             yaml.dump(configs, file)
 
         # prepare for dataset
@@ -62,11 +61,10 @@ class TensorTask(TaskBase):
         model_manager = ModelManager()
         model_configs = configs.copy()
         model_configs['normalizer'] = self.dataset.get_normalizer(norm=normalizer_name)
-        # model_configs['graphGenerator'] = GraphGenerator(self.dataset)
         graph_init = model_configs['graph_init']
         model_configs['graphGenerator'] = GraphGeneratorManager(graph_init, self.dataset)
         model_configs['tensor_shape'] = self.dataset.get_tensor_shape()
-        self.model = model_manager.get_model_class(self.model_type, self.model_name)(model_configs)
+        self.model = model_manager.get_model_class(self.model_name)(model_configs)
         self.model.set_device(self.device)
         
         # prepare for evaluation
@@ -188,3 +186,19 @@ class TensorTask(TaskBase):
         result = self.evaluator.eval(pred_list, truth_list, verbose=self.eval_verbose)
         print(result)
         return result
+    # test different input/output for model
+    # def test_model_io_shape(self):
+    #     self.model.train()
+    #     for seq, aux_info in self.trainloader.get_batch(separate=False):
+    #         seq = seq.to(self.device)
+    #         pred, truth = self.model.forward(seq, aux_info)
+    #         if pred.shape != truth.shape:
+    #             result = f"Can not match the shape: {pred.shape} != {truth.shape}"
+    #         else:
+    #             result = "OK"
+    #         # compute loss & backward
+    #         loss = self.model.get_loss(pred, truth)
+    #         self.model.backward(loss)
+    #         break
+    #     test_id = f"{self.model_name}-{self.his_len}-{self.pred_len}"
+    #     return {'result': result, 'test_id': test_id}

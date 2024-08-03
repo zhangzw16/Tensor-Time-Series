@@ -1,7 +1,6 @@
 __pycache__
-test
-test.py
-# auto_run.py
+.vscode
+test_data
 output
 outputs
 data
