@@ -40,9 +40,10 @@ class MultivarTask(TaskBase):
         self.model_name = configs['model_name']
         # backup configs
         self.configs = configs.copy()
-
+        # check model_type
         if self.model_type != 'MultiVar':
-            raise ValueError(f"model_type: {self.model_type} is not MultiVar")
+            raise ValueError(f"model_type: {self.model_type} is not MultiVar.")
+               
         self.task_id = f"{self.model_name}-{self.his_len}-{self.pred_len}-{self.data_mode}-{normalizer_name}"
         self.output_dir = os.path.join(self.output_dir, self.project_name, self.task_id)
         self.ensure_output_dir(self.output_dir)
@@ -58,21 +59,22 @@ class MultivarTask(TaskBase):
         self.testloader = MTS_DataLoader(self.dataset, 'test', batch_size=self.batch_size, drop_last=False)
         print(f"Preparation for dataset is done.")
         # prepare for evaluation
-        self.eval_verbose = configs['eval_verbose']
+        self.eval_verbose = configs['evaluator_verbose']
         self.metrics_list = configs['metrics_list']
         self.metrics_thres = configs['metrics_thres']
         self.evaluator = Evaluator(self.metrics_list, self.metrics_thres)
         print(f"Preparation for evaluation is done.")
 
     def init_new_model_logger(self, run_idx:int):
-        print(f"Init model and logger... ({run_idx}/{self.time_series_num})")
+        print(f"Init model and logger... ({int(run_idx+1)}/{self.time_series_num})")
         self.run_dir = os.path.join(self.output_dir, f'run_{run_idx}')
         self.ensure_output_dir(self.run_dir)
         # prepare for model
         model_manager = ModelManager()
         model_configs = self.configs.copy()
         normalizer_name = model_configs['normalizer']
-        model_configs['normalizer'] = self.dataset.get_normalizer(normalizer_name)
+        model_configs['tensor_shape'] = (self.dataset.get_dim_num() , 1)
+        model_configs['normalizer'] = self.dataset.get_normalizer(normalizer_name)[run_idx]
         model_configs['dim_num'] = self.dataset.get_dim_num()
         self.model = model_manager.get_model_class(self.model_name)(model_configs)
         self.model.set_device(self.device)
@@ -80,8 +82,8 @@ class MultivarTask(TaskBase):
 
         # prepare for logger
         if self.configs['mode'] == 'train':
-            self.logger = LoggerManager()
-            self.logger.init_logger(self.logger_name, self.run_dir, self.project_name, self.task_id, self.configs)
+            logger_manager = LoggerManager()
+            self.logger = logger_manager.init_logger(self.logger_name, self.run_dir, self.project_name, self.task_id, self.configs)
             self.logger.init()
             print(f"Preparation for logger ({self.logger_name}) is done.")
         # Basic Info
@@ -90,6 +92,7 @@ class MultivarTask(TaskBase):
         print(f"Model: {self.model_name}, Type: {self.model_type}")
         print(f"Logger: {self.logger_name}, Project: {self.project_name}")
         print(f"Dataset: {self.pkl_path}")
+        print(f"Data shape: {self.dataset.get_data_shape()}")
         print(f"his_len: {self.his_len}, pred_len: {self.pred_len}, normalizer: {normalizer_name}")
         print(f"max_epoch: {self.max_epoch}, early_stop: {self.early_stop_max}")
         print(f"The output path: {self.run_dir}")
@@ -98,7 +101,7 @@ class MultivarTask(TaskBase):
     def epoch_train(self, run_idx:int=0):
         self.model.train()
         loss_list = []
-        for seq, aux_info in self.trainloader.get_batch(run_idx, seq_mode='seq'):
+        for seq, aux_info in self.trainloader.get_batch(run_idx, separate=False):
             seq = seq.to(self.device)
             pred, truth = self.model.forward(seq, aux_info)
             epoch_train_loss = self.model.get_loss(pred, truth)
@@ -113,7 +116,7 @@ class MultivarTask(TaskBase):
         pred_list = []
         truth_list = []
         with torch.no_grad():
-            for seq, aux_info in self.validloader.get_batch(run_idx, seq_mode='seq'):
+            for seq, aux_info in self.validloader.get_batch(run_idx, separate=False):
                 seq = seq.to(self.device)
                 pred, truth = self.model.forward(seq, aux_info)
                 epoch_valid_loss = self.model.get_loss(pred, truth)
@@ -167,9 +170,16 @@ class MultivarTask(TaskBase):
                 print('='*40)
 
     def test(self, idx_list:list=[]):
-        test_result = {}
+        # if model_path is .pth file
+        if self.model_path.endswith('.pth'):
+            run_name = os.path.basename(os.path.dirname(self.model_path))
+            run_idx = int(run_name.split('_')[-1])
+            idx_list = [run_idx]
+        # specify the idx_list
         if idx_list == []:
             idx_list = list(range(self.time_series_num))
+
+        test_result = {}
         for run_idx in idx_list:
             test_result[f'run_{run_idx}'] = {}
             run_dir = os.path.join(self.output_dir, f'run_{run_idx}')

@@ -12,7 +12,7 @@ class ModelManager:
             'Stat': 'StatModel',
         }
         current_path = os.path.dirname(os.path.abspath(__file__))
-        self.model_registry = yaml.safe_load(open(os.path.join(current_path, 'ModelRegistry'), 'r'))
+        self.model_registry = yaml.safe_load(open(os.path.join(current_path, 'ModelRegistry.yaml'), 'r'))
     
     def get_model_type(self, model_name:str)->str:
         model_map = self.model_registry['ModelType']
@@ -23,6 +23,13 @@ class ModelManager:
                 break
         return model_type
     
+    def is_prior_graph(self, model_name:str)->bool:
+        graph_map = self.model_registry['GraphModel']
+        if model_name in graph_map['prior']:
+            return True
+        else:
+            return False
+
     def get_model_class(self, name:str)->ModelBase:
         try:
             model_pkg_path = f'{self.model_name}.{name}.model'

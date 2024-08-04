@@ -95,6 +95,9 @@ class TTS_Dataset:
     def get_tensor_shape(self):
         return (self.dim1_range, self.dim2_range)
     
+    def get_data_shape(self):
+        return (self.time_range, self.dim1_range, self.dim2_range)
+
     def get_normalizer(self, norm='none'):
         if norm == 'none':
             return DoNothing()
@@ -139,9 +142,9 @@ class MTS_Dataset:
         data_index = list(range(int(self.time_range)-(his_len+pred_len)))
         train_index_end = int(self.time_range*train_ratio)
         valid_index_end = int(self.time_range*valid_ratio) + train_index_end
-        self.trainset = data_index[:, :train_index_end]
-        self.validset = data_index[:, train_index_end:valid_index_end]
-        self.testset  = data_index[:, valid_index_end:]
+        self.trainset = data_index[:train_index_end]
+        self.validset = data_index[train_index_end:valid_index_end]
+        self.testset  = data_index[valid_index_end:]
         # random shuffle the dataset
         random.shuffle(self.trainset)
         random.shuffle(self.validset)
@@ -188,6 +191,9 @@ class MTS_Dataset:
 
     def get_dim_num(self):
         return self.dim_range
+    
+    def get_data_shape(self):
+        return (self.get_time_series_num, self.time_range, self.dim_range)
 
     def get_his_pred_from_idx(self, time_series_idx:int, idx:int):
         if time_series_idx >= self.time_series_num:

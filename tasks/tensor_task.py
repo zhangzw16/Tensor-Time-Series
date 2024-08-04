@@ -17,6 +17,9 @@ class TensorTask(TaskBase):
         super().__init__(configs)
         # load configuration
         self.init_time_stamp = time.strftime("%m-%d-%H-%M-%S", time.localtime())
+        print(f"TensorTask init... --> {self.init_time_stamp}")
+        print(f"Task mode: {configs['mode']}")
+        print(f"Loading configs...")
         self.seed = configs['seed']
         self.device = configs['task_device']
         self.output_dir = configs['output_dir']
@@ -36,13 +39,17 @@ class TensorTask(TaskBase):
         normalizer_name = configs['normalizer']
         self.model_type = configs['model_type']
         self.model_name = configs['model_name']
-        
-        if self.model_type == 'Tensor':
-            graph_init = configs['graph_init']
+        # backup configs
+        self.configs = configs.copy()
+        # check model_type
+        model_manager = ModelManager()
+        if self.model_type != 'Tensor':
+            raise ValueError(f"model_type: {self.model_type} is not Tensor.")
+        if model_manager.is_prior_graph(self.model_name):
+            graph_init = f"-{configs['graph_init']}"
         else:
             graph_init = ''
-
-        task_id = f"{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}-{graph_init}-{normalizer_name}-{self.init_time_stamp}"
+        task_id = f"{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}{graph_init}-{normalizer_name}-{self.init_time_stamp}"
         self.output_dir = os.path.join(self.output_dir, self.project_name, task_id)
         # ensure output_dir
         self.ensure_output_dir(self.output_dir)
@@ -56,9 +63,10 @@ class TensorTask(TaskBase):
         self.trainloader = TTS_DataLoader(self.dataset, 'train', batch_size=self.batch_size, drop_last=False)
         self.validloader = TTS_DataLoader(self.dataset, 'valid', batch_size=self.batch_size, drop_last=False)
         self.testloader  = TTS_DataLoader(self.dataset, 'test' , batch_size=1, drop_last=False)
-        
+        print("Preparation for dataset is done.")
+
         # prepare for model
-        model_manager = ModelManager()
+        print("Init model and logger...")
         model_configs = configs.copy()
         model_configs['normalizer'] = self.dataset.get_normalizer(norm=normalizer_name)
         graph_init = model_configs['graph_init']
@@ -66,12 +74,14 @@ class TensorTask(TaskBase):
         model_configs['tensor_shape'] = self.dataset.get_tensor_shape()
         self.model = model_manager.get_model_class(self.model_name)(model_configs)
         self.model.set_device(self.device)
-        
+        print(f"Preparation for model ({self.model_type}, {self.model_name}) is done.")
+
         # prepare for evaluation
         self.eval_verbose  = configs['evaluator_verbose']
         self.metrics_list  = configs['metrics_list']
         self.metrics_thres = configs['metrics_thres']
         self.evaluator = Evaluator(self.metrics_list, self.metrics_thres)
+        print("Preparation for evaluation is done.")
 
         # logger
         if self.configs['mode'] == 'train':
@@ -79,6 +89,7 @@ class TensorTask(TaskBase):
             run_name = f"{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}-{normalizer_name}"
             self.logger = logger_manager.init_logger(self.logger_name, self.output_dir, self.project_name, run_name, self.configs)
             self.logger.init()
+            print(f"Preparation for logger ({self.logger_name}) is done.")
 
         # basic info:
         print('-'*40)
@@ -86,7 +97,7 @@ class TensorTask(TaskBase):
         print(f"Model: {self.model_name}, Type: {self.model_type}")
         print(f"Logger: {self.logger_name}, Project: {self.project_name}")
         print(f"Dataset: {self.pkl_path}")
-        print(f"Tensoe shape: {self.dataset.get_tensor_shape()}")
+        print(f"Data shape: {self.dataset.get_data_shape()}")
         print(f"his_len: {self.his_len}, pred_len: {self.pred_len}, normalizer: {normalizer_name}")
         print(f"max_epoch: {self.max_epoch}, early_stop: {self.early_stop_max}")
         print(f"The output path: {self.output_dir}")

@@ -1,23 +1,12 @@
-import os
-import yaml
+import argparse
+from tasks.task_manager import TaskManager
 
-from tasks.tensor_task import TensorTask
+if __name__=='__main__':
+    # set default values
+    output_dir = '/home/zhuangjiaxin/workspace/TensorTSL/Tensor-Time-Series/output/'
+    dataset_name = 'JONAS_NYC_taxi'
+    model_name = 'TimesNet'
 
-if __name__ == '__main__':
-    # load configs
-    yaml_path = './tasks/tensor_tasks_template.yaml'
-    with open(yaml_path, 'r') as file:
-        configs = yaml.safe_load(file)
-    # load mode
-    mode = configs['mode']
-    
-    # init task
-    task = TensorTask(configs)
-
-    # mode = ['train', 'test', 'train-test']
-    if mode=='train':
-        task.train()
-        task.test()
-    if mode=='test':
-        res = task.test()
-
+    # task manager
+    manager = TaskManager(project_name='test',output_dir=output_dir)
+    manager.TaskRun(dataset_name, model_name)
