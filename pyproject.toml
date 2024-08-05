@@ -33,6 +33,10 @@ dependencies = [
     "torch_geometric",
     "tqdm",
     "wfdb",
+<<<<<<< HEAD
+=======
+    "statsmodels",
+>>>>>>> dev
     "pathlib",
     "datasets",
 ]
