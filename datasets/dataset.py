@@ -193,7 +193,7 @@ class MTS_Dataset:
         return self.dim_range
     
     def get_data_shape(self):
-        return (self.get_time_series_num, self.time_range, self.dim_range)
+        return (self.get_time_series_num(), self.time_range, self.dim_range)
 
     def get_his_pred_from_idx(self, time_series_idx:int, idx:int):
         if time_series_idx >= self.time_series_num:

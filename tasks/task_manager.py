@@ -11,17 +11,18 @@ TEMPLATE_PATH = {
     'Tensor': os.path.join(CURRENT_PATH, 'tensor_tasks_template.yaml'),
     'MultiVar': os.path.join(CURRENT_PATH, 'multivariate_tasks_template.yaml'),
 }
-DATASET_PATH = '/home/zhuangjiaxin/workspace/TensorTSL/Tensor-Time-Series/datasets/data'
+DATASET_PATH = os.path.join(os.path.dirname(CURRENT_PATH), 'datasets', 'data')
 DEFAULT_OUTPUT_DIR = os.path.join(os.path.dirname(CURRENT_PATH), 'output')
 '''
 Name: TaskManager
 Info: start a task with given configs automatically.
 '''
 class TaskManager:
-    def __init__(self, project_name:str, output_dir:str=DEFAULT_OUTPUT_DIR) -> None:
+    def __init__(self, project_name:str, output_dir:str=DEFAULT_OUTPUT_DIR, dataset_path:str=DATASET_PATH) -> None:
         self.template_path = TEMPLATE_PATH
         self.project_name = project_name
         self.output_dir = output_dir
+        self.dataset_path = dataset_path
         self.ensure_output_dir(os.path.join(output_dir, project_name))
         self.model_manager = ModelManager()
         self.task_map = {
@@ -41,7 +42,7 @@ class TaskManager:
 
     # search .pkl file accroding to dataset_name
     def search_pkl(self, dataset_name:str):
-        pkl_path = os.path.join(DATASET_PATH, dataset_name)
+        pkl_path = os.path.join(self.dataset_path, dataset_name)
         files = os.listdir(pkl_path)
         for file in files:
             if file.endswith('.pkl'):
@@ -84,9 +85,9 @@ class TaskManager:
         task_config['dataset_pkl'] = self.search_pkl(dataset_name)
         task_config['model_name'] = model_name
         task_config['model_type'] = 'MultiVar'
-        task = MultivarTask(task_config)
-        task.train()
-        return None
+        # task = MultivarTask(task_config)
+        # task.train()
+        # return None
         try:
             task = MultivarTask(task_config)
             if not only_test:

@@ -49,7 +49,7 @@ class TensorTask(TaskBase):
             graph_init = f"-{configs['graph_init']}"
         else:
             graph_init = ''
-        task_id = f"{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}{graph_init}-{normalizer_name}-{self.init_time_stamp}"
+        task_id = f"{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}{graph_init}-{normalizer_name}"
         self.output_dir = os.path.join(self.output_dir, self.project_name, task_id)
         # ensure output_dir
         self.ensure_output_dir(self.output_dir)
