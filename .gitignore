@@ -12,6 +12,7 @@ delta_prediction
 TTM
 Processed_Data
 Tensor_output
+*.sh
 
 .amltconfig
 amlt.yaml
