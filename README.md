@@ -1,4 +1,4 @@
-# Tensor-Time-Series
+# Tensor-Time-Series-Library
 [![Awesome](https://awesome.re/badge.svg)](https://awesome.re) 
 [![Visits Badge](https://badges.pufler.dev/visits/zhangzw16/Tensor-Time-Series)](https://github.com/zhangzw16/Tensor-Time-Series)
 [![Updated Badge](https://badges.pufler.dev/updated/zhangzw16/Tensor-Time-Series)](https://github.com/zhangzw16/Tensor-Time-Series)
@@ -33,3 +33,36 @@ Here is the list of papers organized in the requested format:
 ## Datasets
 
 For datasets, please refer to [Datasets](./datasets/README.md)
+
+## Get Started
+
+Create a virtual environment before we get stated. (Python >= 3.8)
+
+```shell
+conda create --name TensorTSL
+```
+
+An easy way to install the environment is to use `pip install` with the config file `pyproject.toml`. 
+
+```shell
+pip install .
+```
+
+
+## Run
+
+Run a simple task.
+
+```shell
+python3 main.py
+```
+
+## Develop
+
+Due to its modular design, developing with our framework is straightforward and efficient.
+
+### Add new models
+
+In our framework, there are two types of models: `TensorModel` and `MultiVarModel`. These models are categorized based on the shape of the input data. 
+- `TensorModel` supports data inputs with the shape (time, dim1, dim2)
+-  `MultiVarModel` supports data input with the shape (time, dim)
