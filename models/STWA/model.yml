@@ -1,0 +1,10 @@
+# model params
+channels: 16
+dynamic: True
+memory_size: 16
+# learning params
+lr: 0.00005
+clip_grad: True
+clip_grad_norm: 5
+milestone: []
+lr_decay: 0.1

@@ -32,7 +32,9 @@ dependencies = [
     "Shapely",
     "torch_geometric",
     "tqdm",
-    "wfdb"
+    "wfdb",
+    "pathlib",
+    "datasets",
 ]
 
 [tool.setuptools]

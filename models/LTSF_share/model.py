@@ -105,6 +105,7 @@ class LTSF_share_MultiVarModel(MultiVarModelBase):
             outputs[:, :, i] = self.model[i](x_hist[:, :, i])
 
         # output shape: (batch,time(pred),dim1*dim2,1)
+        outputs = self.normalizer.inverse_transform(outputs)
         y_pred = outputs.unsqueeze(-1)
         truth = x[:, self.input_len : self.input_len + self.pred_len, :, :]
         return y_pred, truth
