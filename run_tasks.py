@@ -16,8 +16,7 @@ DatasetMap = {
     "Finance": ['nasdaq100', 'electricity'],
 }
 # Model List
-# MTS_ModelList = ['TimesNet', 'StemGNN', 'AutoFormer', 'CrossFormer', 'PatchTST']
-MTS_ModelList = ['PatchTST']
+MTS_ModelList = ['TimesNet', 'StemGNN', 'AutoFormer', 'CrossFormer', 'PatchTST']
 TTS_ModelList = ['NET3', 'DCRNN', 'GraphWaveNet', 'AGCRN', 'MTGNN', 'TTS_Norm', 'ST_Norm', 'GMRL']
 GraphModelMap = {
     "prior":   ['NET3', 'DCRNN', 'GraphWaveNet'],

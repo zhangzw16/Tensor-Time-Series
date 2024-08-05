@@ -56,6 +56,25 @@ Run a simple task.
 ```shell
 python3 main.py
 ```
+There have been some tasks already. You can try to run `python3 run_tasks.py --help` for help.
+
+Tasks: 
++ MTS_Task: run models in `MTS_ModelList` with specific datasets and `data_mode`.
+```shell
+# for example
+python3 run_tasks.py --his_len 96 --pred_len 12 --dataset Finance --task_name MTS_Task --output_dir './output/'
+```
++ TTS_Task: run models in `TTS_ModelList` with specific datasets and `data_mode`. (GNN is initialized with 'pearson')
+```shell
+# for example
+python3 run_tasks.py --his_len 96 --pred_len 12 --dataset Finance --task_name TTS_Task --output_dir './output/'
+```
+
++ Graph_Init_Task: run Models with prior graph with different graph initialization.
+```shell
+# for example
+python3 run_tasks.py --his_len 96 --pred_len 12 --dataset Finance --task_name MTS_Task --output_dir './output/' --graph_init random
+```
 
 ## Develop
 
