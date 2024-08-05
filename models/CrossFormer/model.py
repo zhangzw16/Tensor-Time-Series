@@ -50,9 +50,9 @@ class Model(nn.Module):
         # Encoder
         self.encoder = Encoder(
             [
-                scale_block(configs, 1 if l is 0 else self.win_size, configs.d_model, configs.n_heads, configs.d_ff,
+                scale_block(configs, 1 if l == 0 else self.win_size, configs.d_model, configs.n_heads, configs.d_ff,
                             1, configs.dropout,
-                            self.in_seg_num if l is 0 else ceil(self.in_seg_num / self.win_size ** l), configs.factor
+                            self.in_seg_num if l == 0 else ceil(self.in_seg_num / self.win_size ** l), configs.factor
                             ) for l in range(configs.e_layers)
             ]
         )
@@ -154,6 +154,16 @@ import yaml
 from models.model_base import MultiVarModelBase 
 import argparse
     
+class CrossFormerArgs:
+    def __init__(self):
+        pass
+    def add_argument(self, arg:str, type, default, help='none' ,required=False, nargs='', action=''):
+        if arg.startswith('--'):
+            args_name = arg[2:]
+            try:
+                setattr(self, args_name, type(default))
+            except:
+                setattr(self, args_name, default)
 
 class CrossFormer_MultiVarModel(MultiVarModelBase):
     def __init__(self, configs: dict = ...) -> None:
@@ -182,7 +192,8 @@ class CrossFormer_MultiVarModel(MultiVarModelBase):
         self.n_heads = model_configs['n_heads']
 
 
-        parser = argparse.ArgumentParser(description='TimesNet')
+        # parser = argparse.ArgumentParser(description='TimesNet')
+        parser = CrossFormerArgs()
 
         # basic config
         parser.add_argument('--task_name', type=str, default='long_term_forecast',
@@ -218,7 +229,7 @@ class CrossFormer_MultiVarModel(MultiVarModelBase):
         parser.add_argument('--d_ff', type=int, default=2048, help='dimension of fcn')
         parser.add_argument('--moving_avg', type=int, default=25, help='window size of moving average')
         parser.add_argument('--factor', type=int, default=self.factor, help='attn factor')
-        parser.add_argument('--distil', action='store_false',
+        parser.add_argument('--distil', action='store_false', type=bool,
                             help='whether to use distilling in encoder, using this argument means not using distilling',
                             default=True)
         parser.add_argument('--dropout', type=float, default=0.1, help='dropout')
@@ -252,7 +263,8 @@ class CrossFormer_MultiVarModel(MultiVarModelBase):
 
         
         # self.configs = parser.parse_args()
-        self.configs, unknown = parser.parse_known_args()
+        # self.configs, unknown = parser.parse_known_args()
+        self.configs = parser
         self.configs.d_ff = self.d_ff
         self.configs.n_heads = self.n_heads
         # args.use_gpu = True if torch.cuda.is_available() and args.use_gpu else False
