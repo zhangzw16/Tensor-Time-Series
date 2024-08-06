@@ -17,6 +17,7 @@ class TimesNet_MultiVarModel(MultiVarModelBase):
     def init_model(self, args=...):
         # task configs
         self.tensor_shape = self.configs['tensor_shape']
+        # print(self.tensor_shape);exit()
         self.num_var = int(self.tensor_shape[0]*self.tensor_shape[1])
         self.normalizer = self.configs['normalizer']
         self.input_len = self.configs['his_len']

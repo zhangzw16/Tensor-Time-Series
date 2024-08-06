@@ -51,8 +51,9 @@ class TaskManager:
     
     # format results to float
     def format_result(self, result:dict):
-        for key in result.keys():
-            result[key] = float(result[key])
+        for run_id in result:
+            for metric in result[run_id]:
+                result[run_id][metric] = float(result[run_id][metric])
         return result
     
     # Task for Tensor Model
@@ -86,8 +87,10 @@ class TaskManager:
         task_config['model_name'] = model_name
         task_config['model_type'] = 'MultiVar'
         # task = MultivarTask(task_config)
-        # task.train()
-        # return None
+        # if not only_test:
+        #     task.train()
+        # result = task.test()
+        # result = self.format_result(result)
         try:
             task = MultivarTask(task_config)
             if not only_test:

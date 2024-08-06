@@ -62,7 +62,7 @@ Output:
 '''
 @register_task('MTS_Task')
 def MTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int, 
-                 project_name:str, dataset_list:list, output_dir:str):
+                 project_name:str, dataset_list:list, output_dir:str, only_test:bool):
     base_dir = os.path.join(output_dir, project_name)
     # logger configuration
     log_dir = os.path.join(base_dir, 'log')
@@ -81,7 +81,7 @@ def MTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int,
     manager = TaskManager('checkpoints', base_dir)
     for model_name in MTS_ModelList:
         for dataset_name in dataset_list:
-            res = manager.TaskRun(dataset_name, model_name, task_config, only_test=False)
+            res = manager.TaskRun(dataset_name, model_name, task_config, only_test=only_test)
             task_results[dataset_name][model_name] = res
     # dump results
     timestamp = time.strftime("%m-%d-%H-%M-%S", time.localtime())
@@ -116,7 +116,7 @@ Output:
 '''
 @register_task('TTS_Task')
 def TTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int, 
-                 project_name:str, dataset_list:list, output_dir:str):
+                 project_name:str, dataset_list:list, output_dir:str, only_test:bool):
     base_dir = os.path.join(output_dir, project_name)
     # logger configuration
     log_dir = os.path.join(base_dir, 'log')
@@ -136,7 +136,7 @@ def TTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int,
     manager = TaskManager('checkpoints', base_dir)
     for model_name in TTS_ModelList:
         for dataset_name in dataset_list:
-            res = manager.TaskRun(dataset_name, model_name, task_config, only_test=False)
+            res = manager.TaskRun(dataset_name, model_name, task_config, only_test=only_test)
             task_results[dataset_name][model_name] = res
     # dump results
     timestamp = time.strftime("%m-%d-%H-%M-%S", time.localtime())
@@ -170,7 +170,7 @@ Output:
 '''
 @register_task('Graph_Init_Task')
 def Graph_Prior_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int, 
-                   project_name:str, dataset_list:list, output_dir:str, graph_init:str):
+                   project_name:str, dataset_list:list, output_dir:str, only_test:bool, graph_init:str):
     base_dir = os.path.join(output_dir, project_name)
     # logger configuration
     log_dir = os.path.join(base_dir, 'log')
@@ -190,7 +190,7 @@ def Graph_Prior_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:in
     manager = TaskManager('checkpoints', base_dir)
     for model_name in GraphModelMap['prior']:
         for dataset_name in dataset_list:
-            res = manager.TaskRun(dataset_name, model_name, task_config, only_test=False)
+            res = manager.TaskRun(dataset_name, model_name, task_config, only_test=only_test)
             task_results[dataset_name][model_name] = res
     # dump results
     timestamp = time.strftime("%m-%d-%H-%M-%S", time.localtime())
@@ -224,6 +224,8 @@ if __name__ == '__main__':
                         help='output path. The log file will be saved in output_dir/project_name/log/xxxx.yaml')
     parser.add_argument('--graph_init', type=str, default='pearson', required=False,
                         help='[optional] only for Graph_Init_Task, graph initialization method: [pearson, inverse_pearson, random]')
+    parser.add_argument('--only_test', type=str, default='False', required=False,
+                        help='[optional] test only')
     # parse
     args = parser.parse_args()
     # check if the value is valid
@@ -241,6 +243,7 @@ if __name__ == '__main__':
     task_param['project_name'] = args.task_name
     task_param['dataset_list'] = DatasetMap[args.dataset]
     task_param['output_dir'] = args.output_dir
+    task_param['only_test'] = False if args.only_test == 'False' else True
     if args.task_name == 'Graph_Init_Task':
         task_param['graph_init'] = args.graph_init
     # start to run
