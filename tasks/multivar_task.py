@@ -180,7 +180,9 @@ class MultivarTask(TaskBase):
             idx_list = list(range(self.time_series_num))
 
         test_result = {}
+        
         for run_idx in idx_list:
+            self.init_new_model_logger(run_idx)
             test_result[f'run_{run_idx}'] = {}
             run_dir = os.path.join(self.output_dir, f'run_{run_idx}')
             trained_model_path = os.path.join(run_dir, 'model.pth')
