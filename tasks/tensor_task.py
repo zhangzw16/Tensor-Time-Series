@@ -182,19 +182,26 @@ class TensorTask(TaskBase):
         with torch.no_grad():
             pred_list = []
             truth_list = []
+            hist_list = []
             for seq, aux_info in self.testloader.get_batch(separate=False):
                 # print(f'seq: {seq.shape}')
                 seq = seq.to(self.device)
+                hist = seq[:, :self.his_len, :, :].cpu().numpy()
                 pred, truth = self.model.forward(seq, aux_info)
                 pred = pred.cpu().numpy()
                 truth = truth.cpu().numpy()
                 pred_list.append(pred)
                 truth_list.append(truth)
+                hist_list.append(hist)
                 # result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
                 # print(result)
         pred_list = np.array(pred_list).squeeze()
         truth_list = np.array(truth_list).squeeze()
+        hist_list = np.array(hist_list).squeeze()
         result = self.evaluator.eval(pred_list, truth_list, verbose=self.eval_verbose)
+        # add scaled result evaluation
+        scaled_result = self.evaluator.scaled_eval(hist_list, pred_list, truth_list, verbose=self.eval_verbose)
+        result.update(scaled_result)
         print(result)
         return result
     # test different input/output for model

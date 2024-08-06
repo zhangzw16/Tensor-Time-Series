@@ -194,16 +194,22 @@ class MultivarTask(TaskBase):
             with torch.no_grad():
                 pred_list = []
                 truth_list = []
+                hist_list = []
                 for seq, aux_info in self.testloader.get_batch(run_idx, separate=False):
                     seq = seq.to(self.device)
+                    hist = seq[:, :self.his_len, :, :].cpu().numpy()
                     pred, truth = self.model.forward(seq, aux_info)
                     pred = pred.cpu().numpy()
                     truth = truth.cpu().numpy()
                     pred_list.append(pred)
                     truth_list.append(truth)
+                    hist_list.append(hist)
             pred_list = np.array(pred_list).squeeze()
             truth_list = np.array(truth_list).squeeze()
+            hist_list = np.array(hist_list).squeeze()
             result = self.evaluator.eval(pred_list, truth_list, verbose=self.eval_verbose)
+            scaled_result = self.evaluator.scaled_eval(hist_list, pred_list, truth_list, verbose=self.eval_verbose)
+            result.update(scaled_result)
             print(f"Test result:\n{result}")
             test_result[f'run_{run_idx}'] = result
         return test_result
