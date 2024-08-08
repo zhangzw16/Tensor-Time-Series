@@ -51,10 +51,14 @@ class TaskManager:
     
     # format results to float
     def format_result(self, result:dict):
-        for run_id in result:
-            for metric in result[run_id]:
-                result[run_id][metric] = float(result[run_id][metric])
-        return result
+        if 'run_0' not in result:
+            formatted_result = {'run_0': result}
+        else:
+            formatted_result = result
+        for run_id in formatted_result:
+            for metric in formatted_result[run_id]:
+                formatted_result[run_id][metric] = float(formatted_result[run_id][metric])
+        return formatted_result
     
     # Task for Tensor Model
     def TensorTaskRun(self, dataset_name:str, model_name:str, configs:dict={}, only_test:bool=False):
@@ -66,6 +70,15 @@ class TaskManager:
         task_config['dataset_pkl'] = self.search_pkl(dataset_name)
         task_config['model_name'] = model_name
         task_config['model_type'] = 'Tensor'
+        if only_test:
+            task_config['mode'] = 'test'
+        else:
+            task_config['mode'] = 'train'
+        # task = TensorTask(task_config)
+        # if not only_test:
+        #     task.train()
+        # result = task.test()
+        # result = self.format_result(result)
         try:
             task = TensorTask(task_config)
             if not only_test:
@@ -86,6 +99,10 @@ class TaskManager:
         task_config['dataset_pkl'] = self.search_pkl(dataset_name)
         task_config['model_name'] = model_name
         task_config['model_type'] = 'MultiVar'
+        if only_test:
+            task_config['mode'] = 'test'
+        else:
+            task_config['mode'] = 'train'
         # task = MultivarTask(task_config)
         # if not only_test:
         #     task.train()

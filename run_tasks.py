@@ -17,7 +17,7 @@ DatasetMap = {
 }
 # Model List
 MTS_ModelList = ['TimesNet', 'StemGNN', 'AutoFormer', 'CrossFormer', 'PatchTST']
-TTS_ModelList = ['NET3', 'DCRNN', 'GraphWaveNet', 'AGCRN', 'MTGNN', 'TTS_Norm', 'ST_Norm', 'GMRL']
+TTS_ModelList = ['DCRNN', 'NET3', 'GraphWaveNet', 'AGCRN', 'MTGNN', 'ST_Norm']
 GraphModelMap = {
     "prior":   ['NET3', 'DCRNN', 'GraphWaveNet'],
     'learned': ['AGCRN', 'MTGNN'],
@@ -243,7 +243,13 @@ if __name__ == '__main__':
     task_param['project_name'] = args.task_name
     task_param['dataset_list'] = DatasetMap[args.dataset]
     task_param['output_dir'] = args.output_dir
-    task_param['only_test'] = False if args.only_test == 'False' else True
+    # task_param['only_test'] = False if args.only_test == 'False' else True
+    if args.only_test == 'True':
+        task_param['only_test'] = True
+    elif args.only_test == 'False':
+        task_param['only_test'] = False
+    else:
+        raise ValueError(f"only_test should be 'True' or 'False'.")
     if args.task_name == 'Graph_Init_Task':
         task_param['graph_init'] = args.graph_init
     # start to run
