@@ -24,6 +24,8 @@ GraphModelMap = {
     'none':    ['TTS_Norm', 'ST_Norm'],
 }
 
+TASK_REGISTRY = {}
+
 '''
 Tools
 '''
@@ -32,16 +34,19 @@ def config_loader(model_type):
         raise ValueError(f"Model type {model_type} is not supported.")
     config = yaml.safe_load(open(TEMPLATE_PATH[model_type], 'r'))
     return config
+
 def ensure_dir(path):
     if not os.path.exists(path):
         os.makedirs(path)
-TASK_REGISTRY = {}
+
 def register_task(name=None):
     def decorator(func):
         task_name = name if name else func.__name__
         TASK_REGISTRY[task_name] = func
         return func
     return decorator
+
+
 '''
 Task1: MTS_Task
 Pram:
@@ -94,6 +99,7 @@ def MTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int,
     task_results['data_mode'] = data_mode
     yaml_path = os.path.join(log_dir, f'MultiVar-{his_len}-{pred_len}-{data_mode}-{timestamp}.yaml')
     yaml.dump(task_results, open(yaml_path, 'w'))
+
 
 '''
 Task2: TTS_Task
@@ -150,6 +156,8 @@ def TTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int,
     task_results['graph_init'] = 'pearson'
     yaml_path = os.path.join(log_dir, f'Tensor-{his_len}-{pred_len}-{data_mode}-{timestamp}.yaml')
     yaml.dump(task_results, open(yaml_path, 'w'))
+
+
 '''
 Task3: GraphTask-Prior
     - only for prior graph tensor model
@@ -204,6 +212,7 @@ def Graph_Prior_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:in
     task_results['graph_init'] = graph_init
     yaml_path = os.path.join(log_dir, f'Tensor-Graph-{graph_init}-{his_len}-{pred_len}-{data_mode}-{timestamp}.yaml')
     yaml.dump(task_results, open(yaml_path, 'w'))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

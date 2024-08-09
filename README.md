@@ -34,6 +34,10 @@ Here is the list of papers organized in the requested format:
 
 For datasets, please refer to [Datasets](./datasets/README.md)
 
+## Forecast Paradigms
+<!-- insert imgs -->
+![forecast_paradigms](./imgs/forecast_paradigms.png)
+
 ## Get Started
 
 Create a virtual environment before we get stated. (Python >= 3.8)
