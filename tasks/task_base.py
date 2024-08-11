@@ -6,7 +6,7 @@ import torch
 class TaskBase:
     def __init__(self, configs:dict={}) -> None:
         self.configs = configs
-        self.best_valid_loss =  math.inf
+        self.best_valid_loss = math.inf
         self.early_stop_max = configs['early_stop_max']
         self.early_stop_cnt = 0
 

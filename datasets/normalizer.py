@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 
-class DoNothing:
+class IdentityNormalizer:
     def __init__(self) -> None:
         pass
     def transform(self, data):

@@ -2,7 +2,7 @@ from tasks.task_manager import TaskManager
 
 if __name__=='__main__':
     # set default values
-    output_dir = '/home/zhuangjiaxin/workspace/TensorTSL/Tensor-Time-Series/output/'
+    output_dir = './output/'
     dataset_name = 'nasdaq100'
     model_name = 'NET3'
 

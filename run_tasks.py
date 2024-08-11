@@ -6,7 +6,7 @@ import os
 from tasks.task_manager import TaskManager, TEMPLATE_PATH
 
 # Set dataset_path !!!
-DATASET_BASE = '/home/zhuangjiaxin/workspace/TensorTSL/Tensor-Time-Series/datasets/data'
+DATASET_BASE = './datasets/data'
 # Dataset List
 DatasetMap = {
     "Traffic": ['JONAS_NYC_bike', 'JONAS_NYC_taxi', 'Metr-LA','METRO_HZ', 'METRO_SH','PEMS03', 'PEMS07'],

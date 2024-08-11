@@ -1,15 +1,19 @@
-import os
 import math
+import os
 import time
-import yaml
-import torch
+
 import numpy as np
-from tasks.task_base import TaskBase
+import torch
+import yaml
+from tqdm import tqdm
+
+# from torch.utils.data import DataLoader
+from datasets.dataset_mts import MTS_Dataset
 from models import ModelManager
-from datasets.dataset import MTS_Dataset
-from datasets.dataloader import MTS_DataLoader
+from tasks.task_base import TaskBase
 from utils.evaluation import Evaluator
 from utils.logger.Logger import LoggerManager
+
 
 class MultivarTask(TaskBase):
     def __init__(self, configs:dict={}) -> None:
@@ -50,14 +54,14 @@ class MultivarTask(TaskBase):
         with open(os.path.join(self.output_dir, 'configs.yml'), 'w') as file:
             yaml.dump(configs, file)
         # prepare for dataset
-        self.dataset = MTS_Dataset(self.pkl_path, 
-                                   his_len=self.his_len, pred_len=self.pred_len ,
-                                   test_ratio=0.1, valid_ratio=0.1, seed=self.seed, data_mode=self.data_mode)
+        self.dataset = MTS_Dataset(self.pkl_path, his_len=self.his_len, pred_len=self.pred_len,
+                                   test_ratio=0.1, valid_ratio=0.1, data_mode=self.data_mode)
         self.time_series_num = self.dataset.get_time_series_num()
-        self.trainloader = MTS_DataLoader(self.dataset, 'train', batch_size=self.batch_size, drop_last=False)
-        self.validloader = MTS_DataLoader(self.dataset, 'valid', batch_size=self.batch_size, drop_last=False)
-        self.testloader = MTS_DataLoader(self.dataset, 'test', batch_size=self.batch_size, drop_last=False)
-        print(f"Preparation for dataset is done.")
+        self.trainloader = self.dataset.get_dataloaders('train', batch_size=self.batch_size)
+        self.validloader = self.dataset.get_dataloaders('valid', batch_size=self.batch_size)
+        self.testloader = self.dataset.get_dataloaders('test', batch_size=1)
+        print("Preparation for dataset is done.")
+        
         # prepare for evaluation
         self.eval_verbose = configs['evaluator_verbose']
         self.metrics_list = configs['metrics_list']
@@ -101,7 +105,8 @@ class MultivarTask(TaskBase):
     def epoch_train(self, run_idx:int=0):
         self.model.train()
         loss_list = []
-        for seq, aux_info in self.trainloader.get_batch(run_idx, separate=False):
+        dataloader = self.trainloader[run_idx]
+        for seq, aux_info in tqdm(dataloader):
             seq = seq.to(self.device)
             pred, truth = self.model.forward(seq, aux_info)
             epoch_train_loss = self.model.get_loss(pred, truth)
@@ -116,7 +121,8 @@ class MultivarTask(TaskBase):
         pred_list = []
         truth_list = []
         with torch.no_grad():
-            for seq, aux_info in self.validloader.get_batch(run_idx, separate=False):
+            dataloader = self.validloader[run_idx]
+            for seq, aux_info in dataloader:
                 seq = seq.to(self.device)
                 pred, truth = self.model.forward(seq, aux_info)
                 epoch_valid_loss = self.model.get_loss(pred, truth)
@@ -197,7 +203,8 @@ class MultivarTask(TaskBase):
                 pred_list = []
                 truth_list = []
                 hist_list = []
-                for seq, aux_info in self.testloader.get_batch(run_idx, separate=False):
+                dataloader = self.testloader[run_idx]
+                for seq, aux_info in dataloader:
                     seq = seq.to(self.device)
                     hist = seq[:, :self.his_len, :, :].cpu().numpy()
                     pred, truth = self.model.forward(seq, aux_info)
@@ -215,24 +222,3 @@ class MultivarTask(TaskBase):
             print(f"Test result:\n{result}")
             test_result[f'run_{run_idx}'] = result
         return test_result
-    
-    # test diffrent input/output for model
-    # def test_model_io_shape(self):
-    #     run_idx = 0
-    #     self.init_new_model_logger(run_idx)
-    #     self.model.train()
-    #     for seq, aux_info in self.trainloader.get_batch(run_idx, separate=False):
-    #         seq = seq.to(self.device)
-    #         pred, truth = self.model.forward(seq, aux_info)
-    #         if pred.shape != truth.shape:
-    #             result = f"Can not match the shape: {pred.shape} != {truth.shape}"
-    #         else:
-    #             result = "OK"
-    #         # compute loss & backward
-    #         loss = self.model.get_loss(pred, truth)
-    #         self.model.backward(loss)
-    #         break
-    #     test_id = f"{self.model_name}-{self.his_len}-{self.pred_len}"
-    #     return {'result': result, 'test_id': test_id}
-        
-

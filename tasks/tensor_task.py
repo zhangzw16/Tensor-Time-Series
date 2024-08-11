@@ -1,15 +1,16 @@
 import os
 import time
-import yaml
-import torch
+
 import numpy as np
-from tasks.task_base import TaskBase
+import torch
+import yaml
+
+from datasets.dataset_tts import TTS_DataLoader, TTS_Dataset
 from models import ModelManager
-from datasets.dataset import TTS_Dataset
-from datasets.dataloader import TTS_DataLoader
+from tasks.task_base import TaskBase
 from utils.evaluation import Evaluator
-from utils.logger.Logger import LoggerManager
 from utils.graph.graphGenerator import GraphGeneratorManager
+from utils.logger.Logger import LoggerManager
 
 
 class TensorTask(TaskBase):

@@ -4,7 +4,7 @@ import scipy
 import scipy.stats
 from sklearn.metrics.pairwise import cosine_similarity
 
-from datasets.dataset import TTS_Dataset
+from datasets.dataset_tts import TTS_Dataset
 
 
 class GraphGenerator:
