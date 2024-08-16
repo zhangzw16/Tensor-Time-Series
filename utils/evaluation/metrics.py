@@ -74,3 +74,21 @@ def pcc(pred, labels, threshold=None):
     labels = labels.reshape(-1)
     pcc = np.corrcoef(pred, labels)[0, 1]
     return pcc
+
+def r_square(pred, labels, threshold=None):
+    """
+    R^2 score
+
+    Args:
+        pred(ndarray): prediction with shape [batch_size, time, ...]
+        labels(ndarray): same shape with prediction, [batch_size, time, ...]
+        threshold(float): data smaller or equal to threshold in target will be removed in computing the r2
+    """
+    pred_len = pred.shape[1]
+    pred = pred.reshape(pred.shape[0], pred_len, -1)
+    labels = labels.reshape(labels.shape[0], pred_len, -1)
+    mean = np.expand_dims(np.mean(labels, axis=1), axis=1) # mean of truth over time
+    ss_tot = np.sum((labels - mean) ** 2)
+    ss_res = np.sum((labels - pred) ** 2)
+    r2 = 1 - ss_res / ss_tot
+    return r2
