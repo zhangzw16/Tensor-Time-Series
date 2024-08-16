@@ -16,7 +16,7 @@ model_name: ''
 model_path: '' # the model parameters loaded in test phase. Setting '' is equal to '{output_dir}/model.pth'
 
 # Dataset & Dataloader
-dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/METRO_SH/METRO_SH.pkl'
+dataset_pkl: '/nas/datasets/Tensor-Time-Series-Dataset/Processed_Data/ETT_hour/ETT_hour.pkl'
 # the shape of data read from .pkl is (time, dim1, dim2),
 # set data mode to change the shape
 # - 0: (time, dim1*dim2, 1)
@@ -39,6 +39,7 @@ metrics_list:
   - smape
   - mase
   - rmsse
+  - r_square
   # - pcc
 
 metrics_thres: {}
