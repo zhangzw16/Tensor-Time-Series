@@ -221,8 +221,17 @@ class Model(nn.Module):
 import os
 import yaml
 from models.model_base import MultiVarModelBase 
-import argparse
     
+class PatchTSTArgs:
+    def __init__(self):
+        pass
+    def add_argument(self, arg:str, type, default, help='none' ,required=False, nargs='', action=''):
+        if arg.startswith('--'):
+            args_name = arg[2:]
+            try:
+                setattr(self, args_name, type(default))
+            except:
+                setattr(self, args_name, default)
 
 class PatchTST_MultiVarModel(MultiVarModelBase):
     def __init__(self, configs: dict = ...) -> None:
@@ -250,8 +259,8 @@ class PatchTST_MultiVarModel(MultiVarModelBase):
         self.loss = model_configs['loss']
 
 
-        parser = argparse.ArgumentParser(description='TimesNet')
-
+        # parser = argparse.ArgumentParser(description='TimesNet')
+        parser = PatchTSTArgs()
         # basic config
         parser.add_argument('--task_name', type=str, default='long_term_forecast',
                             help='task name, options:[long_term_forecast, short_term_forecast, imputation, classification, anomaly_detection]')
@@ -286,7 +295,7 @@ class PatchTST_MultiVarModel(MultiVarModelBase):
         parser.add_argument('--d_ff', type=int, default=2048, help='dimension of fcn')
         parser.add_argument('--moving_avg', type=int, default=25, help='window size of moving average')
         parser.add_argument('--factor', type=int, default=self.factor, help='attn factor')
-        parser.add_argument('--distil', action='store_false',
+        parser.add_argument('--distil', action='store_false', type=bool,
                             help='whether to use distilling in encoder, using this argument means not using distilling',
                             default=True)
         parser.add_argument('--dropout', type=float, default=0.1, help='dropout')
@@ -320,7 +329,8 @@ class PatchTST_MultiVarModel(MultiVarModelBase):
 
         
         # self.configs = parser.parse_args()
-        self.configs, unknown = parser.parse_known_args()
+        # self.configs, unknown = parser.parse_known_args()
+        self.configs = parser
         self.configs.d_ff = self.d_ff
         # args.use_gpu = True if torch.cuda.is_available() and args.use_gpu else False
 

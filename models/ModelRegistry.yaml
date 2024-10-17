@@ -1,0 +1,40 @@
+# Main Registry
+# categories: Tensor, MultiVar, Stat
+ModelType:
+  Tensor:
+    - NET3
+    - DCRNN
+    - GraphWaveNet
+    - AGCRN
+    - MTGNN
+    - TTS_Norm
+    - ST_Norm
+    - GMRL
+    - NET3_MLP
+
+  MultiVar:
+    - TimesNet
+    - StemGNN
+    - AutoFormer
+    - CrossFormer
+    - PatchTST
+    - DLTSF
+    - LTSF
+    - LTSF_share
+    - NLTSF
+    
+  Stat:
+    - HM
+
+# Optional Registry
+GraphModel:
+  prior:
+    - NET3
+    - DCRNN
+    - GraphWaveNet
+  learned:
+    - AGCRN
+    - MTGNN
+  none:
+    - TTS_Norm
+    - ST_Norm

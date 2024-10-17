@@ -1,7 +1,6 @@
 __pycache__
-test
-test.py
-# auto_run.py
+.vscode
+test_data
 output
 outputs
 data
@@ -13,9 +12,10 @@ delta_prediction
 TTM
 Processed_Data
 Tensor_output
+*.sh
 
 .amltconfig
-amlt.yaml
+# amlt.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

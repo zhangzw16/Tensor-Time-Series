@@ -14,13 +14,15 @@ class TaskBase:
         if not os.path.exists(path):
             os.makedirs(path,)
 
-    def early_stop(self, valid_loss, epoch_info:dict={})->bool:
+    def early_stop(self, valid_loss, epoch_info:dict={}, save_dir:str='')->bool:
         # check loss and update
         if valid_loss < self.best_valid_loss:
             self.best_valid_loss = valid_loss
             self.early_stop_cnt = 0
             if self.model is not None:
-                save_path = os.path.join(self.output_dir, 'model.pth')
+                if save_dir == '':
+                    save_dir = self.output_dir
+                save_path = os.path.join(save_dir, 'model.pth')
                 self.model.save_model(save_path)
                 print(f'model saved in: {save_path}')
                 self.best_epoch_info = epoch_info
@@ -36,4 +38,7 @@ class TaskBase:
         pass
 
     def test(self):
+        pass
+
+    def test_model_io_shape(self):
         pass

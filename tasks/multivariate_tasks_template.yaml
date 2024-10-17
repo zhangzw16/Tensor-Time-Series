@@ -11,24 +11,23 @@ logger: 'none'
 project_name: 'auto_run'
 
 # Model
-model_type: 'Tensor'  # ['Tensor', 'Stat']
-model_name: 'NET3_MLP'
-model_path: '' # the model parameters loaded in test phase. Setting '' will turn to '{output_dir}/model.pth'
+model_type: 'MultiVar'  # ['MultiVar', 'Stat']
+model_name: ''
+model_path: '' # the model parameters loaded in test phase. Setting '' is equal to '{output_dir}/model.pth'
 
 # Dataset & Dataloader
-dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/METRO_SH/METRO_SH.pkl'
+dataset_pkl: '/nas/datasets/Tensor-Time-Series-Dataset/Processed_Data/ETT_hour/ETT_hour.pkl'
 # the shape of data read from .pkl is (time, dim1, dim2),
 # set data mode to change the shape
-# - 0: (time, dim1, dim2)
-# - 1: (time, dim2, dim1)
-# - 2: (time, dim1*dim2, 1)
+# - 0: (time, dim1*dim2, 1)
+# - 1: (time, dim1, 1) * dim2
+# - 2: (time, dim2, 1) * dim1
 data_mode: 0
 batch_size: 64
 his_len:  96
 pred_len: 12
 normalizer: 'std' # ['none', 'std']
-graph_init: 'pearson'  # ['pearson', 'invers_pearson', 'random', 'cosine']
-test_ratio:  0.1
+test_ratio: 0.1
 valid_ratio: 0.1
 
 # Evaluation
@@ -44,4 +43,3 @@ metrics_list:
   # - pcc
 
 metrics_thres: {}
-

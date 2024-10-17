@@ -16,7 +16,7 @@ ModelMap = {
 
 }
 His_len = [96]
-Pred_len = 12
+Pred_len = 24
 
 # Load data
 METRIC_MAP = ['mae', 'mape', 'mse', 'rmse']
@@ -36,6 +36,10 @@ class YamlLoader:
         self.his_len = info['his_len']
         self.pred_len = info['pred_len']
         self.data_mode = info['data_mode']
+        if 'graph_init' in info:
+            self.graph_init = info['graph_init']
+        else:
+            self.graph_init = ""
         # print(self.models, self.datasets)
 
     def get_metrics(self, model_name, dataset_name):
@@ -51,6 +55,8 @@ class YamlLoader:
             return None
     def get_data_mode(self):
         return self.data_mode
+    def get_graph_init(self):
+        return self.graph_init
         
 class Collector:
     def __init__(self, root_path:str):
@@ -72,6 +78,9 @@ class Collector:
                     for model_name in model_list:
                         metrics = loader.get_metrics(model_name, dataset)
                         data_mode = loader.get_data_mode()
+                        graph_init = loader.get_graph_init()
+                        if graph_init != "":
+                            graph_init = '-' + graph_init
                         # print(metrics)
                         # print(f'{dataset} {model_name} {metrics}')
                         if metrics is not None:
@@ -79,21 +88,21 @@ class Collector:
                                 # res[dataset][model_name] = {}
                                 # res[dataset][model_name]['metrics'] = metrics
                                 # res[dataset][model_name]['data_mode'] = data_mode
-                                res[dataset][f'{model_name}-{data_mode}'] = metrics
+                                res[dataset][f'{model_name}-{data_mode}{graph_init}'] = metrics
         # print(res)
         return res
     
-    def collect_all(self, output_path:str, output:str='csv'):
+    def collect_all(self, output_path:str, output_name:str, output:str='csv'):
         res = {}
         for his in His_len:
             for pred in [Pred_len]:
                 res[f'{his}-{pred}'] = self.collect(his, pred)
         if output == 'csv':
-            self.to_csv(output_path, res)
+            self.to_csv(output_path, output_name, res)
 
-    def to_csv(self, output_path, res:dict):
+    def to_csv(self, output_path, output_name, res:dict):
         for his_pred in res:
-            with open(os.path.join(output_path, f'{his_pred}-merge-v2.csv'), 'w') as f:
+            with open(os.path.join(output_path, f'{output_name}'), 'w') as f:
                 writer = csv.writer(f)
                 writer.writerow(['his_pred', 'dataset', 'model', 'model_type','mae', 'mape', 'rmse', 'smape'])
                 for dataset in res[his_pred]:
@@ -113,5 +122,5 @@ class Collector:
 
 if __name__ == '__main__':
     collector = Collector('/home/zhuangjiaxin/workspace/TensorTSL/Tensor-Time-Series/output')
-    collector.collect_all('/home/zhuangjiaxin/workspace/TensorTSL/Tensor-Time-Series/output/csv')
+    collector.collect_all('/home/zhuangjiaxin/workspace/TensorTSL/Tensor-Time-Series/output/csv', '96-24.csv')
     
