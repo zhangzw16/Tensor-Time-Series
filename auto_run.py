@@ -1,4 +1,5 @@
 import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '7'
 import time
 import yaml
 from models import ModelManager
@@ -6,6 +7,8 @@ from tasks.tensor_task import TensorTask
 
 DATASET_PATH = './datasets/Processed_Data'
 TEMPLATE_PATH = './tasks/tensor_tasks_template.yaml'
+data_mode = 'Random_Init_2'
+
 
 DatasetMap = {
     "Traffic": ['JONAS_NYC_bike', 'JONAS_NYC_taxi', 'Metr-LA','METRO_HZ', 'METRO_SH','PEMS03', 'PEMS04', 'PEMS07', 'PEMS08', 'PEMS20', 'PEMSBAY'],
@@ -17,16 +20,22 @@ DatasetMap = {
 
 ModelMap = {
     'Tensor':   ['NET3', 'DCRNN', 'GraphWaveNet', 'AGCRN', 'MTGNN', 'TTS_Norm', 'ST_Norm', 'GMRL'],
-    'MultiVar': ['TimesNet', 'StemGNN', 'STGCN', 'AutoFormer', 'CrossFormer', 'PatchTST'],
+    # 'MultiVar': ['TimesNet', 'StemGNN', 'STGCN', 'AutoFormer', 'CrossFormer', 'PatchTST'],
+    'MultiVar': ['PatchTST'],
     'Stat':     ['HM'],
-    'NET3':     ['NET3_MLP'],
+    # 'NET3':     ['NET3_MLP'],
+    'PatchTST': ['PatchTST'],
+    'NET3':       ['NET3'],
+    
 }
 
 TensorGraphMap = {
     "prior":   ['NET3', 'DCRNN', 'GraphWaveNet'],
     'learned': ['AGCRN', 'MTGNN'],
     'none':    ['TTS_Norm', 'ST_Norm', 'GMRL'],
-    'NET3':     ['NET3_MLP'],
+    # 'NET3':     ['NET3_MLP'],
+    # 'PatchTST': ['PatchTST'],
+    'NET3':       ['NET3'],
 }
 
 def ensure_dir(path):
@@ -122,6 +131,14 @@ class AutoRunner:
         auto_run_results['data_mode'] = data_mode
         yaml.dump(auto_run_results, open(os.path.join(self.output_dir, f'{run_task_name}_{time_stamp}.yaml'), 'w'))
         # print(auto_run_results)
+def run_by_list(his_len, pred_len, out_dir, model_type, model_list):
+    auto_runner = AutoRunner(out_dir)
+    # auto_runner.auto_run(his_len, pred_len, model_type, model_list)
+    auto_runner.auto_run(his_len, pred_len, model_type, model_list, DatasetMap['Traffic'], run_task_name=f'{model_type}_Traffic_{his_len}_{pred_len}')
+    # auto_runner.auto_run(his_len, pred_len, model_type, model_list, DatasetMap['Natrual'], run_task_name=f'{model_type}_Natrual_{his_len}_{pred_len}')
+    auto_runner.auto_run(his_len, pred_len, model_type, model_list, DatasetMap['Energy'], run_task_name=f'{model_type}_Energy_{his_len}_{pred_len}')
+    auto_runner.auto_run(his_len, pred_len, model_type, model_list, DatasetMap['Finance'], run_task_name=f'{model_type}_Finance_{his_len}_{pred_len}')
+    auto_runner.auto_run(his_len, pred_len, model_type, model_list, DatasetMap['Weather'], run_task_name=f'{model_type}_Weather_{his_len}_{pred_len}')
 
 def run_all(his_len, pred_len, out_dir, task=0):
     auto_runner = AutoRunner(out_dir)
@@ -156,26 +173,31 @@ def run_prior_graph(his_len, pred_len, out_dir, graph_init):
     # auto_runner.run_graph(his_len, pred_len, model_type, TensorGraphMap['prior'], DatasetMap['Traffic'], graph_init, run_task_name=f'{model_type}_{graph_init}_prior_Traffic_{his_len}_{pred_len}')
     # auto_runner.run_graph(his_len, pred_len, model_type, TensorGraphMap['prior'], DatasetMap['Natrual'], graph_init, run_task_name=f'{model_type}_{graph_init}_Traffic_{his_len}_{pred_len}') 
     # auto_runner.run_graph(his_len, pred_len, model_type, TensorGraphMap['prior'], DatasetMap['Energy'], graph_init, run_task_name=f'{model_type}_{graph_init}_Traffic_{his_len}_{pred_len}')
-    model_list = TensorGraphMap['NET3']
+    model_list = TensorGraphMap['prior']
     idx=0
-    # auto_runner.run_graph(his_len, pred_len, model_type, [model_list[idx]], DatasetMap['Traffic'], graph_init, run_task_name=f'{model_type}_prior_Traffic_{model_list[idx]}_{graph_init}_{his_len}_{pred_len}')
-    # auto_runner.run_graph(his_len, pred_len, model_type, [model_list[idx]], DatasetMap['Natrual'], graph_init, run_task_name=f'{model_type}_prior_Natrual_{model_list[idx]}_{graph_init}_{his_len}_{pred_len}') 
-    # auto_runner.run_graph(his_len, pred_len, model_type, [model_list[idx]], DatasetMap['Energy'], graph_init, run_task_name=f'{model_type}_prior_Energy_{model_list[idx]}_{graph_init}_{his_len}_{pred_len}') 
+    auto_runner.run_graph(his_len, pred_len, model_type, [model_list[idx]], DatasetMap['Traffic'], graph_init, run_task_name=f'{model_type}_prior_Traffic_{model_list[idx]}_{graph_init}_{his_len}_{pred_len}')
+    auto_runner.run_graph(his_len, pred_len, model_type, [model_list[idx]], DatasetMap['Natrual'], graph_init, run_task_name=f'{model_type}_prior_Natrual_{model_list[idx]}_{graph_init}_{his_len}_{pred_len}') 
+    auto_runner.run_graph(his_len, pred_len, model_type, [model_list[idx]], DatasetMap['Energy'], graph_init, run_task_name=f'{model_type}_prior_Energy_{model_list[idx]}_{graph_init}_{his_len}_{pred_len}') 
     auto_runner.run_graph(his_len, pred_len, model_type, [model_list[idx]], DatasetMap['Finance'], graph_init, run_task_name=f'{model_type}_prior_Finance_{model_list[idx]}_{graph_init}_{his_len}_{pred_len}')
     auto_runner.run_graph(his_len, pred_len, model_type, [model_list[idx]], DatasetMap['Weather'], graph_init, run_task_name=f'{model_type}_prior_Weather_{model_list[idx]}_{graph_init}_{his_len}_{pred_len}') 
 
 if __name__ == '__main__':
     # his_len_list = [12, 16, 24, 48, 96]
     his_len_list = [96]
-    graph_init_list = ['pearson']#, 'invers_pearson', 'random']
+    graph_init_list = ['random']#, 'invers_pearson', 'random']
     pred_len = 12
     for his_len in his_len_list:
         # out_path = os.path.join('./auto_run/data_mode_2', f'{his_len}-{pred_len}')
+        out_path = os.path.join(f'./Tensor_output/auto_run/{data_mode}', f'{his_len}-{pred_len}')
+        ensure_dir(out_path)
+        # run_all(his_len, pred_len, out_path, 1)
+        # out_path = os.path.join(f'./Tensor_output/auto_run/{data_mode}', f'{his_len}-{pred_len}')
         # ensure_dir(out_path)
-        # run_all(his_len, pred_len, out_path, 3)
+        # run_by_list(his_len, pred_len, out_path, 'Tensor', ['MTGNN'])
+        # run_all(his_len, pred_len, f'./Tensor_output/auto_run/{data_mode}', 3)
 
         for graph_init in graph_init_list:
-            out_path = os.path.join('./Tensor_output/auto_run/data_mode_2', f'{his_len}-{pred_len}')
+            out_path = os.path.join(f'./Tensor_output/auto_run/{data_mode}', f'{his_len}-{pred_len}')
             ensure_dir(out_path)
             run_prior_graph(his_len, pred_len, out_path, graph_init)
 

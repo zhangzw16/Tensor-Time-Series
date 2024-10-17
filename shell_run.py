@@ -142,7 +142,7 @@ if __name__ == '__main__':
     parser.add_argument('--his_len', type=int, default=96)
     parser.add_argument('--pred_len', type=int, default=12)
 
-    parser.add_argument('--model_type', type=str, default='NET3', 
+    parser.add_argument('--model_type', type=str, default='NET3_MLP', 
                         help="['Stat', 'MultiVar', 'Tensor-prior', 'Tensor-learned', 'Tensor-none']")
     parser.add_argument('--model_name', type=str, default='', required=False,
                         help='specify the model name')
