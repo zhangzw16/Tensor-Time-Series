@@ -27,7 +27,7 @@ batch_size: 64
 his_len:  96
 pred_len: 12
 normalizer: 'std' # ['none', 'std']
-graph_init: 'pearson'  # ['pearson', 'invers_pearson', 'random', 'cosine']
+graph_init: 'pearson'  # ['pearson', 'invers_pearson', 'random', 'cosine', 'unit']
 test_ratio:  0.1
 valid_ratio: 0.1
 

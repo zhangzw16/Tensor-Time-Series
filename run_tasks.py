@@ -170,7 +170,7 @@ Param:
     - project_name
     - dataset_list
     - output_dir
-    - graph_init: ['inverse_pearson', 'random']
+    - graph_init: ['inverse_pearson', 'random', 'unit']
 Output:
     - log file saved in 'output_dir/project_name/log/xxxx.yaml'
     - checkpoints saved in 'output_dir/project_name/checkpoints/task_id/model.pth'
@@ -232,7 +232,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_dir', type=str, required=True,
                         help='output path. The log file will be saved in output_dir/project_name/log/xxxx.yaml')
     parser.add_argument('--graph_init', type=str, default='pearson', required=False,
-                        help='[optional] only for Graph_Init_Task, graph initialization method: [pearson, inverse_pearson, random]')
+                        help='[optional] only for Graph_Init_Task, graph initialization method: [pearson, inverse_pearson, random, unit]')
     parser.add_argument('--only_test', type=str, default='False', required=False,
                         help='[optional] test only')
     # parse

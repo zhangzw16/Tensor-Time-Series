@@ -56,6 +56,13 @@ class GraphGenerator:
         for i in range(dim):
             graph[i,i] = 1.0
         return graph
+    
+    def unit_matrix(self, n_dim:int):
+        dim = self.tensor_shape[n_dim]
+        if dim <= 1:
+            return np.ones((1,1))
+        graph = np.eye(dim)
+        return graph
 
     def cosine_similarity_matrix(self, n_dim:int, normal=False):
         dim = self.tensor_shape[n_dim]
@@ -98,6 +105,8 @@ class GraphGeneratorManager:
             return self.graph_generator.random_matrix(n_dim)
         elif self.graph_init == 'inverse_pearson':
             return self.graph_generator.inverse_pearson_matrix(n_dim, normal)
+        elif self.graph_init == 'unit':
+            return self.graph_generator.unit_matrix(n_dim)
         else:
             return self.graph_generator.random_matrix(n_dim)
     
