@@ -135,6 +135,7 @@ class TaskManager:
         #     task.train()
         # result = task.test()
         # result = self.format_result(result)
+        # return result
         # -------------------------------
         try:
             task = MultivarTask(task_config)

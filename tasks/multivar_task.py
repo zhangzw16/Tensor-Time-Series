@@ -38,6 +38,7 @@ class MultivarTask(TaskBase):
         normalizer_name = configs['normalizer']
         self.model_type = configs['model_type']
         self.model_name = configs['model_name']
+
         # backup configs
         self.configs = configs.copy()
         # check model_type
@@ -96,6 +97,7 @@ class MultivarTask(TaskBase):
         print(f"his_len: {self.his_len}, pred_len: {self.pred_len}, normalizer: {normalizer_name}")
         print(f"max_epoch: {self.max_epoch}, early_stop: {self.early_stop_max}")
         print(f"The output path: {self.run_dir}")
+        print(f"Optimizer: lr: {self.configs['lr']}, eps: {self.configs['eps']}, weight_decay: {self.configs['weight_decay']}")
         print('-'*40)
 
     def epoch_train(self, run_idx:int=0):

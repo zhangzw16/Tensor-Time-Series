@@ -67,7 +67,7 @@ Output:
 '''
 @register_task('MTS_Task')
 def MTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int, 
-                 lr:str, eps:str, weight_decay:str,   # Optimizer
+                 lr:float, eps:float, weight_decay:float,   # Optimizer
                  project_name:str, dataset_list:list, output_dir:str, only_test:bool):
     base_dir = os.path.join(output_dir, project_name)
     # logger configuration
@@ -126,7 +126,7 @@ Output:
 '''
 @register_task('TTS_Task')
 def TTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int, 
-                 lr:str, eps:str, weight_decay:str,   # Optimizer
+                 lr:float, eps:float, weight_decay:float,   # Optimizer
                  project_name:str, dataset_list:list, output_dir:str, only_test:bool):
     base_dir = os.path.join(output_dir, project_name)
     # logger configuration
@@ -186,7 +186,7 @@ Output:
 '''
 @register_task('Graph_Init_Task')
 def Graph_Prior_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int, 
-                         lr:str, eps:str, weight_decay:str,   # Optimizer
+                         lr:float, eps:float, weight_decay:float,   # Optimizer
                          project_name:str, dataset_list:list, output_dir:str, only_test:bool, graph_init:str):
     base_dir = os.path.join(output_dir, project_name)
     # logger configuration
@@ -280,7 +280,6 @@ if __name__ == '__main__':
     task_param['eps'] = args.eps
     task_param['weight_decay'] = args.weight_decay
 
-
     if args.only_test == 'True':
         task_param['only_test'] = True
     elif args.only_test == 'False':
@@ -289,6 +288,11 @@ if __name__ == '__main__':
         raise ValueError(f"only_test should be 'True' or 'False'.")
     if args.task_name == 'Graph_Init_Task':
         task_param['graph_init'] = args.graph_init
+
+    task_param['lr'] = None if task_param['lr'] == '' else float(task_param['lr'])
+    task_param['eps'] = None if task_param['eps'] == '' else float(task_param['eps'])
+    task_param['weight_decay'] = None if task_param['weight_decay'] == '' else float(task_param['weight_decay'])
+
     # start to run
     # print(task_param)
     task_func(**task_param)
