@@ -36,6 +36,7 @@ dependencies = [
     "statsmodels",
     "pathlib",
     "datasets",
+    "mambapy",
 ]
 
 [tool.setuptools]
