@@ -10,6 +10,7 @@ from datasets.dataset import MTS_Dataset
 from datasets.dataloader import MTS_DataLoader
 from utils.evaluation import Evaluator
 from utils.logger.Logger import LoggerManager
+from utils.scheduler.schedulerManager import SchedulerManager
 
 class MultivarTask(TaskBase):
     def __init__(self, configs:dict={}) -> None:
@@ -59,6 +60,7 @@ class MultivarTask(TaskBase):
         self.validloader = MTS_DataLoader(self.dataset, 'valid', batch_size=self.batch_size, drop_last=False)
         self.testloader = MTS_DataLoader(self.dataset, 'test', batch_size=self.batch_size, drop_last=False)
         print(f"Preparation for dataset is done.")
+        
         # prepare for evaluation
         self.eval_verbose = configs['evaluator_verbose']
         self.metrics_list = configs['metrics_list']
@@ -81,6 +83,12 @@ class MultivarTask(TaskBase):
         self.model.set_device(self.device)
         print(f"Preparation for model ({self.model_type}, {self.model_name}) is done.")
 
+        # prepare for scheduler
+        self.scheduler_manager = SchedulerManager()
+        self.scheduler_name = self.configs['scheduler']
+        self.scheduler = self.scheduler_manager.get_scheduler(self.model.optim, self.scheduler_name)
+        
+
         # prepare for logger
         if self.configs['mode'] == 'train':
             logger_manager = LoggerManager()
@@ -98,6 +106,7 @@ class MultivarTask(TaskBase):
         print(f"max_epoch: {self.max_epoch}, early_stop: {self.early_stop_max}")
         print(f"The output path: {self.run_dir}")
         print(f"Optimizer: lr: {self.configs['lr']}, eps: {self.configs['eps']}, weight_decay: {self.configs['weight_decay']}")
+        print(f"Scheduler: {self.scheduler_name}")
         print('-'*40)
 
     def epoch_train(self, run_idx:int=0):
@@ -150,12 +159,18 @@ class MultivarTask(TaskBase):
                 epoch_info = {}
                 epoch_mean_train_loss = self.epoch_train(run_idx)
                 epoch_mean_valid_loss, valid_result = self.epoch_valid(run_idx)
+                # scheduler
+                if self.scheduler_name == 'ReduceLROnPlateau':
+                    self.scheduler.step(epoch_mean_valid_loss)
+                else:
+                    self.scheduler.step()
                 print(f"epoch: {i}, mean_train_loss: {epoch_mean_train_loss:.3f}, mean_valid_loss:{epoch_mean_valid_loss:.3f}")
                 # logger info
                 epoch_info['train/loss'] = epoch_mean_train_loss
                 epoch_info['valid/loss'] = epoch_mean_valid_loss
                 for metric in valid_result:
                     epoch_info[f'valid/{metric}'] = valid_result[metric]
+                epoch_info['learning_rate'] = self.model.optim.param_groups[0]['lr']
                 self.logger.log(epoch_info)
                 early_stop_flag = self.early_stop(epoch_mean_valid_loss, epoch_info, save_dir=self.run_dir)
                 # early stop

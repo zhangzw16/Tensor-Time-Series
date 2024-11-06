@@ -68,6 +68,7 @@ Output:
 @register_task('MTS_Task')
 def MTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int, 
                  lr:float, eps:float, weight_decay:float,   # Optimizer
+                 scheduler:str,
                  project_name:str, dataset_list:list, output_dir:str, only_test:bool):
     base_dir = os.path.join(output_dir, project_name)
     # logger configuration
@@ -85,6 +86,7 @@ def MTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int,
     task_config['lr'] = lr
     task_config['eps'] = eps
     task_config['weight_decay'] = weight_decay
+    task_config['scheduler'] = scheduler
     # start to run
     task_results = {dataset_name: {} for dataset_name in dataset_list}
     manager = TaskManager('checkpoints', base_dir)
@@ -127,6 +129,7 @@ Output:
 @register_task('TTS_Task')
 def TTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int, 
                  lr:float, eps:float, weight_decay:float,   # Optimizer
+                 scheduler:str,
                  project_name:str, dataset_list:list, output_dir:str, only_test:bool):
     base_dir = os.path.join(output_dir, project_name)
     # logger configuration
@@ -145,6 +148,7 @@ def TTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int,
     task_config['lr'] = lr
     task_config['eps'] = eps
     task_config['weight_decay'] = weight_decay
+    task_config['scheduler'] = scheduler
     # start to run
     task_results = {dataset_name: {} for dataset_name in dataset_list}
     manager = TaskManager('checkpoints', base_dir)
@@ -187,6 +191,7 @@ Output:
 @register_task('Graph_Init_Task')
 def Graph_Prior_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int, 
                          lr:float, eps:float, weight_decay:float,   # Optimizer
+                         scheduler:str,
                          project_name:str, dataset_list:list, output_dir:str, only_test:bool, graph_init:str):
     base_dir = os.path.join(output_dir, project_name)
     # logger configuration
@@ -205,6 +210,7 @@ def Graph_Prior_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:in
     task_config['lr'] = lr
     task_config['eps'] = eps
     task_config['weight_decay'] = weight_decay
+    task_config['scheduler'] = scheduler
     # start to run
     task_results = {dataset_name: {} for dataset_name in dataset_list}
     manager = TaskManager('checkpoints', base_dir)
@@ -258,7 +264,8 @@ if __name__ == '__main__':
                         help='Optimizer: eps, set \'\' to use default value')
     parser.add_argument('--weight_decay', type=str, default='', required=False,
                         help='Optimizer: weight decay, set \'\' to use default value')
-
+    parser.add_argument('--scheduler', type=str, default='None', required=False,
+                        help="Scheduler: learning rate scheduler, chose one from ['None', 'MultiStepLR', 'MultiStepLR', 'ExponentialLR', 'ReduceLROnPlateau']")
     # Parse Args:
     args = parser.parse_args()
     # check if the value is valid
@@ -279,6 +286,7 @@ if __name__ == '__main__':
     task_param['lr'] = args.learning_rate
     task_param['eps'] = args.eps
     task_param['weight_decay'] = args.weight_decay
+    task_param['scheduler'] = args.scheduler
 
     if args.only_test == 'True':
         task_param['only_test'] = True

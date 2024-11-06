@@ -29,7 +29,7 @@ class Logger_none(LoggerBase):
 
     def log(self, info: dict):
         for i in info:
-            print(f'{i}: {info[i]:.3f}')
+            print(f'{i}: {info[i]:.5f}')
 
     def close(self):
         print('Logger_none: Goodbye...')
