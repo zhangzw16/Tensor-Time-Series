@@ -30,6 +30,14 @@ normalizer: 'std' # ['none', 'std']
 test_ratio: 0.1
 valid_ratio: 0.1
 
+# Optimizer
+lr: '1e-3'        # string, set '' to use default lr
+eps: '1e-8'       # string, set '' to use default eps
+weight_decay: '0' # string, set '' to use default weight_decay
+
+# Scheduler
+scheduler: 'None' # ['None', 'MultiStepLR', 'ExponentialLR', 'ReduceLROnPlateau', 'CosineAnnealingLR', 'CosineAnnealingWarmRestarts']
+
 # Evaluation
 evaluator_verbose: false
 metrics_list:

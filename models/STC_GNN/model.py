@@ -319,7 +319,12 @@ class STC_GNN_TensorModel(TensorModelBase):
                             in_dim, hidden_dim, num_layers,
                             self.pred_len,use_bias) 
         self.criterion = ComboLoss()
-        self.optim = torch.optim.Adam(params=self.model.parameters(), lr=2e-3, weight_decay=1e-4)
+        # update optimizer configs 
+        lr = 2e-3 if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 1e-4 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
+        # self.optim = torch.optim.Adam(params=self.model.parameters(), lr=2e-3, weight_decay=1e-4)
 
     
     def init_others(self, dataset_name=None):

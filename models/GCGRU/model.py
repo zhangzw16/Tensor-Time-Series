@@ -385,11 +385,14 @@ class GCGRU_TensorModel(TensorModelBase):
                             rnn_units=self.rnn_units,
                             num_layers=self.num_layers,
                             cheb_k=self.cheb_k)
-        self.optimizer = torch.optim.Adam(self.model.parameters(),
-                                          lr=self.lr,
-                                          weight_decay=0,
-                                          eps=1e-8)
-        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer,
+        # update optimizer configs 
+        lr = self.lr if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
+        # self.optim = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=0, eps=1e-8)
+
+        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optim,
                                                               milestones=self.milestone,
                                                               gamma=self.lr_decay)
         self.criterion = nn.HuberLoss()
@@ -404,11 +407,11 @@ class GCGRU_TensorModel(TensorModelBase):
         return y_pred, truth
     
     def backward(self, loss):
-        self.optimizer.zero_grad()
+        self.optim.zero_grad()
         loss.backward()
         if self.clip_grad:
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.clip_grad_norm)
-        self.optimizer.step()
+        self.optim.step()
 
     def get_loss(self, pred, truth):
         L = self.criterion(pred, truth)

@@ -43,10 +43,12 @@ class HI_StatModel(StatModelBase):
         # build no-parameter model
         self.model = HistoricalInertia(in_steps=self.input_len,
                                        out_steps=self.pred_len)
-        self.optimizer = self.optimizer = torch.optim.Adam(self.model.parameters(),
-                                          lr=0.001,
-                                          weight_decay=0,
-                                          eps=1e-8)
+        # update optimizer configs 
+        lr = 0.001 if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
+        # self.optim = self.optim = torch.optim.Adam(self.model.parameters(), lr=0.001, weight_decay=0, eps=1e-8)
         self.criterion = nn.HuberLoss()
     
     def forward(self, x, aux_info = ...):
@@ -58,9 +60,9 @@ class HI_StatModel(StatModelBase):
         return y_pred, truth
     
     def backward(self, loss):
-        self.optimizer.zero_grad()
+        self.optim.zero_grad()
         loss.backward()
-        self.optimizer.step()
+        self.optim.step()
     
     def get_loss(self, pred, truth):
         L = self.criterion(pred, truth)

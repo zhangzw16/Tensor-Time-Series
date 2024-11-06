@@ -344,11 +344,14 @@ class STWA_MultiVarModel(MultiVarModelBase):
                           lag=self.input_len,
                           horizon=self.pred_len,
                           memory_size=self.memory_size)
-        self.optimizer = torch.optim.Adam(self.model.parameters(),
-                                          lr=self.lr,
-                                          weight_decay=0,
-                                          eps=1e-8)
-        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer,
+        # update optimizer configs 
+        lr = self.lr if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
+        # self.optim = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=0, eps=1e-8)
+        
+        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optim,
                                                               milestones=self.milestone,
                                                               gamma=self.lr_decay)
         
@@ -367,11 +370,11 @@ class STWA_MultiVarModel(MultiVarModelBase):
         return y_pred, truth
     
     def backward(self, loss):
-        self.optimizer.zero_grad()
+        self.optim.zero_grad()
         loss.backward()
         if self.clip_grad:
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.clip_grad_norm)
-        self.optimizer.step()
+        self.optim.step()
 
     def get_loss(self, pred, truth):
         L = self.criterion(pred, truth)

@@ -220,7 +220,12 @@ class ST_Norm_TensorModel(TensorModelBase):
                              tnorm_bool=self.tnorm, snorm_bool=self.snorm, 
                              in_dim=self.tensor_shape[1], out_dim=self.tensor_shape[1], pred_len=self.pred_len, channels=self.hidden_channels,
                              kernel_size=kernel_size, blocks=blocks, layers=self.n_layers)
-        self.optim = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()), lr=0.0001)
+        # update optimizer configs 
+        lr = 0.0001 if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0.0 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        # self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
+        self.optim = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()), lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
         self.criterion = nn.MSELoss()
         torch.cuda.empty_cache()
     

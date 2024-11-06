@@ -288,7 +288,13 @@ class DMSTGCN_TensorModel(TensorModelBase):
         self.model = DMSTGCN(num_nodes, self.dropout, self.pred_len, 
                              self.residual_channels, self.dilation_channels, self.end_channels, self.kernel_size, self.blocks, self.layers, 
                              self.days, self.emb_dims, self.conv_order, self.conv_in_dim, self.model_normalizer)
-        self.optim = torch.optim.Adam(self.model.parameters(), lr=0.001, weight_decay=0.0001)
+        # update optimizer configs 
+        lr = 0.001 if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0.0001 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay)
+        # self.optim = torch.optim.Adam(self.model.parameters(), lr=0.001, weight_decay=0.0001)
+
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optim, factor=.3, patience=10, threshold=1e-3,
                                                                     min_lr=1e-5, verbose=True)
         self.criterion = util.masked_mae

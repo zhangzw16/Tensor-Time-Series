@@ -12,6 +12,11 @@ class ModelBase(object):
     def __init__(self, configs:dict={}) -> None:
         self.configs = configs
         self.ModelType = 'BaseModel'
+        self.optimizer_configs = {
+            'lr': None if configs['lr'] == '' else float(configs['lr']),
+            'eps': None if configs['eps'] == '' else float(configs['eps']),
+            'weight_decay': None if configs['weight_decay'] == '' else float(configs['weight_decay']),
+        }
     def init_model(self, args={}):
         pass        
     def forward(self,x ,y):

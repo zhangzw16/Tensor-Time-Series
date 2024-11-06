@@ -80,6 +80,11 @@ python3 run_tasks.py --his_len 96 --pred_len 12 --dataset Finance --task_name TT
 python3 run_tasks.py --his_len 96 --pred_len 12 --dataset Finance --task_name MTS_Task --output_dir './output/' --graph_init random
 ```
 
+**(Advanced)** If you want to customize the parameters of the optimizer (learning rate, epsilon, weight decay), you can use the following options:
+```shell
+python3 run_tasks.py --his_len 96 --pred_len 12 --dataset Finance --task_name MTS_Task --output_dir './output/' --graph_init random --learning_rate '1e-3' --eps '1e-8' --weight_decay '1e-3'
+```
+
 ## Develop
 
 Due to its modular design, developing with our framework is straightforward and efficient.

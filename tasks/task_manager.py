@@ -13,6 +13,7 @@ TEMPLATE_PATH = {
 }
 DATASET_PATH = os.path.join(os.path.dirname(CURRENT_PATH), 'datasets', 'data')
 DEFAULT_OUTPUT_DIR = os.path.join(os.path.dirname(CURRENT_PATH), 'output')
+
 '''
 Name: TaskManager
 Info: start a task with given configs automatically.
@@ -30,17 +31,24 @@ class TaskManager:
             'MultiVar': self.MultiVarTaskRun,
         }
 
+    '''
+    Function: TaskRun
+    '''
     def TaskRun(self, dataset_name:str, model_name:str, configs:dict={}, only_test:bool=False):
         model_type = self.model_manager.get_model_type(model_name)
         result = self.task_map[model_type](dataset_name, model_name, configs, only_test)
         return result
 
-    # ensure output_dir
+    '''
+    Function: ensure output_dir
+    '''
     def ensure_output_dir(self, output_dir:str):
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-    # search .pkl file accroding to dataset_name
+    '''
+    Function: search .pkl file accroding to dataset_name
+    '''
     def search_pkl(self, dataset_name:str):
         pkl_path = os.path.join(self.dataset_path, dataset_name)
         files = os.listdir(pkl_path)
@@ -49,7 +57,9 @@ class TaskManager:
                 return os.path.join(pkl_path, file)
         raise ValueError(f"Can not find .pkl file in {pkl_path}")
     
-    # format results to float
+    '''
+    Function: format results to float
+    '''
     def format_result(self, result:dict):
         if 'run_0' not in result:
             formatted_result = {'run_0': result}
@@ -60,7 +70,14 @@ class TaskManager:
                 formatted_result[run_id][metric] = float(formatted_result[run_id][metric])
         return formatted_result
     
-    # Task for Tensor Model
+    '''
+    Function: Task for Tensor Model
+    Param:
+        - dataset_name: str, name of dataset
+        - model_name: str, name of model
+        - configs: dict, configurations for task
+        - only_test: bool, if only test
+    '''
     def TensorTaskRun(self, dataset_name:str, model_name:str, configs:dict={}, only_test:bool=False):
         if configs == {}:
             configs = yaml.safe_load(open(self.template_path['Tensor'], 'r'))
@@ -74,11 +91,13 @@ class TaskManager:
             task_config['mode'] = 'test'
         else:
             task_config['mode'] = 'train'
+        # -------------- Debug ---------------
         # task = TensorTask(task_config)
         # if not only_test:
         #     task.train()
         # result = task.test()
         # result = self.format_result(result)
+        # ------------------------------------
         try:
             task = TensorTask(task_config)
             if not only_test:
@@ -89,7 +108,14 @@ class TaskManager:
             result = str(exp)
         return result
     
-    # Task for MultiVar Model
+    '''
+    Function: Task for MultiVar Model
+    Param:
+        - dataset_name: str, name of dataset
+        - model_name: str, name of model
+        - configs: dict, configurations for task
+        - only_test: bool, if only test
+    '''
     def MultiVarTaskRun(self, dataset_name:str, model_name:str, configs:dict={}, only_test:bool=False):
         if configs == {}:
             configs = yaml.safe_load(open(self.template_path['MultiVar'], 'r'))
@@ -103,11 +129,13 @@ class TaskManager:
             task_config['mode'] = 'test'
         else:
             task_config['mode'] = 'train'
+        # ----------- Debug -------------
         # task = MultivarTask(task_config)
         # if not only_test:
         #     task.train()
         # result = task.test()
         # result = self.format_result(result)
+        # -------------------------------
         try:
             task = MultivarTask(task_config)
             if not only_test:
@@ -116,7 +144,6 @@ class TaskManager:
             result = self.format_result(result)
         except Exception as exp:
             result = str(exp)
-            # print(f"Error: {exp}")
         return result
     
 

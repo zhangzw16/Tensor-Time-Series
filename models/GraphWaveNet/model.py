@@ -53,7 +53,12 @@ class GraphWaveNet_TensorModel(TensorModelBase):
         self.model = gwnet(self.tensor_shape[0], self.dropout, self.supports, self.gcn_bool, self.addaptadj, self.aptinit, self.tensor_shape[1],
                            self.tensor_shape[1], self.pred_len, self.residual_channels, self.residual_channels, self.skip_channels, 
                            self.end_channels, self.kernel_size, self.blocks, self.layers)
-        self.optim = torch.optim.Adam(self.model.parameters(), lr=0.002, weight_decay=0.0001)
+        # update optimizer configs 
+        lr = 0.002 if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0.0001 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay)
+        # self.optim = torch.optim.Adam(self.model.parameters(), lr=0.002, weight_decay=0.0001)
         self.criterion = nn.MSELoss()
     
     def forward(self, x, aux_info: dict = ...):

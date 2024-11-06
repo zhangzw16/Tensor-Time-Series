@@ -299,23 +299,29 @@ class STGCN_MultiVarModel(MultiVarModelBase):
                 self.blocks,
                 self.n_vertex,
             )
-
+        # update optimizer configs 
+        lr = self.lr if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = self.weight_decay_rate if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        # self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
         if self.opt == "rmsprop":
             self.optimizer = optim.RMSprop(
-                self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay_rate
+                self.model.parameters(), lr=lr, weight_decay=weight_decay, eps=eps,
             )
         elif self.opt == "adam":
             self.optimizer = optim.Adam(
                 self.model.parameters(),
-                lr=self.lr,
-                weight_decay=self.weight_decay_rate,
+                lr=lr,
+                weight_decay=weight_decay,
+                eps=eps,
                 amsgrad=False,
             )
         elif self.opt == "adamw":
             self.optimizer = optim.AdamW(
                 self.model.parameters(),
-                lr=self.lr,
-                weight_decay=self.weight_decay_rate,
+                lr=lr,
+                weight_decay=weight_decay,
+                eps=eps,
                 amsgrad=False,
             )
         else:

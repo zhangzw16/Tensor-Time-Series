@@ -137,7 +137,12 @@ class NET3_MLP_TensorModel(TensorModelBase):
         self.normalizer = self.configs['normalizer']
         self.graph_generator = self.configs['graphGenerator']
         self.model = NET3(model_configs) 
-        self.optim = torch.optim.Adam(self.model.parameters(), lr=0.01)
+        # update optimizer configs 
+        lr = 0.01 if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0.0 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
+        # self.optim = torch.optim.Adam(self.model.parameters(), lr=0.01)
         self.criterion = utils.mse_loss
 
     def init_others(self, dataset_name=None):
