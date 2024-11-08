@@ -92,11 +92,12 @@ class TaskManager:
         else:
             task_config['mode'] = 'train'
         # -------------- Debug ---------------
-        # task = TensorTask(task_config)
-        # if not only_test:
-        #     task.train()
-        # result = task.test()
-        # result = self.format_result(result)
+        task = TensorTask(task_config)
+        if not only_test:
+            task.train()
+        result = task.test()
+        result = self.format_result(result)
+        return result
         # ------------------------------------
         try:
             task = TensorTask(task_config)
@@ -130,12 +131,12 @@ class TaskManager:
         else:
             task_config['mode'] = 'train'
         # ----------- Debug -------------
-        # task = MultivarTask(task_config)
-        # if not only_test:
-        #     task.train()
-        # result = task.test()
-        # result = self.format_result(result)
-        # return result
+        task = MultivarTask(task_config)
+        if not only_test:
+            task.train()
+        result = task.test()
+        result = self.format_result(result)
+        return result
         # -------------------------------
         try:
             task = MultivarTask(task_config)

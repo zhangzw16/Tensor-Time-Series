@@ -3,10 +3,13 @@ import time
 import yaml
 import torch
 import numpy as np
+from torch.utils.data import DataLoader
+
 from tasks.task_base import TaskBase
 from models import ModelManager
-from datasets.dataset import TTS_Dataset
+from datasets.dataset import TTS_DatasetManager
 from datasets.dataloader import TTS_DataLoader
+from datasets.dataloader_torch import TTS_Dataset_Torch
 from utils.evaluation import Evaluator
 from utils.logger.Logger import LoggerManager
 from utils.graph.graphGenerator import GraphGeneratorManager
@@ -58,12 +61,19 @@ class TensorTask(TaskBase):
             yaml.dump(configs, file)
 
         # prepare for dataset
-        self.dataset = TTS_Dataset(self.pkl_path, 
+        self.dataset = TTS_DatasetManager(self.pkl_path, 
                                    his_len=self.his_len, pred_len=self.pred_len ,
                                    test_ratio=0.1, valid_ratio=0.1, seed=self.seed, data_mode=self.data_mode)
-        self.trainloader = TTS_DataLoader(self.dataset, 'train', batch_size=self.batch_size, drop_last=False)
-        self.validloader = TTS_DataLoader(self.dataset, 'valid', batch_size=self.batch_size, drop_last=False)
-        self.testloader  = TTS_DataLoader(self.dataset, 'test' , batch_size=1, drop_last=False)
+        # self.trainloader = TTS_DataLoader(self.dataset, 'train', batch_size=self.batch_size, drop_last=False)
+        # self.validloader = TTS_DataLoader(self.dataset, 'valid', batch_size=self.batch_size, drop_last=False)
+        # self.testloader  = TTS_DataLoader(self.dataset, 'test' , batch_size=1, drop_last=False)
+        self.trainset = TTS_Dataset_Torch(self.dataset, 'train')
+        self.validset = TTS_Dataset_Torch(self.dataset, 'valid')
+        self.testset  = TTS_Dataset_Torch(self.dataset, 'test')
+        self.trainloader = DataLoader(self.trainset, batch_size=self.batch_size, shuffle=True, drop_last=False)
+        self.validloader = DataLoader(self.validset, batch_size=self.batch_size, shuffle=False, drop_last=False)
+        self.testloader  = DataLoader(self.testset,  batch_size=1, shuffle=False, drop_last=False)
+        print(f"trainset: {len(self.trainset)}, validset: {len(self.validset)}, testset: {len(self.testset)}")
         print("Preparation for dataset is done.")
 
         # prepare for model
@@ -131,7 +141,7 @@ class TensorTask(TaskBase):
                 epoch_info[f'valid/{metric}'] = valid_result[metric]
             epoch_info['learning_rate'] = self.model.optim.param_groups[0]['lr']
             self.logger.log(epoch_info)
-            early_stop_flag = self.early_stop(epoch_mean_valid_loss, epoch_info)
+            early_stop_flag = self.early_stop(i, epoch_mean_valid_loss, epoch_info)
             # early stop
             if early_stop_flag:
                 break
@@ -153,10 +163,11 @@ class TensorTask(TaskBase):
     def epoch_train(self):
         self.model.train()
         loss_list = []
-        for seq, aux_info in self.trainloader.get_batch(separate=False):
+        
+        for seq in self.trainloader:
             # print(f"train: {seq.shape}");exit()
             seq = seq.to(self.device)
-            pred, truth = self.model.forward(seq, aux_info)
+            pred, truth = self.model.forward(seq)
             epoch_train_loss = self.model.get_loss(pred, truth)
             self.model.backward(epoch_train_loss)
             loss_list.append(epoch_train_loss.item())
@@ -169,9 +180,9 @@ class TensorTask(TaskBase):
         pred_list = []
         truth_list = []
         with torch.no_grad():
-            for seq, aux_info in self.validloader.get_batch(separate=False):
+            for seq in self.validloader:
                 seq = seq.to(self.device)
-                pred, truth = self.model.forward(seq, aux_info)
+                pred, truth = self.model.forward(seq)
                 epoch_valid_loss = self.model.get_loss(pred, truth)
                 loss_list.append(epoch_valid_loss.item())
                 pred = pred.cpu().numpy()
@@ -179,8 +190,10 @@ class TensorTask(TaskBase):
                 pred_list.append(pred)
                 truth_list.append(truth)
         mean_loss = sum(loss_list)/len(loss_list)
-        pred = np.array(pred_list).squeeze()
-        truth = np.array(truth_list).squeeze()
+        # pred = np.array(pred_list).squeeze()
+        # truth = np.array(truth_list).squeeze()
+        pred = np.concatenate(pred_list, axis=0)
+        truth = np.concatenate(truth_list, axis=0)
         result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
         return mean_loss, result
 
@@ -198,11 +211,11 @@ class TensorTask(TaskBase):
             pred_list = []
             truth_list = []
             hist_list = []
-            for seq, aux_info in self.testloader.get_batch(separate=False):
+            for seq in self.testloader:
                 # print(f'seq: {seq.shape}')
                 seq = seq.to(self.device)
                 hist = seq[:, :self.his_len, :, :].cpu().numpy()
-                pred, truth = self.model.forward(seq, aux_info)
+                pred, truth = self.model.forward(seq)
                 pred = pred.cpu().numpy()
                 truth = truth.cpu().numpy()
                 pred_list.append(pred)

@@ -254,7 +254,7 @@ if __name__ == '__main__':
                         help='output prediction length')
     parser.add_argument('--data_mode', type=int, default=0,
                         help='TensorModel: 0:(time, dim1, dim2); 1:(time, dim2, dim1); 2:(time, dim1 x dim2, 1)\nMultiVarModel: 0:(1, time, dim1*dim2, 1); 1:(dim1, time, dim2, 1); 2:(dim2, time, dim1, 1)')
-    parser.add_argument('--batch_size', type=int, default=8,
+    parser.add_argument('--batch_size', type=int, default=128,
                         help='batch size, default=8')
     
     # ----- 3. (advanced) Optimizer and Scheduler ------

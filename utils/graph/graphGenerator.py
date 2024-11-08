@@ -4,11 +4,11 @@ import scipy
 import scipy.stats
 from sklearn.metrics.pairwise import cosine_similarity
 
-from datasets.dataset import TTS_Dataset
+from datasets.dataset import TTS_DatasetManager
 
 
 class GraphGenerator:
-    def __init__(self, dataset:TTS_Dataset, ratio:float=0.3, max_sample:int=3000) -> None:
+    def __init__(self, dataset:TTS_DatasetManager, ratio:float=0.3, max_sample:int=3000) -> None:
         self.dataset = dataset
         self.tensor_shape = self.dataset.get_tensor_shape()
         self.data = self.dataset.data
@@ -93,7 +93,7 @@ class GraphGenerator:
         return np.all(seq == seq[0])
     
 class GraphGeneratorManager:
-    def __init__(self, graph_init:str, dataset:TTS_Dataset, ratio:float=0.3, max_sample:int=3000) -> None:
+    def __init__(self, graph_init:str, dataset:TTS_DatasetManager, ratio:float=0.3, max_sample:int=3000) -> None:
         self.graph_generator = GraphGenerator(dataset, ratio, max_sample)
         self.graph_init = graph_init
     def gen_graph(self, n_dim:int, normal=False):

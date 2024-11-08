@@ -4,10 +4,13 @@ import time
 import yaml
 import torch
 import numpy as np
+from torch.utils.data import DataLoader
+
 from tasks.task_base import TaskBase
 from models import ModelManager
-from datasets.dataset import MTS_Dataset
+from datasets.dataset import MTS_DatasetManager
 from datasets.dataloader import MTS_DataLoader
+from datasets.dataloader_torch import MTS_Dataset_Torch
 from utils.evaluation import Evaluator
 from utils.logger.Logger import LoggerManager
 from utils.scheduler.schedulerManager import SchedulerManager
@@ -52,13 +55,13 @@ class MultivarTask(TaskBase):
         with open(os.path.join(self.output_dir, 'configs.yml'), 'w') as file:
             yaml.dump(configs, file)
         # prepare for dataset
-        self.dataset = MTS_Dataset(self.pkl_path, 
+        self.dataset = MTS_DatasetManager(self.pkl_path, 
                                    his_len=self.his_len, pred_len=self.pred_len ,
                                    test_ratio=0.1, valid_ratio=0.1, seed=self.seed, data_mode=self.data_mode)
         self.time_series_num = self.dataset.get_time_series_num()
-        self.trainloader = MTS_DataLoader(self.dataset, 'train', batch_size=self.batch_size, drop_last=False)
-        self.validloader = MTS_DataLoader(self.dataset, 'valid', batch_size=self.batch_size, drop_last=False)
-        self.testloader = MTS_DataLoader(self.dataset, 'test', batch_size=self.batch_size, drop_last=False)
+        # self.trainloader = MTS_DataLoader(self.dataset, 'train', batch_size=self.batch_size, drop_last=False)
+        # self.validloader = MTS_DataLoader(self.dataset, 'valid', batch_size=self.batch_size, drop_last=False)
+        # self.testloader = MTS_DataLoader(self.dataset, 'test', batch_size=self.batch_size, drop_last=False)
         print(f"Preparation for dataset is done.")
         
         # prepare for evaluation
@@ -83,6 +86,15 @@ class MultivarTask(TaskBase):
         self.model.set_device(self.device)
         print(f"Preparation for model ({self.model_type}, {self.model_name}) is done.")
 
+        # prepare for dataloader
+        self.trainset = MTS_Dataset_Torch(self.dataset, 'train', ts_idx=run_idx)
+        self.validset = MTS_Dataset_Torch(self.dataset, 'valid', ts_idx=run_idx)
+        self.testset = MTS_Dataset_Torch(self.dataset, 'test', ts_idx=run_idx)
+        self.trainloader = DataLoader(self.trainset, batch_size=self.batch_size, shuffle=True, drop_last=False)
+        self.validloader = DataLoader(self.validset, batch_size=self.batch_size, shuffle=False, drop_last=False)
+        self.testloader = DataLoader(self.testset, batch_size=1, shuffle=False)
+        print(f"trainset: {len(self.trainset)}, validset: {len(self.validset)}, testset: {len(self.testset)}")
+        print(f"Preparation for dataloader is done.")
         # prepare for scheduler
         self.scheduler_manager = SchedulerManager()
         self.scheduler_name = self.configs['scheduler']
@@ -112,9 +124,9 @@ class MultivarTask(TaskBase):
     def epoch_train(self, run_idx:int=0):
         self.model.train()
         loss_list = []
-        for seq, aux_info in self.trainloader.get_batch(run_idx, separate=False):
+        for seq in self.trainloader:
             seq = seq.to(self.device)
-            pred, truth = self.model.forward(seq, aux_info)
+            pred, truth = self.model.forward(seq)
             epoch_train_loss = self.model.get_loss(pred, truth)
             self.model.backward(epoch_train_loss)
             loss_list.append(epoch_train_loss.item())
@@ -127,9 +139,9 @@ class MultivarTask(TaskBase):
         pred_list = []
         truth_list = []
         with torch.no_grad():
-            for seq, aux_info in self.validloader.get_batch(run_idx, separate=False):
+            for seq in self.validloader:
                 seq = seq.to(self.device)
-                pred, truth = self.model.forward(seq, aux_info)
+                pred, truth = self.model.forward(seq)
                 epoch_valid_loss = self.model.get_loss(pred, truth)
                 # update loss list
                 loss_list.append(epoch_valid_loss.item())
@@ -137,11 +149,14 @@ class MultivarTask(TaskBase):
                 pred = pred.cpu().detach().numpy()
                 truth = truth.cpu().detach().numpy()
                 # update pred & truth list
+                # print(f'pred: {pred.shape}, truth: {truth.shape}')
                 pred_list.append(pred)
                 truth_list.append(truth)
         mean_loss = sum(loss_list) / len(loss_list)
-        pred = np.array(pred_list).squeeze()
-        truth = np.array(truth_list).squeeze()
+        # pred = np.array(pred_list).squeeze()
+        # truth = np.array(truth_list).squeeze()
+        pred = np.concatenate(pred_list, axis=0)
+        truth = np.concatenate(truth_list, axis=0)
         result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
         return mean_loss, result
 
@@ -172,7 +187,7 @@ class MultivarTask(TaskBase):
                     epoch_info[f'valid/{metric}'] = valid_result[metric]
                 epoch_info['learning_rate'] = self.model.optim.param_groups[0]['lr']
                 self.logger.log(epoch_info)
-                early_stop_flag = self.early_stop(epoch_mean_valid_loss, epoch_info, save_dir=self.run_dir)
+                early_stop_flag = self.early_stop(i, epoch_mean_valid_loss, epoch_info, save_dir=self.run_dir)
                 # early stop
                 if early_stop_flag:
                     break
@@ -214,10 +229,10 @@ class MultivarTask(TaskBase):
                 pred_list = []
                 truth_list = []
                 hist_list = []
-                for seq, aux_info in self.testloader.get_batch(run_idx, separate=False):
+                for seq in self.testloader:
                     seq = seq.to(self.device)
                     hist = seq[:, :self.his_len, :, :].cpu().numpy()
-                    pred, truth = self.model.forward(seq, aux_info)
+                    pred, truth = self.model.forward(seq)
                     pred = pred.cpu().numpy()
                     truth = truth.cpu().numpy()
                     pred_list.append(pred)

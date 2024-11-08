@@ -4,6 +4,7 @@ seed: 2024
 task_device: 'cuda'
 max_epoch: 1024
 early_stop_max: 16
+early_stop_start_epoch: 10
 
 # Output path & Logger
 output_dir: './output/'
@@ -32,6 +33,7 @@ test_ratio:  0.1
 valid_ratio: 0.1
 
 # Optimizer
+lr_finder: false  # whether to use lr_finder to set the lr automatically
 lr: '1e-3'          # string, set '' to use default lr
 eps: '1e-8'         # string, set '' to use default eps
 weight_decay: '0'   # string, set '' to use default weight_decay
