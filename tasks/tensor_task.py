@@ -14,7 +14,7 @@ from utils.evaluation import Evaluator
 from utils.logger.Logger import LoggerManager
 from utils.graph.graphGenerator import GraphGeneratorManager
 from utils.scheduler.schedulerManager import SchedulerManager
-
+from utils.lrFinder.LR_Finder import LRFinder_Manager
 
 class TensorTask(TaskBase):
     def __init__(self, configs:dict={}) -> None:
@@ -87,6 +87,22 @@ class TensorTask(TaskBase):
         self.model.set_device(self.device)
         print(f"Preparation for model ({self.model_type}, {self.model_name}) is done.")
 
+        # LR Finder
+        if model_configs['lr_finder']:
+            print("LR Finder is enable")
+            model_configs['normalizer'] = self.dataset.get_normalizer(norm=normalizer_name)
+            graph_init = model_configs['graph_init']
+            model_configs['graphGenerator'] = GraphGeneratorManager(graph_init, self.dataset)
+            model_configs['tensor_shape'] = self.dataset.get_tensor_shape()
+            lr_finder_manager = LRFinder_Manager(self.model_name, model_configs, self.trainloader, self.validloader, self.output_dir, self.device)
+            lr_finder_manager.search_lr()
+            best_lr = lr_finder_manager.get_best_lr()
+            lr_finder_manager.save_plot()
+            print(f"LR Finder is done. The best learning rate is: {best_lr}")
+            print(f"plot is saved in {self.output_dir}/lr_finder.png")
+            lr_finder_manager.set_optim_with_lr(self.model, best_lr)
+            self.configs['lr'] = best_lr
+
         # prepare for scheduler
         self.scheduler_manager = SchedulerManager()
         self.scheduler_name = self.configs['scheduler']
@@ -117,6 +133,7 @@ class TensorTask(TaskBase):
         print(f"his_len: {self.his_len}, pred_len: {self.pred_len}, normalizer: {normalizer_name}")
         print(f"max_epoch: {self.max_epoch}, early_stop: {self.early_stop_max}")
         print(f"The output path: {self.output_dir}")
+        print(f"LR Finder: {self.configs['lr_finder']}")
         print(f"Optimizer: lr: {self.configs['lr']}, eps: {self.configs['eps']}, weight_decay: {self.configs['weight_decay']}")
         print(f"Scheduler: {self.configs['scheduler']}")
         print('-'*40)

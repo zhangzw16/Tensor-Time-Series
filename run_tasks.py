@@ -67,8 +67,8 @@ Output:
 '''
 @register_task('MTS_Task')
 def MTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int, 
-                 lr:float, eps:float, weight_decay:float,   # Optimizer
-                 scheduler:str,
+                 lr_finder:bool, lr:float, eps:float, weight_decay:float,   # Optimizer
+                 scheduler:str, debug:bool,
                  project_name:str, dataset_list:list, output_dir:str, only_test:bool):
     base_dir = os.path.join(output_dir, project_name)
     # logger configuration
@@ -83,10 +83,12 @@ def MTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int,
     task_config['pred_len'] = pred_len
     task_config['batch_size'] = batch_size
     task_config['data_mode'] = data_mode
+    task_config['lr_finder'] = lr_finder
     task_config['lr'] = lr
     task_config['eps'] = eps
     task_config['weight_decay'] = weight_decay
     task_config['scheduler'] = scheduler
+    task_config['debug'] = debug
     # start to run
     task_results = {dataset_name: {} for dataset_name in dataset_list}
     manager = TaskManager('checkpoints', base_dir)
@@ -128,8 +130,8 @@ Output:
 '''
 @register_task('TTS_Task')
 def TTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int, 
-                 lr:float, eps:float, weight_decay:float,   # Optimizer
-                 scheduler:str,
+                 lr_finder:bool, lr:float, eps:float, weight_decay:float,   # Optimizer
+                 scheduler:str, debug:bool,
                  project_name:str, dataset_list:list, output_dir:str, only_test:bool):
     base_dir = os.path.join(output_dir, project_name)
     # logger configuration
@@ -145,10 +147,12 @@ def TTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int,
     task_config['batch_size'] = batch_size
     task_config['data_mode'] = data_mode
     task_config['graph_init'] = 'pearson'
+    task_config['lr_finder'] = lr_finder
     task_config['lr'] = lr
     task_config['eps'] = eps
     task_config['weight_decay'] = weight_decay
     task_config['scheduler'] = scheduler
+    task_config['debug'] = debug
     # start to run
     task_results = {dataset_name: {} for dataset_name in dataset_list}
     manager = TaskManager('checkpoints', base_dir)
@@ -190,8 +194,8 @@ Output:
 '''
 @register_task('Graph_Init_Task')
 def Graph_Prior_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int, 
-                         lr:float, eps:float, weight_decay:float,   # Optimizer
-                         scheduler:str,
+                         lr_finder:bool, lr:float, eps:float, weight_decay:float,   # Optimizer
+                         scheduler:str, debug:bool,
                          project_name:str, dataset_list:list, output_dir:str, only_test:bool, graph_init:str):
     base_dir = os.path.join(output_dir, project_name)
     # logger configuration
@@ -207,10 +211,12 @@ def Graph_Prior_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:in
     task_config['batch_size'] = batch_size
     task_config['data_mode'] = data_mode
     task_config['graph_init'] = graph_init
+    task_config['lr_finder'] = lr_finder
     task_config['lr'] = lr
     task_config['eps'] = eps
     task_config['weight_decay'] = weight_decay
     task_config['scheduler'] = scheduler
+    task_config['debug'] = debug
     # start to run
     task_results = {dataset_name: {} for dataset_name in dataset_list}
     manager = TaskManager('checkpoints', base_dir)
@@ -244,6 +250,8 @@ if __name__ == '__main__':
                         help='[optional] only for Graph_Init_Task, graph initialization method: [pearson, inverse_pearson, random, unit]')
     parser.add_argument('--only_test', type=str, default='False', required=False,
                         help='[optional] test only')
+    parser.add_argument('--debug', type=str, default='False', required=False,
+                        help='[optional] debug mode, set \'True\' or \'False\'')
     
     # ----- 2. Dataset & Dataloader ------
     parser.add_argument('--dataset', type=str, required=True,
@@ -258,6 +266,8 @@ if __name__ == '__main__':
                         help='batch size, default=8')
     
     # ----- 3. (advanced) Optimizer and Scheduler ------
+    parser.add_argument('--lr_finder', type=str, default='False', required=False,
+                        help='Optimizer: learning rate finder')
     parser.add_argument('--learning_rate', type=str, default='', required=False,
                         help='Optimizer: learning rate, set \'\' to use default value')
     parser.add_argument('--eps', type=str, default='', required=False,
@@ -288,12 +298,27 @@ if __name__ == '__main__':
     task_param['weight_decay'] = args.weight_decay
     task_param['scheduler'] = args.scheduler
 
+    if args.debug == 'True':
+        task_param['debug'] = True
+    elif args.debug == 'False':
+        task_param['debug'] = False
+    else:
+        raise ValueError(f"debug should be 'True' or 'False'.")
+
     if args.only_test == 'True':
         task_param['only_test'] = True
     elif args.only_test == 'False':
         task_param['only_test'] = False
     else:
         raise ValueError(f"only_test should be 'True' or 'False'.")
+    
+    if args.lr_finder == 'True':
+        task_param['lr_finder'] = True
+    elif args.lr_finder == 'False':
+        task_param['lr_finder'] = False
+    else:
+        raise ValueError(f"lr_finder should be 'True' or 'False'.")
+    
     if args.task_name == 'Graph_Init_Task':
         task_param['graph_init'] = args.graph_init
 

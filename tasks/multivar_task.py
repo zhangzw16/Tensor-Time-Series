@@ -14,6 +14,7 @@ from datasets.dataloader_torch import MTS_Dataset_Torch
 from utils.evaluation import Evaluator
 from utils.logger.Logger import LoggerManager
 from utils.scheduler.schedulerManager import SchedulerManager
+from utils.lrFinder.LR_Finder import LRFinder_Manager
 
 class MultivarTask(TaskBase):
     def __init__(self, configs:dict={}) -> None:
@@ -95,6 +96,19 @@ class MultivarTask(TaskBase):
         self.testloader = DataLoader(self.testset, batch_size=1, shuffle=False)
         print(f"trainset: {len(self.trainset)}, validset: {len(self.validset)}, testset: {len(self.testset)}")
         print(f"Preparation for dataloader is done.")
+
+        # LR Finder
+        if model_configs['lr_finder']:
+            print("LR Finder is enable")
+            lr_finder_manager = LRFinder_Manager(self.model_name, model_configs, self.trainloader, self.validloader, self.run_dir, self.device)
+            lr_finder_manager.search_lr()
+            best_lr = lr_finder_manager.get_best_lr()
+            lr_finder_manager.save_plot()
+            print(f"LR Finder is done. The best learning rate is: {best_lr}")
+            print(f"plot is saved in {self.run_dir}/lr_finder.png")
+            lr_finder_manager.set_optim_with_lr(self.model, best_lr)
+            self.configs['lr'] = best_lr
+
         # prepare for scheduler
         self.scheduler_manager = SchedulerManager()
         self.scheduler_name = self.configs['scheduler']
@@ -117,6 +131,7 @@ class MultivarTask(TaskBase):
         print(f"his_len: {self.his_len}, pred_len: {self.pred_len}, normalizer: {normalizer_name}")
         print(f"max_epoch: {self.max_epoch}, early_stop: {self.early_stop_max}")
         print(f"The output path: {self.run_dir}")
+        print(f"LR Finder: {self.configs['lr_finder']}")
         print(f"Optimizer: lr: {self.configs['lr']}, eps: {self.configs['eps']}, weight_decay: {self.configs['weight_decay']}")
         print(f"Scheduler: {self.scheduler_name}")
         print('-'*40)
