@@ -13,9 +13,9 @@ class ModelBase(object):
         self.configs = configs
         self.ModelType = 'BaseModel'
         self.optimizer_configs = {
-            'lr': None if configs['lr'] == None else float(configs['lr']),
-            'eps': None if configs['eps'] == None else float(configs['eps']),
-            'weight_decay': None if configs['weight_decay'] == None else float(configs['weight_decay']),
+            'lr': None if configs['lr'] == '' else float(configs['lr']),
+            'eps': None if configs['eps'] == '' else float(configs['eps']),
+            'weight_decay': None if configs['weight_decay'] == '' else float(configs['weight_decay']),
         }
     def init_model(self, args={}):
         pass        

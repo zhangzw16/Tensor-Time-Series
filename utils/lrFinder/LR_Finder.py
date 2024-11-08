@@ -120,7 +120,7 @@ class LRFinder_Manager:
             new_lrs = [new_lrs] * len(model.optim.param_groups)
         if len(new_lrs) != len(self._get_current_lr()):
             raise ValueError("Length of new_lr must be the same as the current learning rate")
-        for param_group, lr in zip(self.model.optim.param_groups, new_lrs):
+        for param_group, lr in zip(model.optim.param_groups, new_lrs):
             param_group['lr'] = lr
 
         

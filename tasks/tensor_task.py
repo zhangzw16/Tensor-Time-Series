@@ -20,7 +20,7 @@ class TensorTask(TaskBase):
     def __init__(self, configs:dict={}) -> None:
         super().__init__(configs)
         # load configuration
-        self.init_time_stamp = time.strftime("%m-%d-%H-%M-%S", time.localtime())
+        self.init_time_stamp = configs['timestamp']
         print(f"TensorTask init... --> {self.init_time_stamp}")
         print(f"Task mode: {configs['mode']}")
         print(f"Loading configs...")
@@ -36,6 +36,7 @@ class TensorTask(TaskBase):
         self.logger_name = configs['logger']
         self.project_name = configs['project_name']
         # dataset
+        self.dataset_name = configs['dataset_name']
         self.pkl_path = configs['dataset_pkl']
         self.data_mode = configs['data_mode']
         self.his_len = configs['his_len']
@@ -53,7 +54,7 @@ class TensorTask(TaskBase):
             graph_init = f"-{configs['graph_init']}"
         else:
             graph_init = ''
-        task_id = f"{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}{graph_init}-{normalizer_name}"
+        task_id = f"{self.dataset_name}-{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}{graph_init}-{normalizer_name}-{self.init_time_stamp}"
         self.output_dir = os.path.join(self.output_dir, self.project_name, task_id)
         # ensure output_dir
         self.ensure_output_dir(self.output_dir)
@@ -96,12 +97,15 @@ class TensorTask(TaskBase):
             model_configs['tensor_shape'] = self.dataset.get_tensor_shape()
             lr_finder_manager = LRFinder_Manager(self.model_name, model_configs, self.trainloader, self.validloader, self.output_dir, self.device)
             lr_finder_manager.search_lr()
-            best_lr = lr_finder_manager.get_best_lr()
+            best_mean_lr = lr_finder_manager.get_best_mean_lr()
             lr_finder_manager.save_plot()
-            print(f"LR Finder is done. The best learning rate is: {best_lr}")
+            print(f"LR Finder is done. The best learning rate is: {best_mean_lr}")
             print(f"plot is saved in {self.output_dir}/lr_finder.png")
-            lr_finder_manager.set_optim_with_lr(self.model, best_lr)
-            self.configs['lr'] = best_lr
+            lr_finder_manager.set_optim_with_lr(self.model, best_mean_lr)
+            self.configs['lr'] = best_mean_lr
+            # for param_group in self.model.optim.param_groups:
+            #     print(f"Learning rate: {param_group['lr']}")
+            # exit()
 
         # prepare for scheduler
         self.scheduler_manager = SchedulerManager()
