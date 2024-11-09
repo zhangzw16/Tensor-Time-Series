@@ -5,6 +5,7 @@ output
 outputs
 data
 log
+logs
 GTS
 myGNN
 auto_run

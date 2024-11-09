@@ -47,7 +47,7 @@ class LRFinder_Manager:
         # model to device
         self.model.set_device(self.device)
         with tqdm(total=num_iter, desc="Searching optimal learning rate") as pbar:
-            for _ in range(num_iter):
+            # for _ in range(num_iter):
                 for seq in self.trainloader:
                     n_iter += 1
                     current_lr = self._get_current_lr()

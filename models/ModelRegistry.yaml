@@ -11,6 +11,10 @@ ModelType:
     - ST_Norm
     - GMRL
     - NET3_MLP
+    - GCGRU
+    - GCLSTM
+    - Mamba
+    - STC_GNN
 
   MultiVar:
     - TimesNet
@@ -22,9 +26,12 @@ ModelType:
     - LTSF
     - LTSF_share
     - NLinear
+    - STID
+    - STWA
     
   Stat:
     - HM
+    - HI
 
 # Optional Registry
 GraphModel:

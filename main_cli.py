@@ -7,8 +7,7 @@ from models import ModelManager
 from tasks.task_manager import TaskManager, TEMPLATE_PATH
 
 # Set dataset_path or use cmd line args
-# DATASET_BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datasets', 'data')
-DATASET_BASE = ''
+DATASET_BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datasets', 'data')
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Run in command line')
@@ -38,7 +37,7 @@ def parse_args():
                         help='int, pred_len, output prediction length')
     parser.add_argument('--data_mode', type=int, default=0, required=True,
                         help='int, data_mode, \nTensorModel: 0:(time, dim1, dim2); 1:(time, dim2, dim1); 2:(time, dim1 x dim2, 1)\nMultiVarModel: 0:(1, time, dim1*dim2, 1); 1:(dim1, time, dim2, 1); 2:(dim2, time, dim1, 1)')
-    parser.add_argument('--dataset_base', type=str, default='', required=False,
+    parser.add_argument('--dataset_base', type=str, default=DATASET_BASE, required=False,
                         help='[optional] str, dataset base path, default=DATASET_BASE')
     # [optional]
     parser.add_argument('--batch_size', type=int, default=128, required=False,

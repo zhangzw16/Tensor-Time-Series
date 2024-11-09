@@ -397,7 +397,7 @@ class GCGRU_TensorModel(TensorModelBase):
                                                               gamma=self.lr_decay)
         self.criterion = nn.HuberLoss()
 
-    def forward(self, x, aux_info:...):
+    def forward(self, x, aux_info:dict=None):
         x_hist = x[:, :self.input_len, :, :]
         truth = x[:, self.input_len:(self.input_len+self.pred_len), :, :]
         x_hist = self.normalizer.transform(x_hist)

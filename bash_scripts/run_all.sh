@@ -11,8 +11,8 @@ HisLenList=(12 48 96 256)
 PredLenList=(1 3 6 12 24 48)
 
 # 模型列表
-TensorModelListr=("DCRNN" "NET3" "GraphWaveNet" "AGCRN" "MTGNN" "ST_Norm" "TTS_Norm" "GRML")
-MultivarModelList=("TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "Mamba")
+TensorModelListr=("DCRNN" "NET3" "GraphWaveNet" "AGCRN" "MTGNN" "ST_Norm" "TTS_Norm" "GRML" "GCGRU" "Mamba" "STC_GNN")
+MultivarModelList=("TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID" "STWA")
 
 # 数据集：traffic, weather, finance, energy 
 for his_len in ${HisLenList[@]}; do

@@ -187,7 +187,7 @@ class TensorTask(TaskBase):
         loss_list = []
         
         for seq in self.trainloader:
-            print(seq.shape)
+            # print(seq.shape)
             # if self.trainloader.batch_size == 1:
             #     seq = seq.unsqueeze(0)
             seq = seq.to(self.device)
