@@ -36,16 +36,16 @@ scheduler='ReduceLROnPlateau'
 export CUDA_VISIBLE_DEVICES=0
 
 # --------------- Select Data & Model ----------------
-# # >>> Run 1 >>>>>>>>>>>>>
-# dataset='JONAS_NYC_bike'
-# model='TimesNet'
-# python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
-#                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
-#                     --normalizer $normalizer --graph_init $graph_init \
-#                     --scheduler $scheduler \
-#                     --lr_finder \
-#                     --logger $logger \
-#                     --dataset $dataset --model $model \
+# >>> Run 1 >>>>>>>>>>>>>
+dataset='JONAS_NYC_bike'
+model='TimesNet'
+python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
+                    --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
+                    --normalizer $normalizer --graph_init $graph_init \
+                    --scheduler $scheduler \
+                    --lr_finder \
+                    --logger $logger \
+                    --dataset $dataset --model $model \
 # # >>> Run 2 >>>>>>>>>>>>>
 # dataset='weather'
 # model='TimesNet'
@@ -57,24 +57,22 @@ export CUDA_VISIBLE_DEVICES=0
 #                     --logger $logger \
 #                     --dataset $dataset --model $model \
 # >>> Run 3 >>>>>>>>>>>>>
-dataset='ETT_hour'
-model='TimesNet'
-python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
-                    --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
-                    --normalizer $normalizer --graph_init $graph_init \
-                    --scheduler $scheduler \
-                    --lr_finder \
-                    --logger $logger \
-                    --dataset $dataset --model $model \
-                    --debug
-# >>> Run 4 >>>>>>>>>>>>>
-dataset='electricity'
-model='TimesNet'
-python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
-                    --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
-                    --normalizer $normalizer --graph_init $graph_init \
-                    --scheduler $scheduler \
-                    --lr_finder \
-                    --logger $logger \
-                    --dataset $dataset --model $model \
-                    --debug
+# dataset='ETT_hour'
+# model='TimesNet'
+# python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
+#                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
+#                     --normalizer $normalizer --graph_init $graph_init \
+#                     --scheduler $scheduler \
+#                     --lr_finder \
+#                     --logger $logger \
+#                     --dataset $dataset --model $model \
+# # >>> Run 4 >>>>>>>>>>>>>
+# dataset='electricity'
+# model='TimesNet'
+# python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
+#                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
+#                     --normalizer $normalizer --graph_init $graph_init \
+#                     --scheduler $scheduler \
+#                     --lr_finder \
+#                     --logger $logger \
+#                     --dataset $dataset --model $model \
