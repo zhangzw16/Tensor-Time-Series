@@ -39,18 +39,30 @@ export CUDA_VISIBLE_DEVICES=0
 # start training with the following configurations
 # "Finance": ['nasdaq100', 'stocknet','crypto12']
 # get the model name from the command line
-if [ -z "$1" ]; then
-    echo "No model specified. Usage: $0 <model>"
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --model) model="$2"; shift ;;
+        --his_len) his_len="$2"; shift ;;
+        --pred_len) pred_len="$2"; shift ;;
+        --output_dir) output_dir="$2"; shift ;;
+        --task_name) task_name="$2"; shift ;;
+        --data_base) data_base="$2"; shift ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
+
+# check if the model name is specified
+if [ -z "$model" ] || [ -z "$his_len" ] || [ -z "$pred_len" ]; then
+    echo "Usage: $0 --model <model> --his_len <his_len> --pred_len <pred_len>"
     exit 1
-else
-    model=$1
-    echo "Using model: $model"
 fi
 # >>>> DS1
 dataset='nasdaq100'
 python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
                     --normalizer $normalizer --graph_init $graph_init \
+                    --data_base $data_base \
                     --scheduler $scheduler \
                     --lr_finder \
                     --logger $logger \
@@ -60,6 +72,7 @@ dataset='stocknet'
 python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
                     --normalizer $normalizer --graph_init $graph_init \
+                    --data_base $data_base \
                     --scheduler $scheduler \
                     --lr_finder \
                     --logger $logger \
@@ -69,6 +82,7 @@ dataset='crypto12'
 python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
                     --normalizer $normalizer --graph_init $graph_init \
+                    --data_base $data_base \
                     --scheduler $scheduler \
                     --lr_finder \
                     --logger $logger \
