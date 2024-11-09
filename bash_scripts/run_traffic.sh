@@ -45,7 +45,7 @@ graph_init='pearson'            # only meaningful for graph-based models
 scheduler='ReduceLROnPlateau'   # more detailed settings can be found in 'utils/scheduler/schedulerManager.py'
 # ----------------------------------------------------
 
-export CUDA_VISIBLE_DEVICES=0
+# export CUDA_VISIBLE_DEVICES=0
 
 # --------------- Select Data & Model ----------------
 # start training with the following configurations
