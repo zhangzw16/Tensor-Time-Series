@@ -51,13 +51,18 @@ scheduler='ReduceLROnPlateau'   # more detailed settings can be found in 'utils/
 # start training with the following configurations
 # Traffic Datasets: ['JONAS_NYC_bike', 'JONAS_NYC_taxi', 'Metr-LA','METRO_HZ', 'METRO_SH','PEMS03', 'PEMS07']
 # get the model name from the command line
-if [ -z "$1" ]; then
-    echo "No model specified. Usage: $0 <model>"
-    exit 1
-else
-    model=$1
-    echo "Using model: $model"
-fi
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --model) model="$2"; shift ;;
+        --his_len) his_len="$2"; shift ;;
+        --pred_len) pred_len="$2"; shift ;;
+        --output_dir) output_dir="$2"; shift ;;
+        --task_name) task_name="$2"; shift ;;
+        --dataset_base) dataset_base="$2"; shift ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
 # >>>> DS1
 dataset='JONAS_NYC_bike'
 python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
