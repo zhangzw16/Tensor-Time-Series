@@ -731,12 +731,14 @@ class Mamba_TensorModel(TensorModelBase):
                            output_dim=self.output_dim,
                            hidden_dim=self.hidden_dim,
                            num_layers=self.num_layers)
+        # update optimizer configs 
+        lr = self.lr if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = self.weight_decay if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
+        # self.optim = torch.optim.Adam(self.model.parameters(), lr=self.lr,  weight_decay=self.weight_decay,  eps=1e-8)
         
-        self.optimizer = torch.optim.Adam(self.model.parameters(), 
-                                          lr=self.lr, 
-                                          weight_decay=self.weight_decay, 
-                                          eps=1e-8)
-        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, 
+        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optim, 
                                                               milestones=self.milestones, 
                                                               gamma=self.lr_decay_rate)
         self.criterion = nn.HuberLoss()
@@ -758,11 +760,11 @@ class Mamba_TensorModel(TensorModelBase):
         return y_pred, truth
 
     def backward(self, loss):
-        self.optimizer.zero_grad()
+        self.optim.zero_grad()
         loss.backward()
         if self.clip_grad:
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.clip_grad_norm)
-        self.optimizer.step()
+        self.optim.step()
 
     def get_loss(self, pred, truth):
         L = self.criterion(pred, truth)

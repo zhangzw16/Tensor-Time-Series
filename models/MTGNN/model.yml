@@ -1,5 +1,5 @@
 # parameters
-gcn_enable: true  # whether to add graph convolution layer
+gcn_enable: True  # whether to add graph convolution layer
 buildA_enable: true # whether to construct adaptive adjacency matrix
 
 dropout: 0.3
@@ -10,10 +10,15 @@ dilation_exponential: 1
 predefined_A: null
 
 # channels
-conv_channels: 32
-residual_channels: 32
-skip_channels: 64
-end_channels: 128
+# conv_channels: 32
+# residual_channels: 32
+# skip_channels: 64
+# end_channels: 128
+conv_channels: 16
+residual_channels: 16
+skip_channels: 32
+end_channels: 64
+
 
 node_dim: 40
 out_dim: 0  # set 0, the output of modde is (batch, time, tensor_shape[0], tensor_shape[1])

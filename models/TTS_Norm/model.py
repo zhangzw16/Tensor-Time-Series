@@ -292,7 +292,11 @@ class TTS_Norm_TensorModel(TensorModelBase):
                              schemeA_bool=self.schemeA, schemeB_bool=self.schemeB, schemeC_bool=self.schemeC,
                              schemeD_bool=self.schemeD, schemeE_bool=self.schemeE, schemeF_bool=self.schemeF,
                              in_dim=1, out_dim=1, channels=self.hidden_channels, kernel_size=2, layers=self.layer, fusion_bool=self.fusion)
-        self.optim = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()), lr=0.0001)
+        # update optimizer configs 
+        lr = 0.0001 if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()), lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
         # filter(lambda p: p.requires_grad, self.model.parameters())
         self.criterion = nn.MSELoss()
 

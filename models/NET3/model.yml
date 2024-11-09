@@ -11,6 +11,7 @@ TLSTM:
   dim_output: 8
   is_decompose: True
   mode_dims_hidden: {0: 44, 1: 4}
+  # mode_dims_hidden: {0: 128, 1: 8}
 
 Output:
   multiple: True

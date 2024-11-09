@@ -36,10 +36,15 @@ class StemGNN_MultiVarModel(MultiVarModelBase):
                              self.dropout, self.leaky_rate)
 
         self.criterion = nn.MSELoss(reduction='mean')
+        # update optimizer configs 
+        lr = 1e-4 if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0.0 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        # self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
         if model_configs['optimizer'] == 'RMSProp':
-            self.optim = torch.optim.RMSprop(self.model.parameters(), lr=1e-4, eps=1e-8)
+            self.optim = torch.optim.RMSprop(self.model.parameters(), lr=lr, eps=eps, weight_decay=weight_decay)
         else:
-            self.optim = torch.optim.Adam(self.model.parameters(), lr=1e-4, betas=(0.9, 0.999))
+            self.optim = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(0.9, 0.999), eps=eps, weight_decay=weight_decay)
         
     
     def forward(self, x, aux_info: dict = ...):

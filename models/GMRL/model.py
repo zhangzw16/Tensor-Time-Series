@@ -310,7 +310,11 @@ class GMRL_TensorModel(TensorModelBase):
                 else:
                     nn.init.uniform_(p)
         # optimizer
-        self.optim = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()), lr=0.0001)
+        # update optimizer configs 
+        lr = 0.0001 if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()), lr=lr, eps=eps, weight_decay=weight_decay)
         # criterion
         self.criterion = nn.MSELoss()
         # mix loss?

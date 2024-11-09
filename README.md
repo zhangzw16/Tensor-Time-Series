@@ -53,39 +53,41 @@ pip install .
 ```
 
 
-## Run
+## Have a try
 
-Run a simple task.
+### 1. run a simple task
+We provide some scripts to run tasks easily.
 
 ```shell
+# you can run by using python3 directly.
 python3 main.py
+# or you can choose the command line version
+python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
+                    --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
+                    --normalizer $normalizer --graph_init $graph_init \
+                    --scheduler $scheduler \
+                    --lr_finder \
+                    --logger $logger \
+                    --dataset $dataset --model $model \
+# isn't it this a little complicated? We also provide some relatviely simple version of shell stripts in './bash_scripts/'
+bash ./bash_scripts/run.sh
+# you can find more details in the run.sh
 ```
-There have been some tasks already. You can try to run `python3 run_tasks.py --help` for help.
 
-Tasks: 
-+ MTS_Task: run models in `MTS_ModelList` with specific datasets and `data_mode`.
+### 2. run tasks
+
+Based on `main_cli.py` and `run.sh`, we also provide some scripts for you in `bash_scripts/*.sh`. All these scripts are easly to understand and cutomize.
+
 ```shell
-# for example
-python3 run_tasks.py --his_len 96 --pred_len 12 --dataset Finance --task_name MTS_Task --output_dir './output/'
-```
-+ TTS_Task: run models in `TTS_ModelList` with specific datasets and `data_mode`. (GNN is initialized with 'pearson')
-```shell
-# for example
-python3 run_tasks.py --his_len 96 --pred_len 12 --dataset Finance --task_name TTS_Task --output_dir './output/'
-```
-
-+ Graph_Init_Task: run Models with prior graph with different graph initialization.
-```shell
-# for example
-python3 run_tasks.py --his_len 96 --pred_len 12 --dataset Finance --task_name MTS_Task --output_dir './output/' --graph_init random
+# run a model across datasets in different domains
+# all parameters are required
+bash bash_scripts/run_traffic.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --data_base $data_base
+bash bash_scripts/run_finance.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --data_base $data_base
+bash bash_scripts/run_weather.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --data_base $data_base
+bash bash_scripts/run_nature.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --data_base $data_base
+bash bash_scripts/run_energy.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --data_base $data_base
 ```
 
-## Develop
-
-Due to its modular design, developing with our framework is straightforward and efficient.
-
-### Add new models
-
-In our framework, there are two types of models: `TensorModel` and `MultiVarModel`. These models are categorized based on the shape of the input data. 
-- `TensorModel` supports data inputs with the shape (time, dim1, dim2)
--  `MultiVarModel` supports data input with the shape (time, dim)
+> [!TIP]
+> The scripts shown above only run **a model** once.
+> If you want to run different model, please set the variable `$model` before you get started.

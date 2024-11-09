@@ -7,6 +7,7 @@ Tensor model supports (batch, time, dim1, dim2) input and output, while Multivar
 ## Tensor Model (7)
 + TTS_Norm: Normalization - (ACM Trans 2023)
 + GMRL:  Gaussian  - (IJCAI 2023)
++ 
 + !!! MegaCRN: (AAAI 2023)
 + !!! STGM: G - (Expert Systems with Applications 2023)
 
@@ -14,7 +15,6 @@ Tensor model supports (batch, time, dim1, dim2) input and output, while Multivar
 + DCRNN: GNN       (prior graph) - (ICLR 2018)
 + GWNet: GCN + RNN (prior graph + update)
 + ST_Norm:  Normalization         - (KDD 2021)
-+ !!! DGCRN
 
 + AGCRN: GCN + RNN (learned graph) - (NeurIPS 2020)
 + MTGNN: GCN + TCN (learned graph) - (KDD 2020)
@@ -27,7 +27,8 @@ Tensor model supports (batch, time, dim1, dim2) input and output, while Multivar
 + patchTST  (LLM)
 + AutoFormer
 + CrossFormer
-+ !!! TTM   (fundation model)
++ NLTSF
 
 ## Statistic Model (1)
 + HM
++ HI

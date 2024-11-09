@@ -4,11 +4,11 @@ import scipy
 import scipy.stats
 from sklearn.metrics.pairwise import cosine_similarity
 
-from datasets.dataset import TTS_Dataset
+from datasets.dataset import TTS_DatasetManager
 
 
 class GraphGenerator:
-    def __init__(self, dataset:TTS_Dataset, ratio:float=0.3, max_sample:int=3000) -> None:
+    def __init__(self, dataset:TTS_DatasetManager, ratio:float=0.3, max_sample:int=3000) -> None:
         self.dataset = dataset
         self.tensor_shape = self.dataset.get_tensor_shape()
         self.data = self.dataset.data
@@ -56,6 +56,13 @@ class GraphGenerator:
         for i in range(dim):
             graph[i,i] = 1.0
         return graph
+    
+    def unit_matrix(self, n_dim:int):
+        dim = self.tensor_shape[n_dim]
+        if dim <= 1:
+            return np.ones((1,1))
+        graph = np.eye(dim)
+        return graph
 
     def cosine_similarity_matrix(self, n_dim:int, normal=False):
         dim = self.tensor_shape[n_dim]
@@ -86,7 +93,7 @@ class GraphGenerator:
         return np.all(seq == seq[0])
     
 class GraphGeneratorManager:
-    def __init__(self, graph_init:str, dataset:TTS_Dataset, ratio:float=0.3, max_sample:int=3000) -> None:
+    def __init__(self, graph_init:str, dataset:TTS_DatasetManager, ratio:float=0.3, max_sample:int=3000) -> None:
         self.graph_generator = GraphGenerator(dataset, ratio, max_sample)
         self.graph_init = graph_init
     def gen_graph(self, n_dim:int, normal=False):
@@ -98,6 +105,8 @@ class GraphGeneratorManager:
             return self.graph_generator.random_matrix(n_dim)
         elif self.graph_init == 'inverse_pearson':
             return self.graph_generator.inverse_pearson_matrix(n_dim, normal)
+        elif self.graph_init == 'unit':
+            return self.graph_generator.unit_matrix(n_dim)
         else:
             return self.graph_generator.random_matrix(n_dim)
     

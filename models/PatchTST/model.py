@@ -341,7 +341,12 @@ class PatchTST_MultiVarModel(MultiVarModelBase):
         #     args.gpu = args.device_ids[0]
 
         self.model = Model(self.configs).float()
-        self.optim = torch.optim.Adam(self.model.parameters(), lr=self.configs.learning_rate)
+        # update optimizer configs 
+        lr = self.configs.learning_rate if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0.0 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
+        # self.optim = torch.optim.Adam(self.model.parameters(), lr=self.configs.learning_rate)
         if self.loss == 'mse':
             self.criterion = nn.MSELoss()
         elif self.loss == 'mae':

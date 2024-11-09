@@ -1,9 +1,9 @@
 import torch
 import numpy as np
-from .dataset import TTS_Dataset, MTS_Dataset
+from .dataset import TTS_DatasetManager, MTS_DatasetManager
 
 class TTS_DataLoader:
-    def __init__(self, dataset:TTS_Dataset, name:str,
+    def __init__(self, dataset:TTS_DatasetManager, name:str,
                  batch_size=16, drop_last=False) -> None:
         # load data
         self.dataset = dataset
@@ -54,7 +54,7 @@ class TTS_DataLoader:
                 yield his, pred, auxiliary_info
 
 class MTS_DataLoader:
-    def __init__(self, dataset:MTS_Dataset, name:str,
+    def __init__(self, dataset:MTS_DatasetManager, name:str,
                  batch_size=16, drop_last=False) -> None:
         # load data
         # (num, time, dim, 1)

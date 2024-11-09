@@ -45,9 +45,12 @@ class AGCRN_TensorModel(TensorModelBase):
                 nn.init.xavier_uniform_(p)
             else:
                 nn.init.uniform_(p)
-                
-        self.optim = torch.optim.Adam(self.model.parameters(),lr=0.003, eps=1.0e-8,
-                                      weight_decay=0, amsgrad=False)
+
+        # update optimizer configs 
+        lr = 0.003 if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
 
     def init_others(self, dataset_name=None):
         if self.loss_func_name == 'mask_mae':

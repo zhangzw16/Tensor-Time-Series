@@ -9,12 +9,13 @@ class TaskBase:
         self.best_valid_loss =  math.inf
         self.early_stop_max = configs['early_stop_max']
         self.early_stop_cnt = 0
+        self.early_stop_start_epoch = configs['early_stop_start_epoch']
 
     def ensure_output_dir(self, path:str):
         if not os.path.exists(path):
             os.makedirs(path,)
 
-    def early_stop(self, valid_loss, epoch_info:dict={}, save_dir:str='')->bool:
+    def early_stop(self, epoch, valid_loss, epoch_info:dict={}, save_dir:str='')->bool:
         # check loss and update
         if valid_loss < self.best_valid_loss:
             self.best_valid_loss = valid_loss
@@ -22,9 +23,11 @@ class TaskBase:
             if self.model is not None:
                 if save_dir == '':
                     save_dir = self.output_dir
-                save_path = os.path.join(save_dir, 'model.pth')
-                self.model.save_model(save_path)
-                print(f'model saved in: {save_path}')
+                # avoid early stop in the first few epochs
+                if epoch >= self.early_stop_start_epoch:    
+                    save_path = os.path.join(save_dir, 'model.pth')
+                    self.model.save_model(save_path)
+                    print(f'model saved in: {save_path}')
                 self.best_epoch_info = epoch_info
         else:
             self.early_stop_cnt += 1

@@ -6,13 +6,13 @@ import random
 from .normalizer import StandNormalizer, DoNothing
 
 '''
-Name: Tensor-Time-Series Dataset:
+Name: Tensor-Time-Series Dataset Manager:
 Param:
     -
 Method:
     -
 '''
-class TTS_Dataset:
+class TTS_DatasetManager:
     def __init__(self, pkl_path:str, his_len:int, pred_len:int,
                  test_ratio=0.1, valid_ratio=0.1, seed=2024, data_mode:int=0) -> None:
         random.seed(seed)
@@ -39,8 +39,8 @@ class TTS_Dataset:
             raise ValueError(f"invalid ratio. train:{train_ratio}, valid:{valid_ratio}, test:{test_ratio}")
         data_index = list(range(int(self.time_range)-(his_len+pred_len)))
         # random.shuffle(data_index)
-        train_index_end = int(self.time_range*train_ratio)
-        valid_index_end = int(self.time_range*valid_ratio) + train_index_end
+        train_index_end = int(len(data_index)*train_ratio)
+        valid_index_end = int(len(data_index)*valid_ratio) + train_index_end
         self.trainset = data_index[:train_index_end]
         random.shuffle(self.trainset)
         self.validset = data_index[train_index_end:valid_index_end]
@@ -111,14 +111,14 @@ class TTS_Dataset:
             raise ValueError(f'unknown normalizer: {norm}...')
 
 '''
-Name: Multivar Dataset:
+Name: Multivar Dataset Manager:
 Dataset format: 
 (time_series_num, time_range, dim_range)
     - time_series_num: number of time series
     - time_range: number of time steps
     - dim_range: number of dimensions
 '''
-class MTS_Dataset:
+class MTS_DatasetManager:
     def __init__(self, pkl_path:str, his_len:int, pred_len:int,
                  test_ratio=0.1, valid_ratio=0.1, seed:int=2024, data_mode:int=0) -> None:
         random.seed(seed)
@@ -140,11 +140,12 @@ class MTS_Dataset:
         # split:
         # | <--- trian ---> | <- valid ->  | <- test -> |
         data_index = list(range(int(self.time_range)-(his_len+pred_len)))
-        train_index_end = int(self.time_range*train_ratio)
-        valid_index_end = int(self.time_range*valid_ratio) + train_index_end
+        train_index_end = int(len(data_index)*train_ratio)
+        valid_index_end = int(len(data_index)*valid_ratio) + train_index_end
         self.trainset = data_index[:train_index_end]
         self.validset = data_index[train_index_end:valid_index_end]
         self.testset  = data_index[valid_index_end:]
+        # print(len(self.trainset), len(self.validset), len(self.testset));exit()
         # random shuffle the dataset
         random.shuffle(self.trainset)
         random.shuffle(self.validset)

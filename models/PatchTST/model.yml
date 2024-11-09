@@ -10,7 +10,8 @@
 # if use snorm/tnorm
 model_name: PatchTST  
 task_name: long_term_forecast
-d_model: 512
+# d_model: 512
+d_model: 256
 e_layers: 2 
 d_layers: 1 
 factor: 3 

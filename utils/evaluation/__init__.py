@@ -32,7 +32,10 @@ class Evaluator:
         result = {}
         for metric_name in self.metrics_map:
             metric_func = self.metrics_map[metric_name]
-            if metric_name in self.metrics_thres_map:
+            if pred.size == 0 or truth.size == 0:
+                print("Warning: pred or labels is empty. Returning np.nan")
+                metric_result = np.nan
+            elif metric_name in self.metrics_thres_map:
                 thres = float(self.metrics_thres_map[metric_name])
                 metric_result = metric_func(pred, truth, thres)
             else:
@@ -46,7 +49,10 @@ class Evaluator:
         result = {}
         for scaled_metric_name in self.scaled_metrics_map:
             metric_func = self.scaled_metrics_map[scaled_metric_name]
-            if scaled_metric_name in self.metrics_thres_map:
+            if pred.size == 0 or truth.size == 0:
+                print("Warning: pred or labels is empty. Returning np.nan")
+                metric_result = np.nan
+            elif scaled_metric_name in self.metrics_thres_map:
                 thres = float(self.metrics_thres_map[scaled_metric_name])
                 metric_result = metric_func(hist, pred, truth, threshold=thres)
             else:

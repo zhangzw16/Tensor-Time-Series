@@ -40,7 +40,13 @@ class DCRNN_TensorModel(TensorModelBase):
         self.model = DCRNNModel(self.adj_mat, self.enc_input_dim, self.dec_input_dim,
                                 self.max_diffusion_step, self.tensor_shape[0],self.num_rnn_layers,
                                  self.rnn_units, self.input_len, self.pred_len, self.tensor_shape[1], self.filter_type)
-        self.optim = torch.optim.Adam(self.model.parameters(), lr=0.01, eps=1.0e-3, amsgrad=True, weight_decay=0)
+        # update optimizer configs
+        lr = 0.01 if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-3 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(self.model.parameters(), lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=True)
+        # self.optim = torch.optim.Adam(self.model.parameters(), lr=0.01, eps=1.0e-3, amsgrad=True, weight_decay=0)
+        
         self.criterion = nn.MSELoss()
 
     

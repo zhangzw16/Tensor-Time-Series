@@ -3,20 +3,24 @@ import time
 import yaml
 import torch
 import numpy as np
+from torch.utils.data import DataLoader
+
 from tasks.task_base import TaskBase
 from models import ModelManager
-from datasets.dataset import TTS_Dataset
+from datasets.dataset import TTS_DatasetManager
 from datasets.dataloader import TTS_DataLoader
+from datasets.dataloader_torch import TTS_Dataset_Torch
 from utils.evaluation import Evaluator
 from utils.logger.Logger import LoggerManager
 from utils.graph.graphGenerator import GraphGeneratorManager
-
+from utils.scheduler.schedulerManager import SchedulerManager
+from utils.lrFinder.LR_Finder import LRFinder_Manager
 
 class TensorTask(TaskBase):
     def __init__(self, configs:dict={}) -> None:
         super().__init__(configs)
         # load configuration
-        self.init_time_stamp = time.strftime("%m-%d-%H-%M-%S", time.localtime())
+        self.init_time_stamp = configs['timestamp']
         print(f"TensorTask init... --> {self.init_time_stamp}")
         print(f"Task mode: {configs['mode']}")
         print(f"Loading configs...")
@@ -32,6 +36,7 @@ class TensorTask(TaskBase):
         self.logger_name = configs['logger']
         self.project_name = configs['project_name']
         # dataset
+        self.dataset_name = configs['dataset_name']
         self.pkl_path = configs['dataset_pkl']
         self.data_mode = configs['data_mode']
         self.his_len = configs['his_len']
@@ -49,7 +54,7 @@ class TensorTask(TaskBase):
             graph_init = f"-{configs['graph_init']}"
         else:
             graph_init = ''
-        task_id = f"{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}{graph_init}-{normalizer_name}"
+        task_id = f"{self.dataset_name}-{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}{graph_init}-{normalizer_name}-{self.init_time_stamp}"
         self.output_dir = os.path.join(self.output_dir, self.project_name, task_id)
         # ensure output_dir
         self.ensure_output_dir(self.output_dir)
@@ -57,12 +62,19 @@ class TensorTask(TaskBase):
             yaml.dump(configs, file)
 
         # prepare for dataset
-        self.dataset = TTS_Dataset(self.pkl_path, 
+        self.dataset = TTS_DatasetManager(self.pkl_path, 
                                    his_len=self.his_len, pred_len=self.pred_len ,
                                    test_ratio=0.1, valid_ratio=0.1, seed=self.seed, data_mode=self.data_mode)
-        self.trainloader = TTS_DataLoader(self.dataset, 'train', batch_size=self.batch_size, drop_last=False)
-        self.validloader = TTS_DataLoader(self.dataset, 'valid', batch_size=self.batch_size, drop_last=False)
-        self.testloader  = TTS_DataLoader(self.dataset, 'test' , batch_size=1, drop_last=False)
+        # self.trainloader = TTS_DataLoader(self.dataset, 'train', batch_size=self.batch_size, drop_last=False)
+        # self.validloader = TTS_DataLoader(self.dataset, 'valid', batch_size=self.batch_size, drop_last=False)
+        # self.testloader  = TTS_DataLoader(self.dataset, 'test' , batch_size=1, drop_last=False)
+        self.trainset = TTS_Dataset_Torch(self.dataset, 'train')
+        self.validset = TTS_Dataset_Torch(self.dataset, 'valid')
+        self.testset  = TTS_Dataset_Torch(self.dataset, 'test')
+        self.trainloader = DataLoader(self.trainset, batch_size=self.batch_size, shuffle=True, drop_last=False)
+        self.validloader = DataLoader(self.validset, batch_size=self.batch_size, shuffle=False, drop_last=False)
+        self.testloader  = DataLoader(self.testset,  batch_size=1, shuffle=False, drop_last=False)
+        print(f"trainset: {len(self.trainset)}, validset: {len(self.validset)}, testset: {len(self.testset)}")
         print("Preparation for dataset is done.")
 
         # prepare for model
@@ -75,6 +87,30 @@ class TensorTask(TaskBase):
         self.model = model_manager.get_model_class(self.model_name)(model_configs)
         self.model.set_device(self.device)
         print(f"Preparation for model ({self.model_type}, {self.model_name}) is done.")
+
+        # LR Finder
+        if model_configs['lr_finder'] and model_configs['mode'] == 'train':
+            print("LR Finder is enable")
+            model_configs['normalizer'] = self.dataset.get_normalizer(norm=normalizer_name)
+            graph_init = model_configs['graph_init']
+            model_configs['graphGenerator'] = GraphGeneratorManager(graph_init, self.dataset)
+            model_configs['tensor_shape'] = self.dataset.get_tensor_shape()
+            lr_finder_manager = LRFinder_Manager(self.model_name, model_configs, self.trainloader, self.validloader, self.output_dir, self.device)
+            lr_finder_manager.search_lr()
+            best_mean_lr = lr_finder_manager.get_best_mean_lr()
+            lr_finder_manager.save_plot()
+            print(f"LR Finder is done. The best learning rate is: {best_mean_lr}")
+            print(f"plot is saved in {self.output_dir}/lr_finder.png")
+            lr_finder_manager.set_optim_with_lr(self.model, best_mean_lr)
+            self.configs['lr'] = best_mean_lr
+            # for param_group in self.model.optim.param_groups:
+            #     print(f"Learning rate: {param_group['lr']}")
+            # exit()
+
+        # prepare for scheduler
+        self.scheduler_manager = SchedulerManager()
+        self.scheduler_name = self.configs['scheduler']
+        self.scheduler = self.scheduler_manager.get_scheduler(self.model.optim, self.scheduler_name)
 
         # prepare for evaluation
         self.eval_verbose  = configs['evaluator_verbose']
@@ -101,6 +137,9 @@ class TensorTask(TaskBase):
         print(f"his_len: {self.his_len}, pred_len: {self.pred_len}, normalizer: {normalizer_name}")
         print(f"max_epoch: {self.max_epoch}, early_stop: {self.early_stop_max}")
         print(f"The output path: {self.output_dir}")
+        print(f"LR Finder: {self.configs['lr_finder']}")
+        print(f"Optimizer: lr: {self.configs['lr']}, eps: {self.configs['eps']}, weight_decay: {self.configs['weight_decay']}")
+        print(f"Scheduler: {self.configs['scheduler']}")
         print('-'*40)
         
     def train(self):
@@ -109,14 +148,22 @@ class TensorTask(TaskBase):
             epoch_info = {}
             epoch_mean_train_loss = self.epoch_train()
             epoch_mean_valid_loss, valid_result = self.epoch_valid()
+            # scheduler
+            if self.scheduler_name == 'ReduceLROnPlateau':
+                self.scheduler.step(epoch_mean_valid_loss)
+            else:
+                self.scheduler.step()
+            # show info
             print(f"epoch: {i}, mean_train_loss: {epoch_mean_train_loss:.3f}, mean_valid_loss:{epoch_mean_valid_loss:.3f}")
             # logger info
             epoch_info['train/loss'] = epoch_mean_train_loss
             epoch_info['valid/loss'] = epoch_mean_valid_loss
             for metric in valid_result:
                 epoch_info[f'valid/{metric}'] = valid_result[metric]
+            epoch_info['learning_rate'] = self.model.optim.param_groups[0]['lr']
+            print(epoch_info['learning_rate'])
             self.logger.log(epoch_info)
-            early_stop_flag = self.early_stop(epoch_mean_valid_loss, epoch_info)
+            early_stop_flag = self.early_stop(i, epoch_mean_valid_loss, epoch_info)
             # early stop
             if early_stop_flag:
                 break
@@ -138,10 +185,13 @@ class TensorTask(TaskBase):
     def epoch_train(self):
         self.model.train()
         loss_list = []
-        for seq, aux_info in self.trainloader.get_batch(separate=False):
-            # print(f"train: {seq.shape}");exit()
+        
+        for seq in self.trainloader:
+            print(seq.shape)
+            # if self.trainloader.batch_size == 1:
+            #     seq = seq.unsqueeze(0)
             seq = seq.to(self.device)
-            pred, truth = self.model.forward(seq, aux_info)
+            pred, truth = self.model.forward(seq)
             epoch_train_loss = self.model.get_loss(pred, truth)
             self.model.backward(epoch_train_loss)
             loss_list.append(epoch_train_loss.item())
@@ -154,9 +204,11 @@ class TensorTask(TaskBase):
         pred_list = []
         truth_list = []
         with torch.no_grad():
-            for seq, aux_info in self.validloader.get_batch(separate=False):
+            for seq in self.validloader:
+                # if self.validloader.batch_size == 1:
+                #     seq = seq.unsqueeze(0)
                 seq = seq.to(self.device)
-                pred, truth = self.model.forward(seq, aux_info)
+                pred, truth = self.model.forward(seq)
                 epoch_valid_loss = self.model.get_loss(pred, truth)
                 loss_list.append(epoch_valid_loss.item())
                 pred = pred.cpu().numpy()
@@ -164,12 +216,15 @@ class TensorTask(TaskBase):
                 pred_list.append(pred)
                 truth_list.append(truth)
         mean_loss = sum(loss_list)/len(loss_list)
-        pred = np.array(pred_list).squeeze()
-        truth = np.array(truth_list).squeeze()
+        # pred = np.array(pred_list).squeeze()
+        # truth = np.array(truth_list).squeeze()
+        pred = np.concatenate(pred_list, axis=0)
+        truth = np.concatenate(truth_list, axis=0)
         result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
         return mean_loss, result
 
     def test(self):
+        self.configs['mode'] = 'test'
         # load model
         if not os.path.exists(self.model_path):
             self.model_path = os.path.join(self.output_dir, 'model.pth')
@@ -177,17 +232,19 @@ class TensorTask(TaskBase):
                 raise FileExistsError(f"can not find .pth file... {self.model_path}")
         print(f'load model from {self.model_path}')
         self.model.load_model(self.model_path)
+        print(f'model loaded...')
         # eval mode
         self.model.eval()
         with torch.no_grad():
             pred_list = []
             truth_list = []
             hist_list = []
-            for seq, aux_info in self.testloader.get_batch(separate=False):
-                # print(f'seq: {seq.shape}')
+            for seq in self.testloader:
+                # if self.testloader.batch_size == 1:
+                #     seq = seq.unsqueeze(0)
                 seq = seq.to(self.device)
                 hist = seq[:, :self.his_len, :, :].cpu().numpy()
-                pred, truth = self.model.forward(seq, aux_info)
+                pred, truth = self.model.forward(seq)
                 pred = pred.cpu().numpy()
                 truth = truth.cpu().numpy()
                 pred_list.append(pred)

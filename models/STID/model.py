@@ -206,10 +206,13 @@ class STID_MultiVarModel(MultiVarModelBase):
                           if_time_in_day=False,
                           if_day_in_week=False,
                           num_layer=self.num_layer)
-        self.optimizer = torch.optim.Adam(self.model.parameters(),
-                                          lr=self.lr,
-                                          weight_decay=0,
-                                          eps=1e-8)
+        # update optimizer configs 
+        lr = self.lr if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
+        # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=0, eps=1e-8)
+        
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer,
                                                               milestones=self.milestone,
                                                               gamma=self.lr_decay)

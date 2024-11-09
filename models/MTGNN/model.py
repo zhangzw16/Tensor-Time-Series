@@ -61,7 +61,12 @@ class MTGNN_TensorModel(TensorModelBase):
                            input_len=self.input_len, in_dim=self.tensor_shape[1], out_dim=self.out_dim, pred_len=self.pred_len, layers=self.layers, propalpha=self.prop_alpha, tanhalpha=self.tanh_alpha,
                            layer_norm_affline=self.layer_norm_affline)
         self.criterion = utils.masked_mae
-        self.optim = torch.optim.Adam(self.model.parameters(), lr=0.001, weight_decay=0.0001)
+        # update optimizer configs 
+        lr = 0.001 if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0.0001 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
+        # self.optim = torch.optim.Adam(self.model.parameters(), lr=0.001, weight_decay=0.0001)
         self.clip = 5
     
     def init_others(self, dataset_name=None):

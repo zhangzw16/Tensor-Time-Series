@@ -44,7 +44,13 @@ class TimesNet_MultiVarModel(MultiVarModelBase):
         self.model = Model(self.input_len, self.pred_len, self.num_var, self.num_var, self.num_var,
                            self.e_layers, self.d_model, self.embed, self.top_k, 
                            self.d_ff, self.num_kernels, self.freq, self.dropout)
-        self.optim = torch.optim.Adam(self.model.parameters(), lr=0.001)
+        # update optimizer configs 
+        lr = 0.001 if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = 0 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
+        
+        # self.optim = torch.optim.Adam(self.model.parameters(), lr=0.001)
         self.criterion = self.select_criterion(self.criterion_name)
 
     def select_criterion(self, criterion_name='MSE'):

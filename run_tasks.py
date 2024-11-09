@@ -9,11 +9,11 @@ from tasks.task_manager import TaskManager, TEMPLATE_PATH
 DATASET_BASE = '/home/zhuangjiaxin/workspace/TensorTSL/Tensor-Time-Series/datasets/data'
 # Dataset List
 DatasetMap = {
-    "Traffic": ['JONAS_NYC_bike', 'JONAS_NYC_taxi', 'Metr-LA','METRO_HZ', 'METRO_SH','PEMS03', 'PEMS07'],
-    "Natural": ['COVID_DEATHS'],
+    "Traffic": ['JONAS_NYC_bike', 'JONAS_NYC_taxi', 'Metr-LA','METRO_HZ', 'METRO_SH','PEMS03', 'PEMS07', 'PEMS20'],
+    "Natural": ['COVID_DEATHS', 'COVID_CHI', 'COVID_US'],
     "Energy":  ['ETT_hour', 'electricity'],
     "Weather": ['weather', 'Jena_climate'],
-    "Finance": ['nasdaq100', 'electricity'],
+    "Finance": ['nasdaq100', 'stocknet','crypto12'],
 }
 # Model List
 MTS_ModelList = ['TimesNet', 'StemGNN', 'AutoFormer', 'CrossFormer', 'PatchTST']
@@ -67,6 +67,8 @@ Output:
 '''
 @register_task('MTS_Task')
 def MTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int, 
+                 lr_finder:bool, lr:float, eps:float, weight_decay:float,   # Optimizer
+                 scheduler:str, debug:bool,
                  project_name:str, dataset_list:list, output_dir:str, only_test:bool):
     base_dir = os.path.join(output_dir, project_name)
     # logger configuration
@@ -81,6 +83,12 @@ def MTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int,
     task_config['pred_len'] = pred_len
     task_config['batch_size'] = batch_size
     task_config['data_mode'] = data_mode
+    task_config['lr_finder'] = lr_finder
+    task_config['lr'] = lr
+    task_config['eps'] = eps
+    task_config['weight_decay'] = weight_decay
+    task_config['scheduler'] = scheduler
+    task_config['debug'] = debug
     # start to run
     task_results = {dataset_name: {} for dataset_name in dataset_list}
     manager = TaskManager('checkpoints', base_dir)
@@ -122,6 +130,8 @@ Output:
 '''
 @register_task('TTS_Task')
 def TTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int, 
+                 lr_finder:bool, lr:float, eps:float, weight_decay:float,   # Optimizer
+                 scheduler:str, debug:bool,
                  project_name:str, dataset_list:list, output_dir:str, only_test:bool):
     base_dir = os.path.join(output_dir, project_name)
     # logger configuration
@@ -137,6 +147,12 @@ def TTS_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int,
     task_config['batch_size'] = batch_size
     task_config['data_mode'] = data_mode
     task_config['graph_init'] = 'pearson'
+    task_config['lr_finder'] = lr_finder
+    task_config['lr'] = lr
+    task_config['eps'] = eps
+    task_config['weight_decay'] = weight_decay
+    task_config['scheduler'] = scheduler
+    task_config['debug'] = debug
     # start to run
     task_results = {dataset_name: {} for dataset_name in dataset_list}
     manager = TaskManager('checkpoints', base_dir)
@@ -170,7 +186,7 @@ Param:
     - project_name
     - dataset_list
     - output_dir
-    - graph_init: ['inverse_pearson', 'random']
+    - graph_init: ['inverse_pearson', 'random', 'unit']
 Output:
     - log file saved in 'output_dir/project_name/log/xxxx.yaml'
     - checkpoints saved in 'output_dir/project_name/checkpoints/task_id/model.pth'
@@ -178,7 +194,9 @@ Output:
 '''
 @register_task('Graph_Init_Task')
 def Graph_Prior_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:int, 
-                   project_name:str, dataset_list:list, output_dir:str, only_test:bool, graph_init:str):
+                         lr_finder:bool, lr:float, eps:float, weight_decay:float,   # Optimizer
+                         scheduler:str, debug:bool,
+                         project_name:str, dataset_list:list, output_dir:str, only_test:bool, graph_init:str):
     base_dir = os.path.join(output_dir, project_name)
     # logger configuration
     log_dir = os.path.join(base_dir, 'log')
@@ -193,6 +211,12 @@ def Graph_Prior_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:in
     task_config['batch_size'] = batch_size
     task_config['data_mode'] = data_mode
     task_config['graph_init'] = graph_init
+    task_config['lr_finder'] = lr_finder
+    task_config['lr'] = lr
+    task_config['eps'] = eps
+    task_config['weight_decay'] = weight_decay
+    task_config['scheduler'] = scheduler
+    task_config['debug'] = debug
     # start to run
     task_results = {dataset_name: {} for dataset_name in dataset_list}
     manager = TaskManager('checkpoints', base_dir)
@@ -216,26 +240,43 @@ def Graph_Prior_TasksRun(his_len:int, pred_len:int, data_mode:int, batch_size:in
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    # args
+    # Args:
+    # ----- 1. Task Config ------
+    parser.add_argument('--task_name', type=str, required=True,
+                        help=f'task name chosen from {TASK_REGISTRY.keys()}. \n'+'The log file will be saved in {output_dir}/{task_name}/log/xxxx.yaml')
+    parser.add_argument('--output_dir', type=str, required=True,
+                        help='output path. The log file will be saved in {output_dir}/{task_name}/log/xxxx.yaml')
+    parser.add_argument('--graph_init', type=str, default='pearson', required=False,
+                        help='[optional] only for Graph_Init_Task, graph initialization method: [pearson, inverse_pearson, random, unit]')
+    parser.add_argument('--only_test', type=str, default='False', required=False,
+                        help='[optional] test only')
+    parser.add_argument('--debug', type=str, default='False', required=False,
+                        help='[optional] debug mode, set \'True\' or \'False\'')
+    
+    # ----- 2. Dataset & Dataloader ------
+    parser.add_argument('--dataset', type=str, required=True,
+                        help=f"DatasetMap: {DatasetMap.keys()}")
     parser.add_argument('--his_len', type=int, required=True,
                         help='input history length')
     parser.add_argument('--pred_len', type=int, required=True,
                         help='output prediction length')
     parser.add_argument('--data_mode', type=int, default=0,
                         help='TensorModel: 0:(time, dim1, dim2); 1:(time, dim2, dim1); 2:(time, dim1 x dim2, 1)\nMultiVarModel: 0:(1, time, dim1*dim2, 1); 1:(dim1, time, dim2, 1); 2:(dim2, time, dim1, 1)')
-    parser.add_argument('--batch_size', type=int, default=8,
+    parser.add_argument('--batch_size', type=int, default=128,
                         help='batch size, default=8')
-    parser.add_argument('--dataset', type=str, required=True,
-                        help=f"key in DatasetMap: {DatasetMap.keys()}")
-    parser.add_argument('--task_name', type=str, required=True,
-                        help=f'task name chosen from {TASK_REGISTRY.keys()}. \nThe log file will be saved in output_dir/task_name/log/xxxx.yaml')
-    parser.add_argument('--output_dir', type=str, required=True,
-                        help='output path. The log file will be saved in output_dir/project_name/log/xxxx.yaml')
-    parser.add_argument('--graph_init', type=str, default='pearson', required=False,
-                        help='[optional] only for Graph_Init_Task, graph initialization method: [pearson, inverse_pearson, random]')
-    parser.add_argument('--only_test', type=str, default='False', required=False,
-                        help='[optional] test only')
-    # parse
+    
+    # ----- 3. (advanced) Optimizer and Scheduler ------
+    parser.add_argument('--lr_finder', type=str, default='False', required=False,
+                        help='Optimizer: learning rate finder')
+    parser.add_argument('--learning_rate', type=str, default='', required=False,
+                        help='Optimizer: learning rate, set \'\' to use default value')
+    parser.add_argument('--eps', type=str, default='', required=False,
+                        help='Optimizer: eps, set \'\' to use default value')
+    parser.add_argument('--weight_decay', type=str, default='', required=False,
+                        help='Optimizer: weight decay, set \'\' to use default value')
+    parser.add_argument('--scheduler', type=str, default='None', required=False,
+                        help="Scheduler: learning rate scheduler, chose one from ['None', 'MultiStepLR', 'MultiStepLR', 'ExponentialLR', 'ReduceLROnPlateau']")
+    # Parse Args:
     args = parser.parse_args()
     # check if the value is valid
     if args.task_name not in TASK_REGISTRY:
@@ -252,15 +293,39 @@ if __name__ == '__main__':
     task_param['project_name'] = args.task_name
     task_param['dataset_list'] = DatasetMap[args.dataset]
     task_param['output_dir'] = args.output_dir
-    # task_param['only_test'] = False if args.only_test == 'False' else True
+    task_param['lr'] = args.learning_rate
+    task_param['eps'] = args.eps
+    task_param['weight_decay'] = args.weight_decay
+    task_param['scheduler'] = args.scheduler
+
+    if args.debug == 'True':
+        task_param['debug'] = True
+    elif args.debug == 'False':
+        task_param['debug'] = False
+    else:
+        raise ValueError(f"debug should be 'True' or 'False'.")
+
     if args.only_test == 'True':
         task_param['only_test'] = True
     elif args.only_test == 'False':
         task_param['only_test'] = False
     else:
         raise ValueError(f"only_test should be 'True' or 'False'.")
+    
+    if args.lr_finder == 'True':
+        task_param['lr_finder'] = True
+    elif args.lr_finder == 'False':
+        task_param['lr_finder'] = False
+    else:
+        raise ValueError(f"lr_finder should be 'True' or 'False'.")
+    
     if args.task_name == 'Graph_Init_Task':
         task_param['graph_init'] = args.graph_init
+
+    task_param['lr'] = None if task_param['lr'] == '' else float(task_param['lr'])
+    task_param['eps'] = None if task_param['eps'] == '' else float(task_param['eps'])
+    task_param['weight_decay'] = None if task_param['weight_decay'] == '' else float(task_param['weight_decay'])
+
     # start to run
     # print(task_param)
     task_func(**task_param)

@@ -3,7 +3,7 @@ import yaml
 import pickle
 import numpy as np
 from models import ModelManager
-from datasets.dataset import TTS_Dataset
+from datasets.dataset import TTS_DatasetManager
 from datasets.dataloader import TTS_DataLoader
 from utils.graph.graphGenerator import GraphGeneratorManager
 
@@ -60,7 +60,7 @@ class ModelTester:
         batch_size = 8
 
         # dataset
-        dataset = TTS_Dataset(pkl_path, his_len, pred_len, 0.1, 0.1, 0)
+        dataset = TTS_DatasetManager(pkl_path, his_len, pred_len, 0.1, 0.1, 0)
         dataloader = TTS_DataLoader(dataset, 'train', batch_size=batch_size, drop_last=False)
 
         # model

@@ -81,13 +81,12 @@ class LTSF_share_MultiVarModel(MultiVarModelBase):
         self.unit=nn.Linear(self.input_len, self.pred_len)
         for i in range(self.channels):
             self.model.append(self.unit)
-        self.optim = torch.optim.Adam(
-            self.model.parameters(),
-            lr=self.lr,
-            eps=1.0e-8,
-            weight_decay=self.weight_decay,
-            amsgrad=False,
-        )
+        # update optimizer configs 
+        lr = self.lr if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
+        eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']
+        weight_decay = self.weight_decay if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
+        self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
+        # self.optim = torch.optim.Adam(self.model.parameters(), lr=self.lr, eps=1.0e-8, weight_decay=self.weight_decay, amsgrad=False)
 
     def set_device(self, device):
         self.model.to(device)
