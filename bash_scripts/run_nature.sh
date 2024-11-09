@@ -38,8 +38,14 @@ export CUDA_VISIBLE_DEVICES=0
 # --------------- Select Data & Model ----------------
 # start training with the following configurations
 # "Nature": ['COVID_DEATHS', 'COVID_CHI', 'COVID_US'],
-# Data shape: (1, 212, 266)
-model='TimesNet'
+# get the model name from the command line
+if [ -z "$1" ]; then
+    echo "No model specified. Usage: $0 <model>"
+    exit 1
+else
+    model=$1
+    echo "Using model: $model"
+fi
 # >>>> DS1
 dataset='COVID_DEATHS'
 python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \

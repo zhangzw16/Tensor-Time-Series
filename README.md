@@ -80,11 +80,11 @@ Based on `main_cli.py` and `run.sh`, we also provide some scripts for you in `ba
 
 ```shell
 # run a model across datasets in different domains
-bash bash_scripts/run_traffic.sh    # Traffic Datasets
-bash bash_scripts/run_finance.sh    # Finance Datasets
-bash bash_scripts/run_weather.sh    # Weather Datasets
-bash bash_scripts/run_nature.sh     # Nature Datasets
-bash bash_scripts/run_energy.sh     # Energy Datasets
+bash bash_scripts/run_traffic.sh $model   # Traffic Datasets
+bash bash_scripts/run_finance.sh $model   # Finance Datasets
+bash bash_scripts/run_weather.sh $model   # Weather Datasets
+bash bash_scripts/run_nature.sh $model    # Nature Datasets
+bash bash_scripts/run_energy.sh $model    # Energy Datasets
 ```
 
 > [!TIP]
