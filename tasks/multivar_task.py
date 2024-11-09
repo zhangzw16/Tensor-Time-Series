@@ -94,12 +94,12 @@ class MultivarTask(TaskBase):
         self.testset = MTS_Dataset_Torch(self.dataset, 'test', ts_idx=run_idx)
         self.trainloader = DataLoader(self.trainset, batch_size=self.batch_size, shuffle=True, drop_last=False)
         self.validloader = DataLoader(self.validset, batch_size=self.batch_size, shuffle=False, drop_last=False)
-        self.testloader = DataLoader(self.testset, batch_size=1, shuffle=False)
+        self.testloader = DataLoader(self.testset, batch_size=1, shuffle=False, drop_last=False)
         print(f"trainset: {len(self.trainset)}, validset: {len(self.validset)}, testset: {len(self.testset)}")
         print(f"Preparation for dataloader is done.")
 
         # LR Finder
-        if model_configs['lr_finder']:
+        if model_configs['lr_finder'] and model_configs['mode'] == 'train':
             print("LR Finder is enable")
             lr_finder_manager = LRFinder_Manager(self.model_name, model_configs, self.trainloader, self.validloader, self.run_dir, self.device)
             lr_finder_manager.search_lr()
@@ -144,6 +144,9 @@ class MultivarTask(TaskBase):
         self.model.train()
         loss_list = []
         for seq in self.trainloader:
+            # if self.trainloader.batch_size == 1:
+            #     seq = seq.unsqueeze(0)
+            # print(seq.shape)
             seq = seq.to(self.device)
             pred, truth = self.model.forward(seq)
             epoch_train_loss = self.model.get_loss(pred, truth)
@@ -159,6 +162,9 @@ class MultivarTask(TaskBase):
         truth_list = []
         with torch.no_grad():
             for seq in self.validloader:
+                # if self.validloader.batch_size == 1:
+                #     seq = seq.unsqueeze(0)
+                # print(seq.shape)
                 seq = seq.to(self.device)
                 pred, truth = self.model.forward(seq)
                 epoch_valid_loss = self.model.get_loss(pred, truth)
@@ -205,6 +211,7 @@ class MultivarTask(TaskBase):
                 for metric in valid_result:
                     epoch_info[f'valid/{metric}'] = valid_result[metric]
                 epoch_info['learning_rate'] = self.model.optim.param_groups[0]['lr']
+                print(epoch_info['learning_rate'])
                 self.logger.log(epoch_info)
                 early_stop_flag = self.early_stop(i, epoch_mean_valid_loss, epoch_info, save_dir=self.run_dir)
                 # early stop
@@ -231,7 +238,7 @@ class MultivarTask(TaskBase):
             idx_list = list(range(self.time_series_num))
 
         test_result = {}
-        
+        self.configs['mode'] = 'test' 
         for run_idx in idx_list:
             self.init_new_model_logger(run_idx)
             test_result[f'run_{run_idx}'] = {}
@@ -242,6 +249,7 @@ class MultivarTask(TaskBase):
                 continue
             print(f'Load model from {trained_model_path}')
             self.model.load_model(trained_model_path)
+            print(f'model loaded...')
             # eval mode
             self.model.eval()
             with torch.no_grad():
@@ -249,6 +257,9 @@ class MultivarTask(TaskBase):
                 truth_list = []
                 hist_list = []
                 for seq in self.testloader:
+                    # if self.testloader.batch_size == 1:
+                    #     seq = seq.unsqueeze(0)
+                    # print(seq.shape)
                     seq = seq.to(self.device)
                     hist = seq[:, :self.his_len, :, :].cpu().numpy()
                     pred, truth = self.model.forward(seq)

@@ -89,7 +89,7 @@ class TensorTask(TaskBase):
         print(f"Preparation for model ({self.model_type}, {self.model_name}) is done.")
 
         # LR Finder
-        if model_configs['lr_finder']:
+        if model_configs['lr_finder'] and model_configs['mode'] == 'train':
             print("LR Finder is enable")
             model_configs['normalizer'] = self.dataset.get_normalizer(norm=normalizer_name)
             graph_init = model_configs['graph_init']
@@ -161,6 +161,7 @@ class TensorTask(TaskBase):
             for metric in valid_result:
                 epoch_info[f'valid/{metric}'] = valid_result[metric]
             epoch_info['learning_rate'] = self.model.optim.param_groups[0]['lr']
+            print(epoch_info['learning_rate'])
             self.logger.log(epoch_info)
             early_stop_flag = self.early_stop(i, epoch_mean_valid_loss, epoch_info)
             # early stop
@@ -186,7 +187,9 @@ class TensorTask(TaskBase):
         loss_list = []
         
         for seq in self.trainloader:
-            # print(f"train: {seq.shape}");exit()
+            print(seq.shape)
+            # if self.trainloader.batch_size == 1:
+            #     seq = seq.unsqueeze(0)
             seq = seq.to(self.device)
             pred, truth = self.model.forward(seq)
             epoch_train_loss = self.model.get_loss(pred, truth)
@@ -202,6 +205,8 @@ class TensorTask(TaskBase):
         truth_list = []
         with torch.no_grad():
             for seq in self.validloader:
+                # if self.validloader.batch_size == 1:
+                #     seq = seq.unsqueeze(0)
                 seq = seq.to(self.device)
                 pred, truth = self.model.forward(seq)
                 epoch_valid_loss = self.model.get_loss(pred, truth)
@@ -219,6 +224,7 @@ class TensorTask(TaskBase):
         return mean_loss, result
 
     def test(self):
+        self.configs['mode'] = 'test'
         # load model
         if not os.path.exists(self.model_path):
             self.model_path = os.path.join(self.output_dir, 'model.pth')
@@ -226,6 +232,7 @@ class TensorTask(TaskBase):
                 raise FileExistsError(f"can not find .pth file... {self.model_path}")
         print(f'load model from {self.model_path}')
         self.model.load_model(self.model_path)
+        print(f'model loaded...')
         # eval mode
         self.model.eval()
         with torch.no_grad():
@@ -233,7 +240,8 @@ class TensorTask(TaskBase):
             truth_list = []
             hist_list = []
             for seq in self.testloader:
-                # print(f'seq: {seq.shape}')
+                # if self.testloader.batch_size == 1:
+                #     seq = seq.unsqueeze(0)
                 seq = seq.to(self.device)
                 hist = seq[:, :self.his_len, :, :].cpu().numpy()
                 pred, truth = self.model.forward(seq)

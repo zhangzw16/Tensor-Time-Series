@@ -9,11 +9,11 @@ from tasks.task_manager import TaskManager, TEMPLATE_PATH
 DATASET_BASE = '/home/zhuangjiaxin/workspace/TensorTSL/Tensor-Time-Series/datasets/data'
 # Dataset List
 DatasetMap = {
-    "Traffic": ['JONAS_NYC_bike', 'JONAS_NYC_taxi', 'Metr-LA','METRO_HZ', 'METRO_SH','PEMS03', 'PEMS07'],
-    "Natural": ['COVID_DEATHS'],
+    "Traffic": ['JONAS_NYC_bike', 'JONAS_NYC_taxi', 'Metr-LA','METRO_HZ', 'METRO_SH','PEMS03', 'PEMS07', 'PEMS20'],
+    "Natural": ['COVID_DEATHS', 'COVID_CHI', 'COVID_US'],
     "Energy":  ['ETT_hour', 'electricity'],
     "Weather": ['weather', 'Jena_climate'],
-    "Finance": ['nasdaq100', 'electricity'],
+    "Finance": ['nasdaq100', 'stocknet','crypto12'],
 }
 # Model List
 MTS_ModelList = ['TimesNet', 'StemGNN', 'AutoFormer', 'CrossFormer', 'PatchTST']

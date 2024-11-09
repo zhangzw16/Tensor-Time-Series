@@ -31,6 +31,6 @@ class SchedulerManager:
     def ExponentialLR(self, optim, gamma:float=0.95):
         return lr_scheduler.ExponentialLR(optim, gamma=gamma)
     
-    def ReduceLROnPlateau(self, optim, mode:str='min', factor:float=0.9, patience:int=3, threshold:float=1e-5, verbose:bool=False):
+    def ReduceLROnPlateau(self, optim, mode:str='min', factor:float=0.95, patience:int=8, threshold:float=1e-7, verbose:bool=False):
         return lr_scheduler.ReduceLROnPlateau(optim, mode=mode, factor=factor, patience=patience, threshold=threshold, verbose=verbose)
     

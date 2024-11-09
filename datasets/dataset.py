@@ -39,8 +39,8 @@ class TTS_DatasetManager:
             raise ValueError(f"invalid ratio. train:{train_ratio}, valid:{valid_ratio}, test:{test_ratio}")
         data_index = list(range(int(self.time_range)-(his_len+pred_len)))
         # random.shuffle(data_index)
-        train_index_end = int(self.time_range*train_ratio)
-        valid_index_end = int(self.time_range*valid_ratio) + train_index_end
+        train_index_end = int(len(data_index)*train_ratio)
+        valid_index_end = int(len(data_index)*valid_ratio) + train_index_end
         self.trainset = data_index[:train_index_end]
         random.shuffle(self.trainset)
         self.validset = data_index[train_index_end:valid_index_end]
@@ -140,11 +140,12 @@ class MTS_DatasetManager:
         # split:
         # | <--- trian ---> | <- valid ->  | <- test -> |
         data_index = list(range(int(self.time_range)-(his_len+pred_len)))
-        train_index_end = int(self.time_range*train_ratio)
-        valid_index_end = int(self.time_range*valid_ratio) + train_index_end
+        train_index_end = int(len(data_index)*train_ratio)
+        valid_index_end = int(len(data_index)*valid_ratio) + train_index_end
         self.trainset = data_index[:train_index_end]
         self.validset = data_index[train_index_end:valid_index_end]
         self.testset  = data_index[valid_index_end:]
+        # print(len(self.trainset), len(self.validset), len(self.testset));exit()
         # random shuffle the dataset
         random.shuffle(self.trainset)
         random.shuffle(self.validset)

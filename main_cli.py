@@ -6,8 +6,8 @@ import os
 from models import ModelManager
 from tasks.task_manager import TaskManager, TEMPLATE_PATH
 
-# Set dataset_path !!!
-DATASET_BASE = '/home/zhuangjiaxin/workspace/TensorTSL/Tensor-Time-Series/datasets/data'
+# Set dataset_path or use cmd line args
+DATASET_BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datasets', 'data')
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Run in command line')
@@ -36,7 +36,9 @@ def parse_args():
     parser.add_argument('--pred_len', type=int, required=True,
                         help='int, pred_len, output prediction length')
     parser.add_argument('--data_mode', type=int, default=0, required=True,
-                        help='int, data_mode, TensorModel: 0:(time, dim1, dim2); 1:(time, dim2, dim1); 2:(time, dim1 x dim2, 1)\nMultiVarModel: 0:(1, time, dim1*dim2, 1); 1:(dim1, time, dim2, 1); 2:(dim2, time, dim1, 1)')
+                        help='int, data_mode, \nTensorModel: 0:(time, dim1, dim2); 1:(time, dim2, dim1); 2:(time, dim1 x dim2, 1)\nMultiVarModel: 0:(1, time, dim1*dim2, 1); 1:(dim1, time, dim2, 1); 2:(dim2, time, dim1, 1)')
+    parser.add_argument('--dataset_base', type=str, default=DATASET_BASE, required=False,
+                        help='[optional] str, dataset base path, default=DATASET_BASE')
     # [optional]
     parser.add_argument('--batch_size', type=int, default=128, required=False,
                         help='[optional] int, batch size, default=128, for some dataset, the batch size should small.')
@@ -53,10 +55,10 @@ def parse_args():
                         help='[optional] int, random seed, default=2024')
     parser.add_argument('--epochs', type=int, default=2024, required=False,
                         help='[optional] int, default=2024')
-    parser.add_argument('--early_stop_max', type=int, default=16, required=False,
-                        help='[optional] int, early_stop_max, default=16')
-    parser.add_argument('--early_stop_start_epoch', type=int, default=16, required=False,
-                        help='[optional] int, early_stop_start_epoch, ignore early stop in first X epoches, default=16')
+    parser.add_argument('--early_stop_max', type=int, default=32, required=False,
+                        help='[optional] int, early_stop_max, default=32')
+    parser.add_argument('--early_stop_start_epoch', type=int, default=0, required=False,
+                        help='[optional] int, early_stop_start_epoch, ignore early stop in first X epoches, default=0')
     parser.add_argument('--lr_finder', default=False, action='store_true', required=False,
                         help='[optional] bool, enable lr_finder, if lr_finder is enabled, the lr will be set automatically.')
     parser.add_argument('--lr', type=str, default='', required=False,
