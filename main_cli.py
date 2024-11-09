@@ -7,7 +7,8 @@ from models import ModelManager
 from tasks.task_manager import TaskManager, TEMPLATE_PATH
 
 # Set dataset_path or use cmd line args
-DATASET_BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datasets', 'data')
+# DATASET_BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datasets', 'data')
+DATASET_BASE = ''
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Run in command line')
@@ -37,7 +38,7 @@ def parse_args():
                         help='int, pred_len, output prediction length')
     parser.add_argument('--data_mode', type=int, default=0, required=True,
                         help='int, data_mode, \nTensorModel: 0:(time, dim1, dim2); 1:(time, dim2, dim1); 2:(time, dim1 x dim2, 1)\nMultiVarModel: 0:(1, time, dim1*dim2, 1); 1:(dim1, time, dim2, 1); 2:(dim2, time, dim1, 1)')
-    parser.add_argument('--dataset_base', type=str, default=DATASET_BASE, required=False,
+    parser.add_argument('--dataset_base', type=str, default='', required=False,
                         help='[optional] str, dataset base path, default=DATASET_BASE')
     # [optional]
     parser.add_argument('--batch_size', type=int, default=128, required=False,
@@ -108,6 +109,8 @@ if __name__=='__main__':
     basic_config['data_mode'] = args.data_mode
     basic_config['batch_size'] = args.batch_size
     basic_config['normalizer'] = args.normalizer
+    basic_config['dataset_base'] = args.dataset_base
+    DATASET_BASE = args.dataset_base
     
     # ---- 3. Training Configuration -----
     basic_config['model_name'] = args.model
@@ -129,7 +132,7 @@ if __name__=='__main__':
     log_dir = os.path.join(basic_config['output_dir'], 'log')
     EnsureDir(log_dir)
 
-    task_manager = TaskManager('checkpoints', basic_config['output_dir'], dataset_path=DATASET_BASE)
+    task_manager = TaskManager('checkpoints', basic_config['output_dir'], dataset_path=basic_config['dataset_base'])
     only_test = True if basic_config['mode']=='test' else False
     res = task_manager.TaskRun(basic_config['dataset_name'], basic_config['model_name'], basic_config, only_test=only_test)
 
