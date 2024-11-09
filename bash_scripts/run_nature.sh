@@ -46,7 +46,7 @@ while [[ "$#" -gt 0 ]]; do
         --pred_len) pred_len="$2"; shift ;;
         --output_dir) output_dir="$2"; shift ;;
         --task_name) task_name="$2"; shift ;;
-        --data_base) data_base="$2"; shift ;;
+        --dataset_base) dataset_base="$2"; shift ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
@@ -62,7 +62,7 @@ dataset='COVID_DEATHS'
 python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
                     --normalizer $normalizer --graph_init $graph_init \
-                    --data_base $data_base \
+                    --dataset_base $dataset_base \
                     --scheduler $scheduler \
                     --lr_finder \
                     --logger $logger \
@@ -72,7 +72,7 @@ dataset='COVID_CHI'
 python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
                     --normalizer $normalizer --graph_init $graph_init \
-                    --data_base $data_base \
+                    --dataset_base $dataset_base \
                     --scheduler $scheduler \
                     --lr_finder \
                     --logger $logger \
@@ -82,7 +82,7 @@ dataset='COVID_US'
 python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
                     --normalizer $normalizer --graph_init $graph_init \
-                    --data_base $data_base \
+                    --dataset_base $dataset_base \
                     --scheduler $scheduler \
                     --lr_finder \
                     --logger $logger \

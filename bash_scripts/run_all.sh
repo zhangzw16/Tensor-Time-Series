@@ -1,12 +1,10 @@
-
-
 # !!!!!!!!!!!!! 需要设置下面三个参数 !!!!!!!!!!!!!!!!
 # 最终模型的保存路径：
 #  - 模型：{output_dir}/{task_name}/{checkpoints}/...
 #  - 结果：{output_dir}/{task_name}/{log}/*.yaml
-data_base='./数据集路径'
-output_dir='./保存路径'
-task_name='main'
+dataset_base='./datasets/data'
+output_dir='./output'
+task_name='Main'
 
 # His & Pred 搜索范围
 HisLenList=(12 48 96 256)
@@ -23,19 +21,19 @@ for his_len in ${HisLenList[@]}; do
         # Tensor Model
         for model in ${TensorModelList[@]}; do
             # echo "$model, $his_len, $pred_len"
-            bash bash_scripts/run_traffic.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --data_base $data_base
-            bash bash_scripts/run_weather.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --data_base $data_base
-            bash bash_scripts/run_finance.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --data_base $data_base
-            bash bash_scripts/run_energy.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --data_base $data_base
+            bash bash_scripts/run_traffic.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --dataset_base $dataset_base
+            bash bash_scripts/run_weather.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --dataset_base $dataset_base
+            bash bash_scripts/run_finance.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --dataset_base $dataset_base
+            bash bash_scripts/run_energy.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --dataset_base $dataset_base
         done
         # -------------------------------------------
         # Multivar Model
         for model in ${MultivarModelList[@]}; do
             # echo "$model, $his_len, $pred_len"
-            bash bash_scripts/run_traffic.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --data_base $data_base
-            bash bash_scripts/run_weather.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --data_base $data_base
-            bash bash_scripts/run_finance.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --data_base $data_base
-            bash bash_scripts/run_energy.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --data_base $data_base
+            bash bash_scripts/run_traffic.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --dataset_base $dataset_base
+            bash bash_scripts/run_weather.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --dataset_base $dataset_base
+            bash bash_scripts/run_finance.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --dataset_base $dataset_base
+            bash bash_scripts/run_energy.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --dataset_base $dataset_base
         done
         # -------------------------------------------
     done
@@ -50,13 +48,13 @@ for his_len in ${NatureHisLenList[@]}; do
         # Tensor Model
         for model in ${TensorModelList[@]}; do
             # echo "$model, $his_len, $pred_len"
-            bash bash_scripts/run_nature.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --data_base $data_base
+            bash bash_scripts/run_nature.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --dataset_base $dataset_base
         done
         # -------------------------------------------
         # Multivar Model
         for model in ${MultivarModelList[@]}; do
             # echo "$model, $his_len, $pred_len"
-            bash bash_scripts/run_nature.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --data_base $data_base
+            bash bash_scripts/run_nature.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --dataset_base $dataset_base
         done
         # -------------------------------------------
     done
