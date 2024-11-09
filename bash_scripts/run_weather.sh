@@ -67,6 +67,7 @@ python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test
                     --lr_finder \
                     --logger $logger \
                     --dataset $dataset --model $model \
+                    --debug
 # >>>> DS1
 dataset='Jena_climate'
 python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \

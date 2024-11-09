@@ -18,10 +18,10 @@ ModelType:
     - AutoFormer
     - CrossFormer
     - PatchTST
-    - DLTSF
+    - DLinear
     - LTSF
     - LTSF_share
-    - NLTSF
+    - NLinear
     
   Stat:
     - HM

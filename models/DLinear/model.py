@@ -91,7 +91,7 @@ class Model(nn.Module):
         return x.permute(0,2,1) # to [Batch, Output length, Channel]
 
 
-class DLTSF_MultiVarModel(MultiVarModelBase):
+class DLinear_MultiVarModel(MultiVarModelBase):
     def __init__(self, configs: dict = ...) -> None:
         super().__init__(configs)
         self.configs = configs

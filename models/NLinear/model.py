@@ -40,7 +40,7 @@ class Model(nn.Module):
         x = x + seq_last
         return x # [Batch, Output length, Channel]
 
-class NLTSF_MultiVarModel(MultiVarModelBase):
+class NLinear_MultiVarModel(MultiVarModelBase):
     def __init__(self, configs: dict = ...) -> None:
         super().__init__(configs)
         self.configs = configs
