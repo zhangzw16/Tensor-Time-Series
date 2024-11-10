@@ -47,7 +47,7 @@ class LRFinder_Manager:
         # model to device
         self.model.set_device(self.device)
         with tqdm(total=num_iter, desc="Searching optimal learning rate") as pbar:
-            # for _ in range(num_iter):
+            while n_iter < num_iter:
                 for seq in self.trainloader:
                     n_iter += 1
                     current_lr = self._get_current_lr()
@@ -89,6 +89,9 @@ class LRFinder_Manager:
                     pbar.update(1)
                     if n_iter >= num_iter:
                         break
+                if n_iter >= num_iter:
+                        break
+                
     def save_plot(self):
         plt.figure()
         loss = np.log10(self.history["loss"])
