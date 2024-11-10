@@ -40,8 +40,8 @@ def parse_args():
     parser.add_argument('--dataset_base', type=str, default=DATASET_BASE, required=False,
                         help='[optional] str, dataset base path, default=DATASET_BASE')
     # [optional]
-    parser.add_argument('--batch_size', type=int, default=128, required=False,
-                        help='[optional] int, batch size, default=128, for some dataset, the batch size should small.')
+    parser.add_argument('--batch_size', type=int, default=256, required=False,
+                        help='[optional] int, batch size, default=256, for some dataset, the batch size should small.')
     parser.add_argument('--normalizer', type=str, default='std', required=False,
                         help='[optional] str, normalizer, chose one from [\'none\', \'std\'], default=\'std\'')
     
@@ -57,8 +57,8 @@ def parse_args():
                         help='[optional] int, random seed, default=2024')
     parser.add_argument('--epochs', type=int, default=2024, required=False,
                         help='[optional] int, default=2024')
-    parser.add_argument('--early_stop_max', type=int, default=32, required=False,
-                        help='[optional] int, early_stop_max, default=32')
+    parser.add_argument('--early_stop_max', type=int, default=10, required=False,
+                        help='[optional] int, early_stop_max, default=10')
     parser.add_argument('--early_stop_start_epoch', type=int, default=0, required=False,
                         help='[optional] int, early_stop_start_epoch, ignore early stop in first X epoches, default=0')
     parser.add_argument('--lr_finder', default=False, action='store_true', required=False,
