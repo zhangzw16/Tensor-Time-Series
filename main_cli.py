@@ -49,6 +49,8 @@ def parse_args():
     parser.add_argument('--model', type=str, required=True,
                         help='model name')
     # [optional]
+    parser.add_argument('--model_path', type=str, default='', required=False,
+                        help='[optional] str, model path, for test mode only, load the model from model_path. If mode is train, model_path will be ignored.')
     parser.add_argument('--graph_init', type=str, default='pearson', required=False,
                         help='[optional] str, graph_init, chose one from [\'pearson\', \'inverse_pearson\', \'random\', \'cosine\, \'unit\', default=\'pearson\'')
     parser.add_argument('--seed', type=int, default=2024, required=False,
@@ -113,6 +115,7 @@ if __name__=='__main__':
     
     # ---- 3. Training Configuration -----
     basic_config['model_name'] = args.model
+    basic_config['model_path'] = args.model_path
     basic_config['graph_init'] = args.graph_init
     basic_config['seed'] = args.seed
     basic_config['max_epoch'] = args.epochs
@@ -123,6 +126,18 @@ if __name__=='__main__':
     basic_config['eps'] = args.eps
     basic_config['weight_decay'] = args.weight_decay
     basic_config['scheduler'] = args.scheduler
+
+    # double check configs
+    if basic_config['mode'] == 'train':
+        basic_config['model_path'] = ''
+    elif basic_config['mode'] == 'test':
+        if basic_config['model_path'] == '':
+            raise ValueError("In test mode, model_path should not be empty.")
+
+    # [debug] echo configs 
+    # for k, v in basic_config.items():
+    #     print(f"{k}: {v}")
+    # exit()
 
     # timestamp
     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
@@ -141,6 +156,7 @@ if __name__=='__main__':
         'data_mode': basic_config['data_mode'],
         'graph_init': basic_config['graph_init'],
         'seed': basic_config['seed'],
+        'batch_szie': basic_config['batch_size'],
         'his_len': basic_config['his_len'],
         'pred_len': basic_config['pred_len'],
         'timestamp': timestamp,

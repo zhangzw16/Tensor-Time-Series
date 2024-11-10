@@ -15,7 +15,7 @@ project_name: 'auto_run'
 # Model
 model_type: 'Tensor'  # ['Tensor', 'Stat']
 model_name: 'NET3_MLP'
-model_path: '' # the model parameters loaded in test phase. Setting '' will turn to '{output_dir}/model.pth'
+model_path: '' # for test only, load model paramters from this path
 
 # Dataset & Dataloader
 dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/METRO_SH/METRO_SH.pkl'
