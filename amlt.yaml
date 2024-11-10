@@ -1,39 +1,45 @@
-description: pretrain_t_ts
+description: tensor_ts
 
 target:
   service: sing
-  name: msrresrchvc
-  workspace_name: epeastus
+  name: msroctovc
 
+# name: msrresrchvc, msroctovc
+# amlt-sing/acpt-2.0.1-py3.10-cuda11.8
+# amlt-sing/acpt-2.2.1-py3.10-cuda12.1
 environment:
-  image: amlt-sing/acpt-2.2.1-py3.10-cuda12.1
+  image: amlt-sing/acpt-2.3.1-py3.10-cuda12.1
   setup:
-    - pip install .
+    - pip install -e .
+
+code:
+  # local directory of the code. this will be uploaded to the server.
+  local_dir: $CONFIG_DIR
 
 storage:
-  shared_datastore:
+  shared_data:
     storage_account_name: epeastus
     container_name: cov19
     mount_dir: /data/Blob_EastUS
 
 code:
   local_dir: $CONFIG_DIR
-  ignore:
-  - outputs/*
-  - log/*
+  # ignore:
+  # - outputs/*
+  # - log/*
 
 search:
   job_template:
-    name: "{experiment_name:s}_{pred_len:s}_{dataset:s}_{model:s}__{random_string:s}"
-    sku: 80G1-A100
+    name: "{experiment_name:s}_{dataset:s}__{random_string:s}"
+    sku: 40G1-A100
+    identity: managed 
+    submit_args:
+      env:
+        _AZUREML_SINGULARITY_JOB_UAI: "/subscriptions/e033d461-1923-44a7-872b-78f1d35a86dd/resourcegroups/Shun/providers/Microsoft.ManagedIdentity/userAssignedIdentities/epeastus_mi" 
     command:
-    - python3 shell_run.py --his_len 96 --pred_len {pred_len} --batch_size 16 --model_type {model} --dataset_type {dataset} --output_dir /data/Blob_EastUS/v-zhenwzhang/log/tensor_log_96_{pred_len}_20240713 --data_mode 0
+    - bash bash_scripts/all/run_{dataset}.sh
   max_trials: 200
   type: grid
   params:
-    - name: pred_len
-      values: ['6']
     - name: dataset
-      values: ['Traffic', 'Energy', 'Weather', 'Finance']
-    - name: model
-      values: ['MultiVar', 'Tensor-prior', 'Tensor-learned', 'Tensor-none']
+      values: ['traffic', 'energy', 'weather', 'finance', 'nature']
