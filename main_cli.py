@@ -135,9 +135,9 @@ if __name__=='__main__':
             raise ValueError("In test mode, model_path should not be empty.")
 
     # [debug] echo configs 
-    # for k, v in basic_config.items():
-    #     print(f"{k}: {v}")
-    # exit()
+    for k, v in basic_config.items():
+        print(f"{k}: {v}")
+    exit()
 
     # timestamp
     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
