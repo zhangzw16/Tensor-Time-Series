@@ -15,9 +15,9 @@ class TaskBase:
         if not os.path.exists(path):
             os.makedirs(path,)
 
-    def early_stop(self, epoch, valid_loss, epoch_info:dict={}, save_dir:str='')->bool:
+    def early_stop(self, epoch, valid_loss, epoch_info:dict={}, save_dir:str='', thres=1e-3)->bool:
         # check loss and update
-        if valid_loss < self.best_valid_loss:
+        if valid_loss < self.best_valid_loss - thres:
             self.best_valid_loss = valid_loss
             self.early_stop_cnt = 0
             if self.model is not None:

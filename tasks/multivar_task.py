@@ -149,7 +149,10 @@ class MultivarTask(TaskBase):
             # print(seq.shape)
             seq = seq.to(self.device)
             pred, truth = self.model.forward(seq)
-            epoch_train_loss = self.model.get_loss(pred, truth)
+            normalized_pred = self.model.normalizer.transform(pred)
+            normalized_truth = self.model.normalizer.transform(truth)
+            epoch_train_loss = self.model.get_loss(normalized_pred, normalized_truth)
+            # epoch_train_loss = self.model.get_loss(pred, truth)
             self.model.backward(epoch_train_loss)
             loss_list.append(epoch_train_loss.item())
         mean_loss = sum(loss_list) / len(loss_list)
@@ -167,7 +170,10 @@ class MultivarTask(TaskBase):
                 # print(seq.shape)
                 seq = seq.to(self.device)
                 pred, truth = self.model.forward(seq)
-                epoch_valid_loss = self.model.get_loss(pred, truth)
+                normalized_pred = self.model.normalizer.transform(pred)
+                normalized_truth = self.model.normalizer.transform(truth)
+                epoch_valid_loss = self.model.get_loss(normalized_pred, normalized_truth)
+                # epoch_valid_loss = self.model.get_loss(pred, truth)
                 # update loss list
                 loss_list.append(epoch_valid_loss.item())
                 # pred & truth
