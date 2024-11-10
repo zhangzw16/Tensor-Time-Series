@@ -30,15 +30,15 @@ code:
 
 search:
   job_template:
-    name: "{experiment_name:s}_{dataset:s}__{random_string:s}"
+    name: "{experiment_name:s}_{dataset:s}_seed42__{random_string:s}"
     sku: 40G1-A100
     identity: managed 
     submit_args:
       env:
         _AZUREML_SINGULARITY_JOB_UAI: "/subscriptions/e033d461-1923-44a7-872b-78f1d35a86dd/resourcegroups/Shun/providers/Microsoft.ManagedIdentity/userAssignedIdentities/epeastus_mi" 
     command:
-    - bash bash_scripts/all/run_{dataset}.sh
-  max_trials: 8
+    - bash bash_scripts/all/run_{dataset}.sh 42
+  max_trials: 48
   type: grid
   params:
     - name: dataset
