@@ -136,10 +136,10 @@ if __name__=='__main__':
     if basic_config['model_name'] == 'GraphWaveNet':
         basic_config['batch_size'] = 8
 
-    print("=====================================")
-    print("Configs:")
-    for k, v in basic_config.items():
-        print(f"{k}: {v}")
+    # print("=====================================")
+    # print("Configs:")
+    # for k, v in basic_config.items():
+    #     print(f"{k}: {v}")
     # exit()
 
     # timestamp

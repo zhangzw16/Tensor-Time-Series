@@ -134,6 +134,7 @@ class TensorTask(TaskBase):
         print(f"Logger: {self.logger_name}, Project: {self.project_name}")
         print(f"Dataset: {self.pkl_path}")
         print(f"Data shape: {self.dataset.get_data_shape()}")
+        print(f"Batch_size: {self.batch_size}")
         print(f"his_len: {self.his_len}, pred_len: {self.pred_len}, normalizer: {normalizer_name}")
         print(f"max_epoch: {self.max_epoch}, early_stop: {self.early_stop_max}")
         print(f"The output path: {self.output_dir}")

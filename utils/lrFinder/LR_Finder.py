@@ -32,7 +32,7 @@ class LRFinder_Manager:
         for param_group, lr in zip(self.model.optim.param_groups, new_lrs):
             param_group['lr'] = lr
 
-    def search_lr(self, lr_start=1e-6, lr_end=1e-2, num_iter=128, smooth_f=0.05, diverge_th=5):
+    def search_lr(self, lr_start=1e-6, lr_end=1e-2, num_iter=256, smooth_f=0.05, diverge_th=5, diverge_paience_thres=3):
         self.lr_start = lr_start
         self.lr_end = lr_end
         # calculate the multiple of lr
@@ -43,6 +43,7 @@ class LRFinder_Manager:
         # initialization
         n_iter = 0
         smoothed_loss = 0.0
+        diverge_paience = 0
 
         # model to device
         self.model.set_device(self.device)
@@ -55,7 +56,9 @@ class LRFinder_Manager:
                     self.model.train()
                     seq = seq.to(self.device)
                     pred, truth = self.model.forward(seq)
-                    loss = self.model.get_loss(pred, truth)
+                    normalized_pred = self.model.normalizer.transform(pred)
+                    normalized_truth = self.model.normalizer.transform(truth)
+                    loss = self.model.get_loss(normalized_pred, normalized_truth)
                     self.model.backward(loss)
                         
                     # smooth the loss
@@ -75,10 +78,12 @@ class LRFinder_Manager:
                         self.best_loss = smoothed_loss
                     else:
                         if smoothed_loss > diverge_th * self.best_loss:
-                            print("Stopping early, the loss has diverged")
-                            return
+                            diverge_paience += 1
                         if smoothed_loss < self.best_loss:
                             self.best_loss = smoothed_loss
+                            diverge_paience = 0
+                    if diverge_paience > diverge_paience_thres:
+                        return
                     
                     # update learning rate
                     new_lr = [lr * self.mult for lr in current_lr]
@@ -106,7 +111,7 @@ class LRFinder_Manager:
 
         plt.xscale("log")
         plt.xlabel("Learning rate")
-        plt.ylabel("Loss(log10)")
+        plt.ylabel("Loss(log)")
         plt.savefig(os.path.join(self.output_dir, "lr_finder.png"))
         plt.close()
 
