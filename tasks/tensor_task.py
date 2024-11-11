@@ -146,7 +146,9 @@ class TensorTask(TaskBase):
     def train(self):
         self.best_epoch_info = {}
         for i in range(self.max_epoch):
-            epoch_info = {}
+            epoch_info = {
+                'epoch': i,
+            }
             epoch_mean_train_loss = self.epoch_train()
             epoch_mean_valid_loss, valid_result = self.epoch_valid()
             # scheduler
@@ -161,9 +163,11 @@ class TensorTask(TaskBase):
             epoch_info['valid/loss'] = epoch_mean_valid_loss
             for metric in valid_result:
                 epoch_info[f'valid/{metric}'] = valid_result[metric]
-            epoch_info['learning_rate'] = self.model.optim.param_groups[0]['lr']
-            print(epoch_info['learning_rate'])
+            epoch_info['train/learning_rate'] = self.model.optim.param_groups[0]['lr']
+            print(epoch_info['train/learning_rate'])
             self.logger.log(epoch_info)
+            # save checkpoint
+            self.save_checkpoint(i, save_dir=self.run_dir)
             early_stop_flag = self.early_stop(i, epoch_mean_valid_loss, epoch_info)
             # early stop
             if early_stop_flag:
