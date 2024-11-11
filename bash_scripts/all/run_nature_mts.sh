@@ -14,7 +14,7 @@ HisLenList=(12 48 96 256)
 PredLenList=(1 3 6 12 24 48)
 
 # 模型列表
-TensorModelList=("DCRNN" "NET3" "GraphWaveNet" "AGCRN" "MTGNN" "ST_Norm" "TTS_Norm" "GRML")
+TensorModelList=("DCRNN" "NET3" "AGCRN" "MTGNN" "ST_Norm" "TTS_Norm" "GRML" "GraphWaveNet")
 MultivarModelList=("TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "Mamba")
 
 # 因为 Nature 数据集的长度太小（大约在200个点左右），单独遍历
