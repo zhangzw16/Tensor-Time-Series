@@ -50,6 +50,7 @@ while [[ "$#" -gt 0 ]]; do
         --dataset_base) dataset_base="$2"; shift ;;
         --seed) seed="$2"; shift ;;
         --graph_init) graph_init="$2"; shift ;;
+        --logger) logger="$2"; shift ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
