@@ -167,7 +167,7 @@ class TensorTask(TaskBase):
             print(epoch_info['train/learning_rate'])
             self.logger.log(epoch_info)
             # save checkpoint
-            self.save_checkpoint(i, save_dir=self.run_dir)
+            self.save_checkpoint(i, save_dir=self.output_dir)
             early_stop_flag = self.early_stop(i, epoch_mean_valid_loss, epoch_info)
             # early stop
             if early_stop_flag:
@@ -210,6 +210,8 @@ class TensorTask(TaskBase):
         loss_list = []
         pred_list = []
         truth_list = []
+        norm_pred_list = []
+        norm_truth_list = []
         with torch.no_grad():
             for seq in self.validloader:
                 # if self.validloader.batch_size == 1:
@@ -225,13 +227,22 @@ class TensorTask(TaskBase):
                 truth = truth.cpu().numpy()
                 pred_list.append(pred)
                 truth_list.append(truth)
+                norm_pred_list.append(normalized_pred)
+                norm_truth_list.append(normalized_truth)
         mean_loss = sum(loss_list)/len(loss_list)
         # pred = np.array(pred_list).squeeze()
         # truth = np.array(truth_list).squeeze()
         pred = np.concatenate(pred_list, axis=0)
         truth = np.concatenate(truth_list, axis=0)
+        norm_pred = np.concatenate(norm_pred_list, axis=0)
+        norm_truth = np.concatenate(norm_truth_list, axis=0)
         result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
-        return mean_loss, result
+        norm_result = self.evaluator.eval(norm_pred, norm_truth, verbose=self.eval_verbose)
+        res = {
+            'res': result,
+            'norm_res': norm_result
+        }
+        return mean_loss, res
 
     def test(self):
         self.configs['mode'] = 'test'
@@ -249,6 +260,8 @@ class TensorTask(TaskBase):
             pred_list = []
             truth_list = []
             hist_list = []
+            norm_pred_list = []
+            norm_truth_list = []
             for seq in self.testloader:
                 # if self.testloader.batch_size == 1:
                 #     seq = seq.unsqueeze(0)
@@ -260,17 +273,28 @@ class TensorTask(TaskBase):
                 pred_list.append(pred)
                 truth_list.append(truth)
                 hist_list.append(hist)
+                normalized_pred = self.model.normalizer.transform(pred)
+                normalized_truth = self.model.normalizer.transform(truth)
+                norm_pred_list.append(normalized_pred)
+                norm_truth_list.append(normalized_truth)
                 # result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
                 # print(result)
         pred_list = np.array(pred_list).squeeze()
         truth_list = np.array(truth_list).squeeze()
         hist_list = np.array(hist_list).squeeze()
+        norm_pred_list = np.array(norm_pred_list).squeeze()
+        norm_truth_list = np.array(norm_truth_list).squeeze()
         result = self.evaluator.eval(pred_list, truth_list, verbose=self.eval_verbose)
         # add scaled result evaluation
         scaled_result = self.evaluator.scaled_eval(hist_list, pred_list, truth_list, verbose=self.eval_verbose)
         result.update(scaled_result)
-        print(result)
-        return result
+        norm_result = self.evaluator.eval(norm_pred_list, norm_truth_list, verbose=self.eval_verbose)
+        res = {
+            'res': result,
+            'norm_res': norm_result
+        }
+        print(res)
+        return res
     # test different input/output for model
     # def test_model_io_shape(self):
     #     self.model.train()

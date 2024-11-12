@@ -164,6 +164,8 @@ class MultivarTask(TaskBase):
         loss_list = []
         pred_list = []
         truth_list = []
+        norm_pred_list = []
+        norm_truth_list = []
         with torch.no_grad():
             for seq in self.validloader:
                 # if self.validloader.batch_size == 1:
@@ -181,16 +183,24 @@ class MultivarTask(TaskBase):
                 pred = pred.cpu().detach().numpy()
                 truth = truth.cpu().detach().numpy()
                 # update pred & truth list
-                # print(f'pred: {pred.shape}, truth: {truth.shape}')
                 pred_list.append(pred)
                 truth_list.append(truth)
+                norm_pred_list.append(normalized_pred)
+                norm_truth_list.append(normalized_truth)
         mean_loss = sum(loss_list) / len(loss_list)
         # pred = np.array(pred_list).squeeze()
         # truth = np.array(truth_list).squeeze()
         pred = np.concatenate(pred_list, axis=0)
         truth = np.concatenate(truth_list, axis=0)
+        norm_pred = np.concatenate(norm_pred_list, axis=0)
+        norm_truth = np.concatenate(norm_truth_list, axis=0)
         result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
-        return mean_loss, result
+        norm_result = self.evaluator.scaled_eval(norm_pred, norm_truth, verbose=self.eval_verbose)
+        res = {
+            'res': result,
+            'norm_res': norm_result
+        }
+        return mean_loss, res
 
     def train(self, idx_list:list=[]):
         if idx_list == []:
@@ -267,6 +277,8 @@ class MultivarTask(TaskBase):
                 pred_list = []
                 truth_list = []
                 hist_list = []
+                norm_pred_list = []
+                norm_truth_list = []
                 for seq in self.testloader:
                     # if self.testloader.batch_size == 1:
                     #     seq = seq.unsqueeze(0)
@@ -276,17 +288,28 @@ class MultivarTask(TaskBase):
                     pred, truth = self.model.forward(seq)
                     pred = pred.cpu().numpy()
                     truth = truth.cpu().numpy()
+                    normalized_pred = self.model.normalizer.transform(pred)
+                    normalized_truth = self.model.normalizer.transform(truth)
                     pred_list.append(pred)
                     truth_list.append(truth)
                     hist_list.append(hist)
+                    norm_pred_list.append(normalized_pred)
+                    norm_truth_list.append(normalized_truth)
             pred_list = np.array(pred_list).squeeze()
             truth_list = np.array(truth_list).squeeze()
             hist_list = np.array(hist_list).squeeze()
+            norm_pred_list = np.array(norm_pred_list).squeeze()
+            norm_truth_list = np.array(norm_truth_list).squeeze()
             result = self.evaluator.eval(pred_list, truth_list, verbose=self.eval_verbose)
             scaled_result = self.evaluator.scaled_eval(hist_list, pred_list, truth_list, verbose=self.eval_verbose)
             result.update(scaled_result)
-            print(f"Test result:\n{result}")
-            test_result[f'run_{run_idx}'] = result
+            norm_result = self.evaluator.scaled_eval(norm_pred_list, norm_truth_list, verbose=self.eval_verbose)
+            res = {
+                'res': result,
+                'norm_res': norm_result
+            }
+            print(f"Test result:\n{res}")
+            test_result[f'run_{run_idx}'] = res
         return test_result
     
     # test diffrent input/output for model
