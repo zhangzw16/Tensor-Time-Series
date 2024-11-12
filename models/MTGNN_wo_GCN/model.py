@@ -63,10 +63,10 @@ class MTGNN_TensorModel(TensorModelBase):
         #         print('Use Identity matrix as A')
         #         print('-'*20)
         #     elif self.varient == 2:
-        #         self.gcn_enable = False
-        #         print('-'*20)
-        #         print('Do not use GCN')
-        #         print('-'*20)       
+        self.gcn_enable = False
+        print('-'*20)
+        print('Do not use GCN')
+        print('-'*20)       
 
         self.model = gtnet(self.gcn_enable, self.buildA_enable, self.gcn_depth, self.tensor_shape[0],
                            self.device, predefined_A=self.predefined_A, dropout=self.dropout, subgraph_size=self.subgraph_size,

@@ -53,20 +53,13 @@ class MTGNN_TensorModel(TensorModelBase):
         self.prop_alpha = model_configs['prop_alpha']
         self.tanh_alpha = model_configs['tanh_alpha']
         self.layer_norm_affline = model_configs['layer_norm_affline']
-        self.varient = self.configs['varient']
-        # if self.varient != 0:
-        #     if self.varient == 1:
-        #         self.predefined_A = torch.eye(self.tensor_shape[1]).to(self.device)
-        #         self.predefined_A.requires_grad = False
-        #         self.buildA_enable = False
-        #         print('-'*20)
-        #         print('Use Identity matrix as A')
-        #         print('-'*20)
-        #     elif self.varient == 2:
-        #         self.gcn_enable = False
-        #         print('-'*20)
-        #         print('Do not use GCN')
-        #         print('-'*20)       
+        
+        self.predefined_A = torch.eye(self.tensor_shape[1]).to(self.device)
+        self.predefined_A.requires_grad = False
+        self.buildA_enable = False
+        print('-'*20)
+        print('Use Identity matrix as A')
+        print('-'*20)   
 
         self.model = gtnet(self.gcn_enable, self.buildA_enable, self.gcn_depth, self.tensor_shape[0],
                            self.device, predefined_A=self.predefined_A, dropout=self.dropout, subgraph_size=self.subgraph_size,

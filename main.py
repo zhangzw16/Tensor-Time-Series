@@ -19,8 +19,8 @@ def EnsureDir(output_dir:str):
 
 if __name__=='__main__':
     # set model and dataset
-    model_name = 'NET3'
-    dataset_name = 'ETT_hour'
+    model_name = 'GraphWaveNet_wo_GCN_TCN'
+    dataset_name = 'JONAS_NYC_bike'
     basic_config = get_config_template(model_name)
     # update basic_config
     DATASET_BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datasets', 'data')
@@ -29,7 +29,7 @@ if __name__=='__main__':
     output_dir = './output'
     basic_config['output_dir'] = os.path.join(output_dir, basic_config['project_name'])
     basic_config['mode'] = 'train'
-    basic_config['debug'] = False
+    basic_config['debug'] = True
     basic_config['logger'] = 'none'
     basic_config['task_device'] = 'cuda'
 
