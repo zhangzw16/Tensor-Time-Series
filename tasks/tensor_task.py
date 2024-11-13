@@ -244,6 +244,8 @@ class TensorTask(TaskBase):
         with torch.no_grad():
             pred_list = []
             truth_list = []
+            norm_pred_list = []
+            norm_truth_list = []
             hist_list = []
             for seq in self.testloader:
                 # if self.testloader.batch_size == 1:
@@ -251,21 +253,33 @@ class TensorTask(TaskBase):
                 seq = seq.to(self.device)
                 hist = seq[:, :self.his_len, :, :].cpu().numpy()
                 pred, truth = self.model.forward(seq)
+                norm_pred = self.model.normalizer.transform(pred)
+                norm_truth = self.model.normalizer.transform(truth)
                 pred = pred.cpu().numpy()
                 truth = truth.cpu().numpy()
+                norm_pred = norm_pred.cpu().numpy()
+                norm_truth = norm_truth.cpu().numpy()
                 pred_list.append(pred)
                 truth_list.append(truth)
+                norm_pred_list.append(norm_pred)
+                norm_truth_list.append(norm_truth)
                 hist_list.append(hist)
                 # result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
                 # print(result)
         pred_list = np.array(pred_list).squeeze()
         truth_list = np.array(truth_list).squeeze()
         hist_list = np.array(hist_list).squeeze()
+        norm_pred_list = np.array(norm_pred_list).squeeze()
+        norm_truth_list = np.array(norm_truth_list).squeeze()
         result = self.evaluator.eval(pred_list, truth_list, verbose=self.eval_verbose)
+        norm_result = self.evaluator.eval(norm_pred_list, norm_truth_list, verbose=self.eval_verbose)
         # add scaled result evaluation
         scaled_result = self.evaluator.scaled_eval(hist_list, pred_list, truth_list, verbose=self.eval_verbose)
         result.update(scaled_result)
-        print(result)
+        # print(result)
+        print(f"Test result:\n{result}")
+        test_result = {"res":result, "norm_res":norm_result}
+        print(f"Norm result:\n{norm_result}")  
         return result
     # test different input/output for model
     # def test_model_io_shape(self):

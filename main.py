@@ -4,6 +4,9 @@ import time
 
 from models import ModelManager
 from tasks.task_manager import TaskManager, TEMPLATE_PATH
+os.environ['CUDA_VISIBLE_DEVICES'] = '6'
+
+os.chdir(os.path.dirname(__file__))
 
 def get_config_template(model_name:str):
     model_manager = ModelManager()
@@ -19,8 +22,9 @@ def EnsureDir(output_dir:str):
 
 if __name__=='__main__':
     # set model and dataset
-    model_name = 'GraphWaveNet_wo_GCN_TCN'
-    dataset_name = 'JONAS_NYC_bike'
+    # model_name = 'GraphWaveNet_wo_GCN_TCN'
+    model_name = "PatchTST"
+    dataset_name = 'weather'
     basic_config = get_config_template(model_name)
     # update basic_config
     DATASET_BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datasets', 'data')
@@ -28,17 +32,17 @@ if __name__=='__main__':
     basic_config['project_name'] = 'main'
     output_dir = './output'
     basic_config['output_dir'] = os.path.join(output_dir, basic_config['project_name'])
-    basic_config['mode'] = 'train'
+    basic_config['mode'] = 'test'
     basic_config['debug'] = True
     basic_config['logger'] = 'none'
     basic_config['task_device'] = 'cuda'
 
     # ---- 2. Dataset Configuration -----
     basic_config['dataset_name'] = dataset_name
-    basic_config['his_len'] = 96
-    basic_config['pred_len'] = 12
+    basic_config['his_len'] = 512
+    basic_config['pred_len'] = 96
     basic_config['data_mode'] = 0
-    basic_config['batch_size'] = 8
+    basic_config['batch_size'] = 16
     basic_config['normalizer'] = 'std'
     
     # ---- 3. Training Configuration -----
@@ -53,6 +57,7 @@ if __name__=='__main__':
     basic_config['eps'] = '1e-8'
     basic_config['weight_decay'] = '1e-3'
     basic_config['scheduler'] = 'ReduceLROnPlateau'
+    basic_config['output_path'] = '/home/ysc/workspace/Tensor-Time-Series/output/main/checkpoints/weather-PatchTST-512-96-0-std-2024-11-13-15:44:06/run_0/model.pth'
 
     # timestamp
     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())

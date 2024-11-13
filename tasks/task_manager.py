@@ -3,6 +3,7 @@ import time
 import yaml
 from models import ModelManager
 from tasks.tensor_task import TensorTask
+
 from tasks.multivar_task import MultivarTask
 
 # Basic Configurations

@@ -262,6 +262,8 @@ class MultivarTask(TaskBase):
             with torch.no_grad():
                 pred_list = []
                 truth_list = []
+                norm_pred_list = []
+                norm_truth_list = []
                 hist_list = []
                 for seq in self.testloader:
                     # if self.testloader.batch_size == 1:
@@ -270,19 +272,29 @@ class MultivarTask(TaskBase):
                     seq = seq.to(self.device)
                     hist = seq[:, :self.his_len, :, :].cpu().numpy()
                     pred, truth = self.model.forward(seq)
+                    norm_pred = self.model.normalizer.transform(pred)
+                    norm_truth = self.model.normalizer.transform(truth)
                     pred = pred.cpu().numpy()
                     truth = truth.cpu().numpy()
                     pred_list.append(pred)
                     truth_list.append(truth)
+                    norm_pred_list.append(norm_pred)
+                    norm_truth_list.append(norm_truth)
                     hist_list.append(hist)
             pred_list = np.array(pred_list).squeeze()
             truth_list = np.array(truth_list).squeeze()
             hist_list = np.array(hist_list).squeeze()
+            norm_pred_list = np.array(norm_pred_list).squeeze()
+            norm_truth_list = np.array(norm_truth_list).squeeze()
             result = self.evaluator.eval(pred_list, truth_list, verbose=self.eval_verbose)
+            norm_result = self.evaluator.eval(norm_pred_list, norm_truth_list, verbose=self.eval_verbose)
             scaled_result = self.evaluator.scaled_eval(hist_list, pred_list, truth_list, verbose=self.eval_verbose)
             result.update(scaled_result)
             print(f"Test result:\n{result}")
-            test_result[f'run_{run_idx}'] = result
+            test_result[f'run_{run_idx}'] = {"res":result, "norm_res":norm_result}
+            print(f"Norm result:\n{norm_result}")   
+            
+        
         return test_result
     
     # test diffrent input/output for model

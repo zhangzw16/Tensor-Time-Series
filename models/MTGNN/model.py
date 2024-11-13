@@ -53,7 +53,7 @@ class MTGNN_TensorModel(TensorModelBase):
         self.prop_alpha = model_configs['prop_alpha']
         self.tanh_alpha = model_configs['tanh_alpha']
         self.layer_norm_affline = model_configs['layer_norm_affline']
-        self.varient = self.configs['varient']
+        # self.varient = self.configs['varient']
         # if self.varient != 0:
         #     if self.varient == 1:
         #         self.predefined_A = torch.eye(self.tensor_shape[1]).to(self.device)
