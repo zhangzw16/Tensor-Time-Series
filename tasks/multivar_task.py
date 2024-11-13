@@ -94,7 +94,7 @@ class MultivarTask(TaskBase):
         self.testset = MTS_Dataset_Torch(self.dataset, 'test', ts_idx=run_idx)
         self.trainloader = DataLoader(self.trainset, batch_size=self.batch_size, shuffle=True, drop_last=False)
         self.validloader = DataLoader(self.validset, batch_size=self.batch_size, shuffle=False, drop_last=False)
-        self.testloader = DataLoader(self.testset, batch_size=1, shuffle=False, drop_last=False)
+        self.testloader = DataLoader(self.testset, batch_size=self.batch_size, shuffle=False, drop_last=False)
         print(f"trainset: {len(self.trainset)}, validset: {len(self.validset)}, testset: {len(self.testset)}")
         print(f"Preparation for dataloader is done.")
 
@@ -254,6 +254,7 @@ class MultivarTask(TaskBase):
             run_name = os.path.basename(os.path.dirname(self.model_path))
             run_idx = int(run_name.split('_')[-1])
             idx_list = [run_idx]
+            
         # specify the idx_list
         if idx_list == []:
             idx_list = list(range(self.time_series_num))
@@ -263,8 +264,11 @@ class MultivarTask(TaskBase):
         for run_idx in idx_list:
             self.init_new_model_logger(run_idx)
             test_result[f'run_{run_idx}'] = {}
-            run_dir = os.path.join(self.output_dir, f'run_{run_idx}')
-            trained_model_path = os.path.join(run_dir, 'model.pth')
+            if self.model_path == '':
+                run_dir = os.path.join(self.output_dir, f'run_{run_idx}')
+                trained_model_path = os.path.join(run_dir, 'model.pth')
+            else:
+                trained_model_path = self.model_path
             if not os.path.exists(trained_model_path):
                 print(f"can not find .pth file: {trained_model_path}")
                 continue

@@ -248,7 +248,7 @@ class TensorTask(TaskBase):
         self.configs['mode'] = 'test'
         # load model
         if not os.path.exists(self.model_path):
-            self.model_path = os.path.join(self.output_dir, 'model.pth')
+            # self.model_path = os.path.join(self.output_dir, 'model.pth')
             if not os.path.exists(self.model_path):
                 raise FileExistsError(f"can not find .pth file... {self.model_path}")
         print(f'load model from {self.model_path}')
