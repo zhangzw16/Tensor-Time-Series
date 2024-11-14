@@ -146,7 +146,9 @@ class TensorTask(TaskBase):
     def train(self):
         self.best_epoch_info = {}
         for i in range(self.max_epoch):
-            epoch_info = {}
+            epoch_info = {
+                'epoch': i,
+            }
             epoch_mean_train_loss = self.epoch_train()
             epoch_mean_valid_loss, valid_result = self.epoch_valid()
             # scheduler
@@ -161,9 +163,11 @@ class TensorTask(TaskBase):
             epoch_info['valid/loss'] = epoch_mean_valid_loss
             for metric in valid_result:
                 epoch_info[f'valid/{metric}'] = valid_result[metric]
-            epoch_info['learning_rate'] = self.model.optim.param_groups[0]['lr']
-            print(epoch_info['learning_rate'])
+            epoch_info['train/learning_rate'] = self.model.optim.param_groups[0]['lr']
+            print(epoch_info['train/learning_rate'])
             self.logger.log(epoch_info)
+            # save checkpoint
+            self.save_checkpoint(i, save_dir=self.output_dir)
             early_stop_flag = self.early_stop(i, epoch_mean_valid_loss, epoch_info)
             # early stop
             if early_stop_flag:
@@ -206,6 +210,8 @@ class TensorTask(TaskBase):
         loss_list = []
         pred_list = []
         truth_list = []
+        norm_pred_list = []
+        norm_truth_list = []
         with torch.no_grad():
             for seq in self.validloader:
                 # if self.validloader.batch_size == 1:
@@ -221,19 +227,28 @@ class TensorTask(TaskBase):
                 truth = truth.cpu().numpy()
                 pred_list.append(pred)
                 truth_list.append(truth)
+                norm_pred_list.append(normalized_pred)
+                norm_truth_list.append(normalized_truth)
         mean_loss = sum(loss_list)/len(loss_list)
         # pred = np.array(pred_list).squeeze()
         # truth = np.array(truth_list).squeeze()
         pred = np.concatenate(pred_list, axis=0)
         truth = np.concatenate(truth_list, axis=0)
+        norm_pred = np.concatenate(norm_pred_list, axis=0)
+        norm_truth = np.concatenate(norm_truth_list, axis=0)
         result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
-        return mean_loss, result
+        norm_result = self.evaluator.eval(norm_pred, norm_truth, verbose=self.eval_verbose)
+        res = {
+            'res': result,
+            'norm_res': norm_result
+        }
+        return mean_loss, res
 
     def test(self):
         self.configs['mode'] = 'test'
         # load model
         if not os.path.exists(self.model_path):
-            self.model_path = os.path.join(self.output_dir, 'model.pth')
+            # self.model_path = os.path.join(self.output_dir, 'model.pth')
             if not os.path.exists(self.model_path):
                 raise FileExistsError(f"can not find .pth file... {self.model_path}")
         print(f'load model from {self.model_path}')
@@ -247,6 +262,8 @@ class TensorTask(TaskBase):
             norm_pred_list = []
             norm_truth_list = []
             hist_list = []
+            norm_pred_list = []
+            norm_truth_list = []
             for seq in self.testloader:
                 # if self.testloader.batch_size == 1:
                 #     seq = seq.unsqueeze(0)
@@ -264,6 +281,10 @@ class TensorTask(TaskBase):
                 norm_pred_list.append(norm_pred)
                 norm_truth_list.append(norm_truth)
                 hist_list.append(hist)
+                normalized_pred = self.model.normalizer.transform(pred)
+                normalized_truth = self.model.normalizer.transform(truth)
+                norm_pred_list.append(normalized_pred)
+                norm_truth_list.append(normalized_truth)
                 # result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
                 # print(result)
         pred_list = np.array(pred_list).squeeze()
@@ -276,11 +297,13 @@ class TensorTask(TaskBase):
         # add scaled result evaluation
         scaled_result = self.evaluator.scaled_eval(hist_list, pred_list, truth_list, verbose=self.eval_verbose)
         result.update(scaled_result)
-        # print(result)
-        print(f"Test result:\n{result}")
-        test_result = {"res":result, "norm_res":norm_result}
-        print(f"Norm result:\n{norm_result}")  
-        return result
+        norm_result = self.evaluator.eval(norm_pred_list, norm_truth_list, verbose=self.eval_verbose)
+        res = {
+            'res': result,
+            'norm_res': norm_result
+        }
+        print(res)
+        return res
     # test different input/output for model
     # def test_model_io_shape(self):
     #     self.model.train()

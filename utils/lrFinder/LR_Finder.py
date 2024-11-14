@@ -32,7 +32,7 @@ class LRFinder_Manager:
         for param_group, lr in zip(self.model.optim.param_groups, new_lrs):
             param_group['lr'] = lr
 
-    def search_lr(self, lr_start=1e-6, lr_end=1e-2, num_iter=256, smooth_f=0.05, diverge_th=5, diverge_paience_thres=3):
+    def search_lr(self, lr_start=1e-4, lr_end=1e-2, num_iter=64, smooth_f=0.05, diverge_th=5, diverge_paience_thres=3):
         self.lr_start = lr_start
         self.lr_end = lr_end
         # calculate the multiple of lr

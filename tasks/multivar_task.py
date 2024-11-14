@@ -94,7 +94,7 @@ class MultivarTask(TaskBase):
         self.testset = MTS_Dataset_Torch(self.dataset, 'test', ts_idx=run_idx)
         self.trainloader = DataLoader(self.trainset, batch_size=self.batch_size, shuffle=True, drop_last=False)
         self.validloader = DataLoader(self.validset, batch_size=self.batch_size, shuffle=False, drop_last=False)
-        self.testloader = DataLoader(self.testset, batch_size=1, shuffle=False, drop_last=False)
+        self.testloader = DataLoader(self.testset, batch_size=self.batch_size, shuffle=False, drop_last=False)
         print(f"trainset: {len(self.trainset)}, validset: {len(self.validset)}, testset: {len(self.testset)}")
         print(f"Preparation for dataloader is done.")
 
@@ -164,6 +164,8 @@ class MultivarTask(TaskBase):
         loss_list = []
         pred_list = []
         truth_list = []
+        norm_pred_list = []
+        norm_truth_list = []
         with torch.no_grad():
             for seq in self.validloader:
                 # if self.validloader.batch_size == 1:
@@ -181,16 +183,24 @@ class MultivarTask(TaskBase):
                 pred = pred.cpu().detach().numpy()
                 truth = truth.cpu().detach().numpy()
                 # update pred & truth list
-                # print(f'pred: {pred.shape}, truth: {truth.shape}')
                 pred_list.append(pred)
                 truth_list.append(truth)
+                norm_pred_list.append(normalized_pred)
+                norm_truth_list.append(normalized_truth)
         mean_loss = sum(loss_list) / len(loss_list)
         # pred = np.array(pred_list).squeeze()
         # truth = np.array(truth_list).squeeze()
         pred = np.concatenate(pred_list, axis=0)
         truth = np.concatenate(truth_list, axis=0)
+        norm_pred = np.concatenate(norm_pred_list, axis=0)
+        norm_truth = np.concatenate(norm_truth_list, axis=0)
         result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
-        return mean_loss, result
+        norm_result = self.evaluator.scaled_eval(norm_pred, norm_truth, verbose=self.eval_verbose)
+        res = {
+            'res': result,
+            'norm_res': norm_result
+        }
+        return mean_loss, res
 
     def train(self, idx_list:list=[]):
         if idx_list == []:
@@ -203,7 +213,9 @@ class MultivarTask(TaskBase):
             self.init_new_model_logger(run_idx)
             self.best_epoch_info = {}
             for i in range(self.max_epoch):
-                epoch_info = {}
+                epoch_info = {
+                    'epoch': i,
+                }
                 epoch_mean_train_loss = self.epoch_train(run_idx)
                 epoch_mean_valid_loss, valid_result = self.epoch_valid(run_idx)
                 # scheduler
@@ -217,9 +229,11 @@ class MultivarTask(TaskBase):
                 epoch_info['valid/loss'] = epoch_mean_valid_loss
                 for metric in valid_result:
                     epoch_info[f'valid/{metric}'] = valid_result[metric]
-                epoch_info['learning_rate'] = self.model.optim.param_groups[0]['lr']
-                print(epoch_info['learning_rate'])
+                epoch_info['train/learning_rate'] = self.model.optim.param_groups[0]['lr']
+                print(epoch_info['train/learning_rate'])
                 self.logger.log(epoch_info)
+                # save checkpoint
+                self.save_checkpoint(i, save_dir=self.run_dir)
                 early_stop_flag = self.early_stop(i, epoch_mean_valid_loss, epoch_info, save_dir=self.run_dir)
                 # early stop
                 if early_stop_flag:
@@ -240,6 +254,7 @@ class MultivarTask(TaskBase):
             run_name = os.path.basename(os.path.dirname(self.model_path))
             run_idx = int(run_name.split('_')[-1])
             idx_list = [run_idx]
+            
         # specify the idx_list
         if idx_list == []:
             idx_list = list(range(self.time_series_num))
@@ -249,8 +264,11 @@ class MultivarTask(TaskBase):
         for run_idx in idx_list:
             self.init_new_model_logger(run_idx)
             test_result[f'run_{run_idx}'] = {}
-            run_dir = os.path.join(self.output_dir, f'run_{run_idx}')
-            trained_model_path = os.path.join(run_dir, 'model.pth')
+            if self.model_path == '':
+                run_dir = os.path.join(self.output_dir, f'run_{run_idx}')
+                trained_model_path = os.path.join(run_dir, 'model.pth')
+            else:
+                trained_model_path = self.model_path
             if not os.path.exists(trained_model_path):
                 print(f"can not find .pth file: {trained_model_path}")
                 continue
@@ -265,6 +283,8 @@ class MultivarTask(TaskBase):
                 norm_pred_list = []
                 norm_truth_list = []
                 hist_list = []
+                norm_pred_list = []
+                norm_truth_list = []
                 for seq in self.testloader:
                     # if self.testloader.batch_size == 1:
                     #     seq = seq.unsqueeze(0)
@@ -276,11 +296,17 @@ class MultivarTask(TaskBase):
                     norm_truth = self.model.normalizer.transform(truth)
                     pred = pred.cpu().numpy()
                     truth = truth.cpu().numpy()
+                    norm_pred = norm_pred.cpu().numpy()
+                    norm_truth = norm_truth.cpu().numpy()
+                    normalized_pred = self.model.normalizer.transform(pred)
+                    normalized_truth = self.model.normalizer.transform(truth)
                     pred_list.append(pred)
                     truth_list.append(truth)
                     norm_pred_list.append(norm_pred)
                     norm_truth_list.append(norm_truth)
                     hist_list.append(hist)
+                    norm_pred_list.append(normalized_pred)
+                    norm_truth_list.append(normalized_truth)
             pred_list = np.array(pred_list).squeeze()
             truth_list = np.array(truth_list).squeeze()
             hist_list = np.array(hist_list).squeeze()
@@ -290,11 +316,13 @@ class MultivarTask(TaskBase):
             norm_result = self.evaluator.eval(norm_pred_list, norm_truth_list, verbose=self.eval_verbose)
             scaled_result = self.evaluator.scaled_eval(hist_list, pred_list, truth_list, verbose=self.eval_verbose)
             result.update(scaled_result)
-            print(f"Test result:\n{result}")
-            test_result[f'run_{run_idx}'] = {"res":result, "norm_res":norm_result}
-            print(f"Norm result:\n{norm_result}")   
-            
-        
+            norm_result = self.evaluator.scaled_eval(norm_pred_list, norm_truth_list, verbose=self.eval_verbose)
+            res = {
+                'res': result,
+                'norm_res': norm_result
+            }
+            print(f"Test result:\n{res}")
+            test_result[f'run_{run_idx}'] = res
         return test_result
     
     # test diffrent input/output for model

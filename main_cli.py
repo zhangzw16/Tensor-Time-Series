@@ -55,8 +55,8 @@ def parse_args():
                         help='[optional] str, graph_init, chose one from [\'pearson\', \'inverse_pearson\', \'random\', \'cosine\, \'unit\', default=\'pearson\'')
     parser.add_argument('--seed', type=int, default=2024, required=False,
                         help='[optional] int, random seed, default=2024')
-    parser.add_argument('--epochs', type=int, default=2024, required=False,
-                        help='[optional] int, default=2024')
+    parser.add_argument('--epochs', type=int, default=1024, required=False,
+                        help='[optional] int, default=1024')
     parser.add_argument('--early_stop_max', type=int, default=10, required=False,
                         help='[optional] int, early_stop_max, default=10')
     parser.add_argument('--early_stop_start_epoch', type=int, default=0, required=False,

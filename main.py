@@ -57,7 +57,7 @@ if __name__=='__main__':
     basic_config['eps'] = '1e-8'
     basic_config['weight_decay'] = '1e-3'
     basic_config['scheduler'] = 'ReduceLROnPlateau'
-    basic_config['output_path'] = '/home/ysc/workspace/Tensor-Time-Series/output/main/checkpoints/weather-PatchTST-512-96-0-std-2024-11-13-15:44:06/run_0/model.pth'
+    basic_config['model_path'] = '/home/ysc/workspace/Tensor-Time-Series/output/main/checkpoints/weather-PatchTST-512-96-0-std-2024-11-13-15:44:06/run_0/model.pth'
 
     # timestamp
     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
