@@ -38,7 +38,7 @@ class GraphWaveNet_TensorModel(TensorModelBase):
         self.addaptadj = model_configs['addaptadj']
         self.aptinit = model_configs['aptinit']
         # blocks: abs(his_len-pre_len)<=block * (2**layer-1)
-        delta = abs(self.his_len - self.pred_len)
+        delta = abs(self.his_len - self.pred_len) + 1
         exp_layer = 2**self.layers-1
         self.blocks = math.ceil(delta/exp_layer)
         # graph

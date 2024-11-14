@@ -15,6 +15,8 @@ from utils.logger.Logger import LoggerManager
 from utils.graph.graphGenerator import GraphGeneratorManager
 from utils.scheduler.schedulerManager import SchedulerManager
 from utils.lrFinder.LR_Finder import LRFinder_Manager
+from utils.autoBatch.autoBatch import AutoBatch
+from utils.timer.Timer import Timer
 
 class TensorTask(TaskBase):
     def __init__(self, configs:dict={}) -> None:
@@ -55,12 +57,15 @@ class TensorTask(TaskBase):
         else:
             graph_init = ''
         task_id = f"{self.dataset_name}-{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}{graph_init}-{normalizer_name}-{self.init_time_stamp}"
+        
         self.output_dir = os.path.join(self.output_dir, self.project_name, task_id)
-        # ensure output_dir
-        self.ensure_output_dir(self.output_dir)
-        with open(os.path.join(self.output_dir, 'configs.yml'), 'w') as file:
-            yaml.dump(configs, file)
-
+        if self.configs['mode'] == 'train':
+            # ensure output_dir
+            self.ensure_output_dir(self.output_dir)
+            with open(os.path.join(self.output_dir, 'configs.yml'), 'w') as file:
+                yaml.dump(configs, file)
+        # Init Timer
+        self.timer = Timer(self.model_name, self.dataset_name)
         # prepare for dataset
         self.dataset = TTS_DatasetManager(self.pkl_path, 
                                    his_len=self.his_len, pred_len=self.pred_len ,
@@ -71,11 +76,6 @@ class TensorTask(TaskBase):
         self.trainset = TTS_Dataset_Torch(self.dataset, 'train')
         self.validset = TTS_Dataset_Torch(self.dataset, 'valid')
         self.testset  = TTS_Dataset_Torch(self.dataset, 'test')
-        self.trainloader = DataLoader(self.trainset, batch_size=self.batch_size, shuffle=True, drop_last=False)
-        self.validloader = DataLoader(self.validset, batch_size=self.batch_size, shuffle=False, drop_last=False)
-        self.testloader  = DataLoader(self.testset,  batch_size=1, shuffle=False, drop_last=False)
-        print(f"trainset: {len(self.trainset)}, validset: {len(self.validset)}, testset: {len(self.testset)}")
-        print("Preparation for dataset is done.")
 
         # prepare for model
         print("Init model and logger...")
@@ -84,9 +84,27 @@ class TensorTask(TaskBase):
         graph_init = model_configs['graph_init']
         model_configs['graphGenerator'] = GraphGeneratorManager(graph_init, self.dataset)
         model_configs['tensor_shape'] = self.dataset.get_tensor_shape()
+        self.timer.mark_start_time('model_init')
         self.model = model_manager.get_model_class(self.model_name)(model_configs)
+        model_init_time = self.timer.mark_end_time('model_init')
+        self.timer.mark_start_time('model_set_device')
         self.model.set_device(self.device)
+        model_set_device_time = self.timer.mark_end_time('model_set_device')
         print(f"Preparation for model ({self.model_type}, {self.model_name}) is done.")
+        print(f"Duration >> Model Init: {model_init_time:.4f}s, Model Set Device: {model_set_device_time:.4f}s")
+        # AutoBatch
+        autoBatchManager = AutoBatch(self.model, self.trainset)
+        self.timer.mark_start_time('auto_batch')
+        best_batch_size = autoBatchManager.search_batch()
+        auto_batch_time = self.timer.mark_end_time('auto_batch')
+        print(f"Best BachSize: {best_batch_size} ({auto_batch_time:.4f}s)") 
+        self.batch_size = best_batch_size
+
+        self.trainloader = DataLoader(self.trainset, batch_size=self.batch_size, shuffle=True, drop_last=False)
+        self.validloader = DataLoader(self.validset, batch_size=self.batch_size, shuffle=False, drop_last=False)
+        self.testloader  = DataLoader(self.testset,  batch_size=self.batch_size, shuffle=False, drop_last=False)
+        print(f"trainset: {len(self.trainset)}, validset: {len(self.validset)}, testset: {len(self.testset)}")
+        print("Preparation for dataset is done.")
 
         # LR Finder
         if model_configs['lr_finder'] and model_configs['mode'] == 'train':
@@ -96,10 +114,12 @@ class TensorTask(TaskBase):
             model_configs['graphGenerator'] = GraphGeneratorManager(graph_init, self.dataset)
             model_configs['tensor_shape'] = self.dataset.get_tensor_shape()
             lr_finder_manager = LRFinder_Manager(self.model_name, model_configs, self.trainloader, self.validloader, self.output_dir, self.device)
+            self.timer.mark_start_time('lr_finder')
             lr_finder_manager.search_lr()
+            lr_finder_time = self.timer.mark_end_time('lr_finder')
             best_mean_lr = lr_finder_manager.get_best_mean_lr()
             lr_finder_manager.save_plot()
-            print(f"LR Finder is done. The best learning rate is: {best_mean_lr}")
+            print(f"LR Finder is done. The best learning rate is: {best_mean_lr} ({lr_finder_time:.4f}s)")
             print(f"plot is saved in {self.output_dir}/lr_finder.png")
             lr_finder_manager.set_optim_with_lr(self.model, best_mean_lr)
             self.configs['lr'] = best_mean_lr
@@ -190,7 +210,7 @@ class TensorTask(TaskBase):
     def epoch_train(self):
         self.model.train()
         loss_list = []
-        
+        self.timer.mark_start_time('one_epoch')
         for seq in self.trainloader:
             # print(seq.shape)
             # if self.trainloader.batch_size == 1:
@@ -202,6 +222,10 @@ class TensorTask(TaskBase):
             epoch_train_loss = self.model.get_loss(normalized_pred, normalized_truth)
             self.model.backward(epoch_train_loss)
             loss_list.append(epoch_train_loss.item())
+        one_epoch_time = self.timer.mark_end_time('one_epoch')
+        print(f"one epoch: {one_epoch_time:.4f}s")
+        self.timer.save_timer_log()
+        exit()
         mean_loss = sum(loss_list)/len(loss_list)
         return mean_loss
     
@@ -227,6 +251,8 @@ class TensorTask(TaskBase):
                 truth = truth.cpu().numpy()
                 pred_list.append(pred)
                 truth_list.append(truth)
+                normalized_pred = normalized_pred.cpu().detach().numpy()
+                normalized_truth = normalized_truth.cpu().detach().numpy()
                 norm_pred_list.append(normalized_pred)
                 norm_truth_list.append(normalized_truth)
         mean_loss = sum(loss_list)/len(loss_list)
@@ -248,7 +274,7 @@ class TensorTask(TaskBase):
         self.configs['mode'] = 'test'
         # load model
         if not os.path.exists(self.model_path):
-            # self.model_path = os.path.join(self.output_dir, 'model.pth')
+            self.model_path = os.path.join(self.output_dir, 'model.pth')
             if not os.path.exists(self.model_path):
                 raise FileExistsError(f"can not find .pth file... {self.model_path}")
         print(f'load model from {self.model_path}')
@@ -275,15 +301,17 @@ class TensorTask(TaskBase):
                 hist_list.append(hist)
                 normalized_pred = self.model.normalizer.transform(pred)
                 normalized_truth = self.model.normalizer.transform(truth)
+                normalized_pred = normalized_pred
+                normalized_truth = normalized_truth
                 norm_pred_list.append(normalized_pred)
                 norm_truth_list.append(normalized_truth)
                 # result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
                 # print(result)
-        pred_list = np.array(pred_list).squeeze()
-        truth_list = np.array(truth_list).squeeze()
-        hist_list = np.array(hist_list).squeeze()
-        norm_pred_list = np.array(norm_pred_list).squeeze()
-        norm_truth_list = np.array(norm_truth_list).squeeze()
+        pred_list = np.concatenate(pred_list, axis=0)
+        truth_list = np.concatenate(truth_list, axis=0)
+        hist_list = np.concatenate(hist_list, axis=0)
+        norm_pred_list = np.concatenate(norm_pred_list, axis=0)
+        norm_truth_list = np.concatenate(norm_truth_list, axis=0)
         result = self.evaluator.eval(pred_list, truth_list, verbose=self.eval_verbose)
         # add scaled result evaluation
         scaled_result = self.evaluator.scaled_eval(hist_list, pred_list, truth_list, verbose=self.eval_verbose)

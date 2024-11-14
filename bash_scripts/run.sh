@@ -15,15 +15,16 @@ fi
 
 # ---------------- Task Config ----------------------
 # 1. Basic configuration
-task_name="Main"
-output_dir='./output'
+task_name="2024-11-13"
+output_dir='./logs'
 train_test='train'
+model_path=""
 device='cuda'
-logger='none'
+logger='tensorboard'
 
 # 2. Dataset configuration
-batch_size=128
-his_len=96
+batch_size=256  # AutoBach is enabled in default, this parameter will be ignored
+his_len=12
 pred_len=12
 data_mode=0
 
@@ -33,12 +34,12 @@ graph_init='pearson'
 scheduler='ReduceLROnPlateau'
 # ----------------------------------------------------
 
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=2
 
 # --------------- Select Data & Model ----------------
 # >>> Run 1 >>>>>>>>>>>>>
-dataset='JONAS_NYC_bike'
-model='TimesNet'
+dataset='PEMSBAY'
+model='GraphWaveNet'
 python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
                     --normalizer $normalizer --graph_init $graph_init \
@@ -46,33 +47,5 @@ python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test
                     --lr_finder \
                     --logger $logger \
                     --dataset $dataset --model $model \
-# # >>> Run 2 >>>>>>>>>>>>>
-# dataset='weather'
-# model='TimesNet'
-# python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
-#                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
-#                     --normalizer $normalizer --graph_init $graph_init \
-#                     --scheduler $scheduler \
-#                     --lr_finder \
-#                     --logger $logger \
-#                     --dataset $dataset --model $model \
-# >>> Run 3 >>>>>>>>>>>>>
-# dataset='ETT_hour'
-# model='TimesNet'
-# python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
-#                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
-#                     --normalizer $normalizer --graph_init $graph_init \
-#                     --scheduler $scheduler \
-#                     --lr_finder \
-#                     --logger $logger \
-#                     --dataset $dataset --model $model \
-# # >>> Run 4 >>>>>>>>>>>>>
-# dataset='electricity'
-# model='TimesNet'
-# python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
-#                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
-#                     --normalizer $normalizer --graph_init $graph_init \
-#                     --scheduler $scheduler \
-#                     --lr_finder \
-#                     --logger $logger \
-#                     --dataset $dataset --model $model \
+                    --debug \
+                    # --model_path $model_path

@@ -142,6 +142,25 @@ if __name__=='__main__':
     #     print(f"{k}: {v}")
     # exit()
 
+    # if this task is finished
+    task_path = os.path.join(basic_config['output_dir'], 'checkpoints')
+    TTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['data_mode']}-{basic_config['his_len']}-{basic_config['pred_len']}-{basic_config['graph_init']}-{basic_config['normalizer']}"
+    MTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['his_len']}-{basic_config['pred_len']}-{basic_config['data_mode']}-{basic_config['normalizer']}"
+    TTS_dirs = []
+    MTS_dirs = []
+    for dir_name in os.listdir(task_path):
+        if TTS_prefix in dir_name:
+            TTS_dirs.append(os.path.join(task_path, dir_name))
+        elif MTS_prefix in dir_name:
+            MTS_dirs.append(os.path.join(task_path, dir_name))
+    for dir_name in TTS_dirs:
+        if os.path.exists(os.path.join(dir_name, "model.pth")):
+            print(f"This task is finished in {dir_name}, continue to next one...")
+            exit()
+    for dir_name in MTS_dirs:
+        if os.path.exists(os.path.join(dir_name, "run_0", "model.pth")):
+            print(f"This task is finished in {dir_name}, continue to next one...")
+            exit()
     # timestamp
     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
     basic_config['timestamp'] = timestamp

@@ -76,9 +76,18 @@ class Logger_tensorboard(LoggerBase):
     
     def log(self, info: dict):
         global_epoch = info['epoch']
+        # print(info)
+        # exit()
         if self.logger is not None:
             for i in info:
-                self.logger.add_scalar(i, info[i], global_epoch)
+                if i == 'valid/res':
+                    for metric in info[i]:
+                        self.logger.add_scalar(f'valid/{metric}', info[i][metric], global_epoch)
+                elif i == 'valid/norm_res':
+                    for metric in info[i]:
+                        self.logger.add_scalar(f'valid_norm/{metric}', info[i][metric], global_epoch)
+                else:
+                    self.logger.add_scalar(i, info[i], global_epoch)
     
     def close(self):
         if self.logger is not None:

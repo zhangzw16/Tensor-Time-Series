@@ -4,16 +4,18 @@
 #  - 结果：{output_dir}/{task_name}/{log}/*.yaml
 dataset_base='./datasets/data'
 output_dir='./logs'
-task_name='Main-Tensorboard'
+task_name='Main-Timer'
 seed=2024
 # 可选参数
 graph_init='pearson' # only meaningful for graph-based models, ['pearson', 'inverse_pearson', 'random', 'cosine', 'unit']
 data_mode=0 
-batch_size=256
-logger='tensorboard'        # ['none', 'wandb', 'tensorboard']
+batch_size=256       # AutoBatch is enabled in default.
+logger='none'        # ['none', 'wandb', 'tensorboard']
 # His & Pred 搜索范围
-HisLenList=(12 48 96 256)
-PredLenList=(1 3 6 12 24 48)
+# HisLenList=(12 48 96 256)
+# PredLenList=(1 3 6 12 24 48)
+HisLenList=(48)
+PredLenList=(12)
 
 # 模型列表
 TensorModelList=("NET3" "DCRNN" "AGCRN" "MTGNN" "ST_Norm" "TTS_Norm" "GRML" "GCGRU" "Mamba" "STC_GNN" "GraphWaveNet")
