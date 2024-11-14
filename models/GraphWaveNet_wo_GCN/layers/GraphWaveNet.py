@@ -186,20 +186,19 @@ class gwnet(nn.Module):
             skip = s + skip
 
 
-            if self.gcn_bool and self.supports is not None:
-                if self.addaptadj:
-                    x = self.gconv[i](x, new_supports)
-                else:
-                    x = self.gconv[i](x,self.supports)
-            else:
-                x = self.residual_convs[i](x)
+            # if self.gcn_bool and self.supports is not None:
+            #     if self.addaptadj:
+            #         x = self.gconv[i](x, new_supports)
+            #     else:
+            #         x = self.gconv[i](x,self.supports)
+            # else:
+            x = self.residual_convs[i](x)
 
             x = x + residual[:, :, :, -x.size(3):]
 
 
             x = self.bn[i](x)
-        # print(skip.shape)
-        # exit()
+
         x = F.relu(skip)
         x = F.relu(self.end_conv_1(x))
         

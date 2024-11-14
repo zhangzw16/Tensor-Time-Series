@@ -69,6 +69,7 @@ class gwnet(nn.Module):
         receptive_field = pred_len
 
         self.supports_len = 0
+        self.pred_len = pred_len
         if supports is not None:
             self.supports_len += len(supports)
 
@@ -136,78 +137,81 @@ class gwnet(nn.Module):
         self.receptive_field = receptive_field
 
 
-
     def forward(self, input):
-        in_len = input.size(3)
-        if in_len<self.receptive_field:
-            x = nn.functional.pad(input,(self.receptive_field-in_len,0,0,0))
-        else:
-            x = input
-        x = self.start_conv(x)
-        skip = 0
-
-        # calculate the current adaptive adj matrix once per iteration
-        new_supports = None
-        if self.gcn_bool and self.addaptadj and self.supports is not None:
-            adp = F.softmax(F.relu(torch.mm(self.nodevec1, self.nodevec2)), dim=1)
-            new_supports = self.supports + [adp]
-
-        # WaveNet layers
-        for i in range(self.blocks * self.layers):
-
-            #            |----------------------------------------|     *residual*
-            #            |                                        |
-            #            |    |-- conv -- tanh --|                |
-            # -> dilate -|----|                  * ----|-- 1x1 -- + -->	*input*
-            #                 |-- conv -- sigm --|     |
-            #                                         1x1
-            #                                          |
-            # ---------------------------------------> + ------------->	*skip*
-
-            #(dilation, init_dilation) = self.dilations[i]
-
-            #residual = dilation_func(x, dilation, init_dilation, i)
-            residual = x
-            # dilated convolution
-            filter = self.filter_convs[i](residual)
-            filter = torch.tanh(filter)
-            gate = self.gate_convs[i](residual)
-            gate = torch.sigmoid(gate)
-            x = filter * gate
-
-            # parametrized skip connection
-
-            s = x
-            s = self.skip_convs[i](s)
-            try:
-                skip = skip[:, :, :,  -s.size(3):]
-            except:
-                skip = 0
-            skip = s + skip
-
-
-            if self.gcn_bool and self.supports is not None:
-                if self.addaptadj:
-                    x = self.gconv[i](x, new_supports)
-                else:
-                    x = self.gconv[i](x,self.supports)
+            in_len = input.size(3)
+            if in_len<self.receptive_field:
+                x = nn.functional.pad(input,(self.receptive_field-in_len,0,0,0))
             else:
-                x = self.residual_convs[i](x)
+                x = input
+            x = self.start_conv(x)
+            skip = 0
 
-            x = x + residual[:, :, :, -x.size(3):]
+            # calculate the current adaptive adj matrix once per iteration
+            new_supports = None
+            if self.gcn_bool and self.addaptadj and self.supports is not None:
+                adp = F.softmax(F.relu(torch.mm(self.nodevec1, self.nodevec2)), dim=1)
+                new_supports = self.supports + [adp]
+
+            # WaveNet layers
+            for i in range(self.blocks * self.layers):
+
+                #            |----------------------------------------|     *residual*
+                #            |                                        |
+                #            |    |-- conv -- tanh --|                |
+                # -> dilate -|----|                  * ----|-- 1x1 -- + -->	*input*
+                #                 |-- conv -- sigm --|     |
+                #                                         1x1
+                #                                          |
+                # ---------------------------------------> + ------------->	*skip*
+
+                #(dilation, init_dilation) = self.dilations[i]
+
+                #residual = dilation_func(x, dilation, init_dilation, i)
+                residual = x
+
+                # dilated convolution
+                # filter = self.filter_convs[i](residual)
+                # filter = torch.tanh(filter)
+                # gate = self.gate_convs[i](residual)
+                # gate = torch.sigmoid(gate)
+                # x = filter * gate
+
+                # parametrized skip connection
+
+                s = x
+                s = self.skip_convs[i](s)
+                try:
+                    skip = skip[:, :, :,  -s.size(3):]
+                except:
+                    skip = torch.zeros_like(s)
+                    # skip = 0
+                skip = s + skip
 
 
-            x = self.bn[i](x)
-        # print(skip.shape)
-        # exit()
-        x = F.relu(skip)
-        x = F.relu(self.end_conv_1(x))
-        
-        x = self.end_conv_2(x)
-        
-        return x
+                # if self.gcn_bool and self.supports is not None:
+                #     if self.addaptadj:
+                #         x = self.gconv[i](x, new_supports)
+                #     else:
+                #         x = self.gconv[i](x,self.supports)
+                # else:
+                #     x = self.residual_convs[i](x)
+
+                # x = x + residual[:, :, :, -x.size(3):]
+
+                x = residual[:, :, :, -x.size(3):] #tcn off
 
 
+                x = self.bn[i](x)
+            # print(skip.size())
+            # exit()
 
-
+            x = F.relu(skip)
+            x = F.relu(self.end_conv_1(x))
+            
+            x = self.end_conv_2(x)
+            if x.size(3) != self.pred_len:
+                x[:,:,:,self.pred_len:] = 0
+                x = x[:, :, :, :self.pred_len]
+            
+            return x
 
