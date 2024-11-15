@@ -1,5 +1,5 @@
 import wandb
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 import yaml
 import os
 
@@ -29,8 +29,16 @@ class Logger_none(LoggerBase):
         print(f"name: {self.name}")
 
     def log(self, info: dict):
+        global_epoch = info['epoch']
         for i in info:
-            print(f'{i}: {info[i]:.5f}')
+                if i == 'valid/res':
+                    for metric in info[i]:
+                        print(f'valid/{metric}', info[i][metric], global_epoch)
+                elif i == 'valid/norm_res':
+                    for metric in info[i]:
+                        print(f'valid_norm/{metric}', info[i][metric], global_epoch)
+                else:
+                    print(i, info[i], global_epoch)
 
     def close(self):
         print('Logger_none: Goodbye...')

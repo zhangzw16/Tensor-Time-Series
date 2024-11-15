@@ -224,8 +224,8 @@ class TensorTask(TaskBase):
             loss_list.append(epoch_train_loss.item())
         one_epoch_time = self.timer.mark_end_time('one_epoch')
         print(f"one epoch: {one_epoch_time:.4f}s")
-        self.timer.save_timer_log()
-        exit()
+        # self.timer.save_timer_log()
+        # exit()
         mean_loss = sum(loss_list)/len(loss_list)
         return mean_loss
     

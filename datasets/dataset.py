@@ -3,7 +3,7 @@ import pickle as pkl
 import numpy as np
 import random
 
-from .normalizer import StandNormalizer, DoNothing
+from .normalizer import StandNormalizer, DoNothing, SKlearnNormalizer
 
 '''
 Name: Tensor-Time-Series Dataset Manager:
@@ -223,6 +223,13 @@ class MTS_DatasetManager:
             for i in range(self.time_series_num):
                 train_data_i = train_data[i]
                 scaler = StandNormalizer(mean=np.mean(train_data_i), std=np.std(train_data_i))
+                normalizer_list.append(scaler)
+            return normalizer_list
+        elif norm == 'sklearn':
+            normalizer_list = []
+            for i in range(self.time_series_num):
+                train_data_i = self.data[i]
+                scaler = SKlearnNormalizer(train_data_i)
                 normalizer_list.append(scaler)
             return normalizer_list
         else:
