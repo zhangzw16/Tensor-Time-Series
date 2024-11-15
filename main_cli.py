@@ -43,7 +43,7 @@ def parse_args():
     parser.add_argument('--batch_size', type=int, default=256, required=False,
                         help='[optional] int, batch size, default=256, for some dataset, the batch size should small.')
     parser.add_argument('--normalizer', type=str, default='std', required=False,
-                        help='[optional] str, normalizer, chose one from [\'none\', \'std\'], default=\'std\'')
+                        help='[optional] str, normalizer, chose one from [\'none\', \'std\', \'sklearn\'], default=\'std\'')
     
     # ---- 3. Training Configuration -----
     parser.add_argument('--model', type=str, required=True,

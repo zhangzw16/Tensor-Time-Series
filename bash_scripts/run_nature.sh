@@ -51,6 +51,7 @@ while [[ "$#" -gt 0 ]]; do
         --seed) seed="$2"; shift ;;
         --graph_init) graph_init="$2"; shift ;;
         --logger) logger="$2"; shift ;;
+        --normalizer) normalizer="$2"; shift ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
