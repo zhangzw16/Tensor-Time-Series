@@ -69,10 +69,10 @@ class GraphWaveNet_wo_GCN_TensorModel(TensorModelBase):
         in_data = value[:, :, :, :self.his_len]
         truth = value[:, :, :, self.his_len:self.his_len+self.pred_len]
         # normalization
-        in_data = self.normalizer.transform(in_data)
+        # in_data = self.normalizer.transform(in_data)
         pred = self.model(in_data)
         # inverse
-        pred = self.normalizer.inverse_transform(pred)
+        # pred = self.normalizer.inverse_transform(pred)
         
         return pred, truth
     

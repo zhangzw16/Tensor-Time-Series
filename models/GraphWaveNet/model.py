@@ -5,6 +5,7 @@ import torch.nn as nn
 import numpy as np
 import math
 from .layers.GraphWaveNet import gwnet
+from .layers.utils import masked_mae
 from models.model_base import MultiVarModelBase, TensorModelBase
 
 class GraphWaveNet_TensorModel(TensorModelBase):
@@ -41,6 +42,7 @@ class GraphWaveNet_TensorModel(TensorModelBase):
         delta = abs(self.his_len - self.pred_len) + 1
         exp_layer = 2**self.layers-1
         self.blocks = math.ceil(delta/exp_layer)
+        self.clip = 5
         # graph
         if self.aptinit:
             self.supports = None
@@ -59,7 +61,8 @@ class GraphWaveNet_TensorModel(TensorModelBase):
         weight_decay = 0.0001 if self.optimizer_configs['weight_decay'] == None else self.optimizer_configs['weight_decay']
         self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay)
         # self.optim = torch.optim.Adam(self.model.parameters(), lr=0.002, weight_decay=0.0001)
-        self.criterion = nn.MSELoss()
+        # self.criterion = nn.MSELoss()
+        self.criterion = masked_mae
     
     def forward(self, x, aux_info: dict = ...):
         # x [batch, time, dim1, dim2]
@@ -69,20 +72,21 @@ class GraphWaveNet_TensorModel(TensorModelBase):
         in_data = value[:, :, :, :self.his_len]
         truth = value[:, :, :, self.his_len:self.his_len+self.pred_len]
         # normalization
-        in_data = self.normalizer.transform(in_data)
+        # in_data = self.normalizer.transform(in_data)
         pred = self.model(in_data)
         # inverse
-        pred = self.normalizer.inverse_transform(pred)
+        # pred = self.normalizer.inverse_transform(pred)
         
         return pred, truth
     
     def backward(self, loss):
         self.optim.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.clip)
         self.optim.step()
     
     def get_loss(self, pred, truth):
-        loss = self.criterion(pred, truth)
+        loss = self.criterion(pred, truth, 0.0)
         return loss
     
     def set_device(self, device='cpu'):

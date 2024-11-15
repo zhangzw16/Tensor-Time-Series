@@ -3,7 +3,7 @@ import pickle as pkl
 import numpy as np
 import random
 
-from .normalizer import StandNormalizer, DoNothing
+from .normalizer import StandNormalizer, DoNothing, StandNormalizer_Tensor
 
 '''
 Name: Tensor-Time-Series Dataset Manager:
@@ -91,6 +91,8 @@ class TTS_DatasetManager:
             self.time_range = data_shape[0]
             self.dim1_range = data_shape[1]
             self.dim2_range = data_shape[2]
+        # print(f"Data shape: {data_shape}")
+        # exit()
 
     def get_tensor_shape(self):
         return (self.dim1_range, self.dim2_range)
@@ -105,7 +107,13 @@ class TTS_DatasetManager:
             train_range = int(self.time_range * self.train_ratio)
             train_data = self.data[:train_range]
             # normalization and inverse
-            scaler = StandNormalizer(mean=np.mean(train_data), std=np.std(train_data))
+            scaler = StandNormalizer(train_data)
+            return scaler
+        elif norm == 'std_tensor':
+            train_range = int(self.time_range * self.train_ratio)
+            train_data = self.data[:train_range]
+            # normalization and inverse
+            scaler = StandNormalizer_Tensor(train_data)
             return scaler
         else:
             raise ValueError(f'unknown normalizer: {norm}...')
@@ -165,6 +173,7 @@ class MTS_DatasetManager:
         # - 2: (time, dim2, 1) * dim1
         if data_mode == 0:
             self.data = self.data.reshape(1, self.data.shape[0], -1, 1)
+            self.data = np.expand_dims(self.data, axis=-1)
             data_shape = self.data.shape
             self.time_series_num = int(data_shape[0])
             self.time_range = int(data_shape[1])
@@ -183,6 +192,8 @@ class MTS_DatasetManager:
             self.time_series_num = int(data_shape[0])
             self.time_range = int(data_shape[1])
             self.dim_range = int(data_shape[2])
+        # print(f"Data shape: {data_shape}")
+        # exit()
 
     def get_dataset(self, name:str):
         return self.dataset_map[name]
@@ -222,7 +233,7 @@ class MTS_DatasetManager:
             train_data  = self.data[:, :train_range]
             for i in range(self.time_series_num):
                 train_data_i = train_data[i]
-                scaler = StandNormalizer(mean=np.mean(train_data_i), std=np.std(train_data_i))
+                scaler = StandNormalizer(train_data_i)
                 normalizer_list.append(scaler)
             return normalizer_list
         else:

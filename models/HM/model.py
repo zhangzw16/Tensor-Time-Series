@@ -37,7 +37,7 @@ class HM_StatModel(StatModelBase):
         self.input_tensor_shape = tensor_shape
         self.n_his = self.configs['his_len']
         self.n_pred = self.configs['pred_len']
-        self.normalzier = self.configs['normalizer']
+        self.normalizer = self.configs['normalizer']
         # model parameters configs
         model_configs_yaml = os.path.join( os.path.dirname(__file__), 'model.yml' )
         model_configs = yaml.safe_load(open(model_configs_yaml))
@@ -55,10 +55,10 @@ class HM_StatModel(StatModelBase):
         truth = value[:, self.n_his:self.n_his+self.n_pred]
 
         # normalization
-        in_data = self.normalzier.transform(in_data)
+        # in_data = self.normalizer.transform(in_data)
         pred = self.model(in_data)
         # inverse
-        pred = self.normalzier.inverse_transform(pred)
+        # pred = self.normalizer.inverse_transform(pred)
 
         return pred, truth
         

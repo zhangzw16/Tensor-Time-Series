@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 
 class DoNothing:
     def __init__(self) -> None:
@@ -10,14 +11,46 @@ class DoNothing:
         return data
 
 class StandNormalizer:
-    def __init__(self, mean, std) -> None:
-        self.mean = mean
-        self.std = std
+    def __init__(self, data) -> None:
+        self.scaler = StandardScaler()
+        raw_shape = data.shape
+        _data = data.copy()
+        _data = self.reshape(_data, (-1, raw_shape[-1]))
+        self.scaler.fit(_data)
+
+    def reshape(self, data, shape:tuple):
+        if isinstance(data, torch.Tensor):
+            data = data.view(shape)
+        elif isinstance(data, np.ndarray):
+            data = data.reshape(shape)
+        return data
 
     def transform(self, data):
-        data_norm = (data-self.mean) / (self.std)
+        raw_shape = data.shape
+        _data = self.reshape(data, (-1, raw_shape[-1]))
+        data_norm = self.scaler.transform(_data)
+        data_norm = self.reshape(data_norm, raw_shape)
+        if isinstance(data, torch.Tensor):
+            data_norm = torch.tensor(data_norm, dtype=data.dtype)
         return data_norm
     
-    def inverse_transform(self, data):
-        invser_data = data * self.std + self.mean
-        return invser_data
+    def inverse_transform(self, norm_data):
+        raw_shape = norm_data.shape
+        _norm_data = self.reshape(norm_data, (-1, raw_shape[-1]))
+        data = self.scaler.inverse_transform(_norm_data)
+        data = self.reshape(data, raw_shape)
+        if isinstance(norm_data, torch.Tensor):
+            data = torch.tensor(data, dtype=norm_data.dtype)
+        return data
+    
+class StandNormalizer_Tensor:
+    def __init__(self, data) -> None:
+        self.mean = np.mean(data)
+        self.std = np.std(data)
+
+    def transform(self, data):
+        return (data - self.mean) / self.std
+    
+    def inverse_transform(self, norm_data):
+        return norm_data * self.std + self.mean
+    

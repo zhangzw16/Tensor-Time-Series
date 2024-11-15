@@ -70,10 +70,10 @@ class AGCRN_TensorModel(TensorModelBase):
         truth = value[:, self.input_len:self.input_len+self.pred_len, :, :]
         # use label as input in the decoder for all steps (teaching_forcing is false)
         teacher_forcing_ratio = 0
-        in_data = self.normalizer.transform(in_data)
+        # in_data = self.normalizer.transform(in_data)
         pred = self.model(in_data, truth, teacher_forcing_ratio=teacher_forcing_ratio)
         # invserse
-        pred = self.normalizer.inverse_transform(pred)
+        # pred = self.normalizer.inverse_transform(pred)
         return pred, truth
     
     def backward(self, loss):

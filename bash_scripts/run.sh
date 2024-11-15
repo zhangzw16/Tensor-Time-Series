@@ -15,7 +15,7 @@ fi
 
 # ---------------- Task Config ----------------------
 # 1. Basic configuration
-task_name="2024-11-13"
+task_name="main_test_normalizer"
 output_dir='./logs'
 train_test='train'
 model_path=""
@@ -27,25 +27,26 @@ batch_size=256  # AutoBach is enabled in default, this parameter will be ignored
 his_len=12
 pred_len=12
 data_mode=0
+dataset_base='/nas/datasets/Tensor-Time-Series-Dataset/Processed_Data'
 
 # 3. optional
-normalizer='std'
+normalizer='std_tensor'
 graph_init='pearson'
 scheduler='ReduceLROnPlateau'
 # ----------------------------------------------------
 
-export CUDA_VISIBLE_DEVICES=2
+export CUDA_VISIBLE_DEVICES=1
 
 # --------------- Select Data & Model ----------------
 # >>> Run 1 >>>>>>>>>>>>>
-dataset='PEMSBAY'
-model='GraphWaveNet'
+dataset='weather'
+model='PatchTST'
 python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
                     --normalizer $normalizer --graph_init $graph_init \
-                    --scheduler $scheduler \
-                    --lr_finder \
+                    --scheduler $scheduler --dataset_base $dataset_base\
                     --logger $logger \
                     --dataset $dataset --model $model \
+                    --lr 0.0005 \
                     --debug \
                     # --model_path $model_path

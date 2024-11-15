@@ -223,7 +223,7 @@ class STID_MultiVarModel(MultiVarModelBase):
         # model need: [batch, hist, dim1*dim2, 1]
         x_hist = x[:, :self.input_len, :, :]
         truth = x[:, self.input_len:(self.input_len+self.pred_len), :, :]
-        x_hist = self.normalizer.transform(x_hist)
+        # x_hist = self.normalizer.transform(x_hist)
         # forward and return
         y_pred = self.model(x_hist)
 

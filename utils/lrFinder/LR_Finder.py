@@ -7,13 +7,14 @@ from models.model_base import ModelBase
 from models import ModelManager
 
 class LRFinder_Manager:
-    def __init__(self, model_name:str, model_configs:dict, trainloader, valloader, output_dir:str, device:str='cuda') -> None:
+    def __init__(self, model_name:str, model_configs:dict, trainloader, valloader, output_dir:str, normalizer, device:str='cuda') -> None:
         # basic configs
         self.model_name = model_name
         self.model_configs = model_configs
         self.trainloader = trainloader
         self.valloader = valloader
         self.output_dir = output_dir
+        self.normalizer = normalizer
         self.device = device
         # init model
         model_manager = ModelManager()

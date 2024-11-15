@@ -97,11 +97,11 @@ class MTGNN_TensorModel(TensorModelBase):
             in_data = in_data[:, :, idx, :]
             truth = truth[:, :, idx, :]
         # normalization
-        in_data = self.normalizer.transform(in_data)
+        # in_data = self.normalizer.transform(in_data)
         pred = self.model(in_data, idx=idx)
         pred = pred.permute(0,3,2,1)
         # inverse
-        pred = self.normalizer.inverse_transform(pred)
+        # pred = self.normalizer.inverse_transform(pred)
         return pred, truth
     
     def backward(self, loss):

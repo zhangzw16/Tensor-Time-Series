@@ -309,11 +309,11 @@ class TTS_Norm_TensorModel(TensorModelBase):
         value = x[:, :, :self.tensor_shape[0], :self.tensor_shape[1]].unsqueeze(-1)
         in_data = value[:, :self.input_len, :, :, :]
         truth = value[:, self.input_len:self.input_len+self.pred_len, :, :, :]
-        in_data = self.normalizer.transform(in_data)
+        # in_data = self.normalizer.transform(in_data)
         n_padding = (0, 0, 0, 0, 0, 0, 0, self.delta)
         in_data = F.pad(in_data, n_padding, 'constant', 0)
         pred = self.model(in_data)
-        pred = self.normalizer.inverse_transform(pred)
+        # pred = self.normalizer.inverse_transform(pred)
         return pred, truth
     
     def backward(self, loss):

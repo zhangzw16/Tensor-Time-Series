@@ -71,10 +71,10 @@ class TimesNet_MultiVarModel(MultiVarModelBase):
         in_data = value[:, :self.input_len, :]
         truth = value[:, self.input_len:self.input_len+self.pred_len, :]
         # normalization
-        in_data = self.normalizer.transform(in_data)
+        # in_data = self.normalizer.transform(in_data)
         pred = self.model(in_data, None, None, None)
         # inverse
-        pred = self.normalizer.inverse_transform(pred)
+        # pred = self.normalizer.inverse_transform(pred)
 
         return pred, truth
         

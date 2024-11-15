@@ -86,7 +86,7 @@ class MultivarTask(TaskBase):
         model_configs = self.configs.copy()
         normalizer_name = model_configs['normalizer']
         model_configs['tensor_shape'] = (self.dataset.get_dim_num() , 1)
-        model_configs['normalizer'] = self.dataset.get_normalizer(normalizer_name)[run_idx]
+        self.normalizer = self.dataset.get_normalizer(normalizer_name)[run_idx]
         model_configs['dim_num'] = self.dataset.get_dim_num()
         self.timer.mark_start_time('model_init')
         self.model = model_manager.get_model_class(self.model_name)(model_configs)
@@ -117,7 +117,7 @@ class MultivarTask(TaskBase):
         # LR Finder
         if model_configs['lr_finder'] and model_configs['mode'] == 'train':
             print("LR Finder is enable")
-            lr_finder_manager = LRFinder_Manager(self.model_name, model_configs, self.trainloader, self.validloader, self.run_dir, self.device)
+            lr_finder_manager = LRFinder_Manager(self.model_name, model_configs, self.trainloader, self.validloader, self.run_dir, self.normalizer, self.device)
             self.timer.mark_start_time('lr_finder')
             lr_finder_manager.search_lr()
             lr_finder_time = self.timer.mark_end_time('lr_finder')
@@ -162,25 +162,22 @@ class MultivarTask(TaskBase):
     def epoch_train(self, run_idx:int=0):
         self.model.train()
         loss_list = []
-        self.timer.mark_start_time('one_epoch')
+        self.timer.mark_start_time('one_epoch_train')
         for seq in self.trainloader:
-            # if self.trainloader.batch_size == 1:
-            #     seq = seq.unsqueeze(0)
-            # print(seq.shape)
-            seq = seq.to(self.device)
-            pred, truth = self.model.forward(seq)
-            normalized_pred = self.model.normalizer.transform(pred)
-            normalized_truth = self.model.normalizer.transform(truth)
-            epoch_train_loss = self.model.get_loss(normalized_pred, normalized_truth)
-            # epoch_train_loss = self.model.get_loss(pred, truth)
+            # normalization
+            norm_seq = self.normalizer.transform(seq)
+            norm_seq = norm_seq.to(self.device)
+            # forward & get loss
+            norm_pred, norm_truth = self.model.forward(norm_seq)
+            epoch_train_loss = self.model.get_loss(norm_pred, norm_truth)
+            # backward
             self.model.backward(epoch_train_loss)
+            # record loss
             loss_list.append(epoch_train_loss.item())
-        one_epoch_time = self.timer.mark_end_time('one_epoch')
-        print(f"one epoch: {one_epoch_time:.4f}s")
-        self.timer.save_timer_log()
-        exit()
+        one_epoch_time = self.timer.mark_end_time('one_epoch_train')
+        print(f"one valid epoch: {one_epoch_time:.4f}s")
         mean_loss = sum(loss_list) / len(loss_list)
-        return mean_loss
+        return mean_loss, one_epoch_time
 
     def epoch_valid(self, run_idx:int=0):
         self.model.eval()
@@ -189,32 +186,30 @@ class MultivarTask(TaskBase):
         truth_list = []
         norm_pred_list = []
         norm_truth_list = []
+        self.timer.mark_start_time('one_epoch_valid')
         with torch.no_grad():
             for seq in self.validloader:
-                # if self.validloader.batch_size == 1:
-                #     seq = seq.unsqueeze(0)
-                # print(seq.shape)
-                seq = seq.to(self.device)
-                pred, truth = self.model.forward(seq)
-                normalized_pred = self.model.normalizer.transform(pred)
-                normalized_truth = self.model.normalizer.transform(truth)
-                epoch_valid_loss = self.model.get_loss(normalized_pred, normalized_truth)
-                # epoch_valid_loss = self.model.get_loss(pred, truth)
-                # update loss list
+                # normalization
+                norm_seq = self.normalizer.transform(seq)
+                norm_seq = norm_seq.to(self.device)
+                # forward & get loss
+                norm_pred, norm_truth = self.model.forward(norm_seq)
+                epoch_valid_loss = self.model.get_loss(norm_pred, norm_truth)
                 loss_list.append(epoch_valid_loss.item())
                 # pred & truth
-                pred = pred.cpu().detach().numpy()
-                truth = truth.cpu().detach().numpy()
-                normalized_pred = normalized_pred.cpu().detach().numpy()
-                normalized_truth = normalized_truth.cpu().detach().numpy()
-                # update pred & truth list
+                norm_pred = norm_pred.cpu().detach().numpy()
+                norm_truth = norm_truth.cpu().detach().numpy()
+                norm_pred_list.append(norm_pred)
+                norm_truth_list.append(norm_truth)
+                # inverse normalization
+                pred = self.normalizer.inverse_transform(norm_pred)
+                truth = self.normalizer.inverse_transform(norm_truth)
                 pred_list.append(pred)
                 truth_list.append(truth)
-                norm_pred_list.append(normalized_pred)
-                norm_truth_list.append(normalized_truth)
+        one_epoch_time = self.timer.mark_end_time('one_epoch_valid')
+        print(f"one valid epoch: {one_epoch_time:.4f}s")
         mean_loss = sum(loss_list) / len(loss_list)
-        # pred = np.array(pred_list).squeeze()
-        # truth = np.array(truth_list).squeeze()
+        # evaluation
         pred = np.concatenate(pred_list, axis=0)
         truth = np.concatenate(truth_list, axis=0)
         norm_pred = np.concatenate(norm_pred_list, axis=0)
@@ -225,7 +220,7 @@ class MultivarTask(TaskBase):
             'res': result,
             'norm_res': norm_result
         }
-        return mean_loss, res
+        return mean_loss, res, one_epoch_time
 
     def train(self, idx_list:list=[]):
         if idx_list == []:
@@ -241,8 +236,8 @@ class MultivarTask(TaskBase):
                 epoch_info = {
                     'epoch': i,
                 }
-                epoch_mean_train_loss = self.epoch_train(run_idx)
-                epoch_mean_valid_loss, valid_result = self.epoch_valid(run_idx)
+                epoch_mean_train_loss, one_epoch_time_train = self.epoch_train(run_idx)
+                epoch_mean_valid_loss, valid_result, one_epoch_time_valid = self.epoch_valid(run_idx)
                 # scheduler
                 if self.scheduler_name == 'ReduceLROnPlateau':
                     self.scheduler.step(epoch_mean_valid_loss)
@@ -250,12 +245,17 @@ class MultivarTask(TaskBase):
                     self.scheduler.step()
                 print(f"epoch: {i}, mean_train_loss: {epoch_mean_train_loss:.3f}, mean_valid_loss:{epoch_mean_valid_loss:.3f}")
                 # logger info
+                # train/
                 epoch_info['train/loss'] = epoch_mean_train_loss
+                epoch_info['train/one_epoch_time'] = one_epoch_time_train
+                epoch_info['train/learning_rate'] = self.model.optim.param_groups[0]['lr']
+                print(f"learning rate: {epoch_info['train/learning_rate']}")
+                # valid/
                 epoch_info['valid/loss'] = epoch_mean_valid_loss
+                epoch_info['valid/one_epoch_time'] = one_epoch_time_valid
                 for metric in valid_result:
                     epoch_info[f'valid/{metric}'] = valid_result[metric]
-                epoch_info['train/learning_rate'] = self.model.optim.param_groups[0]['lr']
-                print(epoch_info['train/learning_rate'])
+                # log info
                 self.logger.log(epoch_info)
                 # save checkpoint
                 self.save_checkpoint(i, save_dir=self.run_dir)
@@ -264,6 +264,7 @@ class MultivarTask(TaskBase):
                 if early_stop_flag:
                     break
             self.logger.close()
+
             # training summary
             print('training finished...')
             print(f'The best valid loss: {self.best_valid_loss}')
@@ -274,6 +275,7 @@ class MultivarTask(TaskBase):
                 print('='*40)
 
     def test(self, idx_list:list=[]):
+        self.configs['mode'] = 'test'
         # if model_path is .pth file
         if self.model_path.endswith('.pth'):
             run_name = os.path.basename(os.path.dirname(self.model_path))
@@ -308,33 +310,42 @@ class MultivarTask(TaskBase):
                 hist_list = []
                 norm_pred_list = []
                 norm_truth_list = []
+                norm_hist_list = []
                 for seq in self.testloader:
-                    # if self.testloader.batch_size == 1:
-                    #     seq = seq.unsqueeze(0)
-                    # print(seq.shape)
-                    seq = seq.to(self.device)
-                    hist = seq[:, :self.his_len, :, :].cpu().numpy()
-                    pred, truth = self.model.forward(seq)
-                    pred = pred.cpu().numpy()
-                    truth = truth.cpu().numpy()
-                    normalized_pred = self.model.normalizer.transform(pred)
-                    normalized_truth = self.model.normalizer.transform(truth)
-                    # normalized_pred = normalized_pred.cpu().detach().numpy()
-                    # normalized_truth = normalized_truth.cpu().detach().numpy()
+                    # normalization
+                    norm_seq = self.normalizer.transform(seq)
+                    norm_hist = norm_seq[:, :self.his_len, :, :].numpy()
+                    norm_seq = norm_seq.to(self.device)
+                    # forward (inference)
+                    norm_pred, norm_truth = self.model.forward(norm_seq)
+                    # evaluation
+                    norm_pred = norm_pred.cpu().detach().numpy()
+                    norm_truth = norm_truth.cpu().detach().numpy()
+                    norm_pred_list.append(norm_pred)
+                    norm_truth_list.append(norm_truth)
+                    norm_hist_list.append(norm_hist)
+                    # inverse normalization
+                    pred = self.normalizer.inverse_transform(norm_pred)
+                    truth = self.normalizer.inverse_transform(norm_truth)
+                    hist = self.normalizer.inverse_transform(norm_hist)
                     pred_list.append(pred)
                     truth_list.append(truth)
                     hist_list.append(hist)
-                    norm_pred_list.append(normalized_pred)
-                    norm_truth_list.append(normalized_truth)
+            # evaluation
             pred_list = np.concatenate(pred_list, axis=0)
             truth_list = np.concatenate(truth_list, axis=0)
             hist_list = np.concatenate(hist_list, axis=0)
             norm_pred_list = np.concatenate(norm_pred_list, axis=0)
             norm_truth_list = np.concatenate(norm_truth_list, axis=0)
+            norm_hist_list = np.concatenate(norm_hist_list, axis=0)
+            # results
             result = self.evaluator.eval(pred_list, truth_list, verbose=self.eval_verbose)
             scaled_result = self.evaluator.scaled_eval(hist_list, pred_list, truth_list, verbose=self.eval_verbose)
             result.update(scaled_result)
+            # norm_result
             norm_result = self.evaluator.eval(norm_pred_list, norm_truth_list, verbose=self.eval_verbose)
+            norm_scaled_result = self.evaluator.scaled_eval(norm_hist_list, norm_pred_list, norm_truth_list, verbose=self.eval_verbose)
+            norm_result.update(norm_scaled_result)
             res = {
                 'res': result,
                 'norm_res': norm_result
@@ -342,24 +353,3 @@ class MultivarTask(TaskBase):
             print(f"Test result:\n{res}")
             test_result[f'run_{run_idx}'] = res
         return test_result
-    
-    # test diffrent input/output for model
-    # def test_model_io_shape(self):
-    #     run_idx = 0
-    #     self.init_new_model_logger(run_idx)
-    #     self.model.train()
-    #     for seq, aux_info in self.trainloader.get_batch(run_idx, separate=False):
-    #         seq = seq.to(self.device)
-    #         pred, truth = self.model.forward(seq, aux_info)
-    #         if pred.shape != truth.shape:
-    #             result = f"Can not match the shape: {pred.shape} != {truth.shape}"
-    #         else:
-    #             result = "OK"
-    #         # compute loss & backward
-    #         loss = self.model.get_loss(pred, truth)
-    #         self.model.backward(loss)
-    #         break
-    #     test_id = f"{self.model_name}-{self.his_len}-{self.pred_len}"
-    #     return {'result': result, 'test_id': test_id}
-        
-
