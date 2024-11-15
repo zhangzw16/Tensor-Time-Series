@@ -13,6 +13,7 @@ delta_prediction
 TTM
 Processed_Data
 Tensor_output
+visual
 # *.sh
 
 .amltconfig
