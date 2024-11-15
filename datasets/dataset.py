@@ -3,7 +3,7 @@ import pickle as pkl
 import numpy as np
 import random
 
-from .normalizer import StandNormalizer, DoNothing, StandNormalizer_Tensor
+from .normalizer import Sklearn_StandNormalizer, DoNothing, StandNormalizer
 
 '''
 Name: Tensor-Time-Series Dataset Manager:
@@ -103,17 +103,17 @@ class TTS_DatasetManager:
     def get_normalizer(self, norm='none'):
         if norm == 'none':
             return DoNothing()
+        elif norm == 'sklearn':
+            train_range = int(self.time_range * self.train_ratio)
+            train_data = self.data[:train_range]
+            # normalization and inverse
+            scaler = Sklearn_StandNormalizer(train_data)
+            return scaler
         elif norm == 'std':
             train_range = int(self.time_range * self.train_ratio)
             train_data = self.data[:train_range]
             # normalization and inverse
             scaler = StandNormalizer(train_data)
-            return scaler
-        elif norm == 'std_tensor':
-            train_range = int(self.time_range * self.train_ratio)
-            train_data = self.data[:train_range]
-            # normalization and inverse
-            scaler = StandNormalizer_Tensor(train_data)
             return scaler
         else:
             raise ValueError(f'unknown normalizer: {norm}...')
@@ -172,7 +172,7 @@ class MTS_DatasetManager:
         # - 1: (time, dim1, 1) * dim2
         # - 2: (time, dim2, 1) * dim1
         if data_mode == 0:
-            self.data = self.data.reshape(1, self.data.shape[0], -1, 1)
+            self.data = self.data.reshape(1, self.data.shape[0], -1)
             self.data = np.expand_dims(self.data, axis=-1)
             data_shape = self.data.shape
             self.time_series_num = int(data_shape[0])
@@ -226,6 +226,15 @@ class MTS_DatasetManager:
             normalizer_list = []
             for i in range(self.time_series_num):
                 normalizer_list.append(DoNothing())
+            return normalizer_list
+        elif norm == 'sklearn':
+            normalizer_list = []
+            train_range = int(self.time_range * self.train_ratio)
+            train_data  = self.data[:, :train_range]
+            for i in range(self.time_series_num):
+                train_data_i = train_data[i]
+                scaler = Sklearn_StandNormalizer(train_data_i)
+                normalizer_list.append(scaler)
             return normalizer_list
         elif norm == 'std':
             normalizer_list = []

@@ -36,6 +36,7 @@ class AutoBatch:
         self.model.set_device('cuda')
         dataloader = DataLoader(self.dataset, batch_size=batch, shuffle=False, drop_last=False)
         for seq in dataloader:
+            # batch data = (batch, time, dim1, dim2)
             seq = seq.to('cuda')
             pred, truth = self.model.forward(seq)
             break

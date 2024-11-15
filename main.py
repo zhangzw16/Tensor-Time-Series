@@ -19,23 +19,24 @@ def EnsureDir(output_dir:str):
 
 if __name__=='__main__':
     # set model and dataset
-    model_name = 'PatchTST'
+    model_name = 'TimesNet'
     dataset_name = 'weather'
     basic_config = get_config_template(model_name)
     # update basic_config
-    DATASET_BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datasets', 'data')
+    # DATASET_BASE = 
+    DATASET_BASE = '/nas/datasets/Tensor-Time-Series-Dataset/Processed_Data'
     # ---- 1. Basic Configuration -----
-    basic_config['project_name'] = 'main'
-    output_dir = './output'
+    basic_config['project_name'] = 'main_test_normalization'
+    output_dir = './logs'
     basic_config['output_dir'] = os.path.join(output_dir, basic_config['project_name'])
-    basic_config['mode'] = 'test'
+    basic_config['mode'] = 'train'
     basic_config['debug'] = True
-    basic_config['logger'] = 'none'
+    basic_config['logger'] = 'tensorboard'
     basic_config['task_device'] = 'cuda'
 
     # ---- 2. Dataset Configuration -----
     basic_config['dataset_name'] = dataset_name
-    basic_config['his_len'] = 512
+    basic_config['his_len'] = 96
     basic_config['pred_len'] = 96
     basic_config['data_mode'] = 0
     basic_config['batch_size'] = 8
@@ -55,7 +56,6 @@ if __name__=='__main__':
     basic_config['eps'] = '1e-8'
     basic_config['weight_decay'] = '1e-3'
     basic_config['scheduler'] = 'ReduceLROnPlateau'
-    basic_config['model_path'] = '/home/ysc/workspace/output/main/checkpoints/weather-PatchTST-512-96-0-std-2024-11-14-15:09:45/run_0/checkpoint_30.pth'
 
     # double check
     if basic_config['mode'] == 'train':
