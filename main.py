@@ -19,8 +19,8 @@ def EnsureDir(output_dir:str):
 
 if __name__=='__main__':
     # set model and dataset
-    model_name = 'NET3'
-    dataset_name = 'PEMS07'
+    model_name = 'PatchTST'
+    dataset_name = 'weather'
     basic_config = get_config_template(model_name)
     # update basic_config
     DATASET_BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datasets', 'data')
@@ -35,11 +35,11 @@ if __name__=='__main__':
 
     # ---- 2. Dataset Configuration -----
     basic_config['dataset_name'] = dataset_name
-    basic_config['his_len'] = 96
-    basic_config['pred_len'] = 12
+    basic_config['his_len'] = 512
+    basic_config['pred_len'] = 96
     basic_config['data_mode'] = 0
     basic_config['batch_size'] = 8
-    basic_config['normalizer'] = 'std'
+    basic_config['normalizer'] = 'sklearn'
     
     # ---- 3. Training Configuration -----
     basic_config['model_name'] = model_name
@@ -49,11 +49,13 @@ if __name__=='__main__':
     basic_config['max_epoch'] = 2024
     basic_config['early_stop_max'] = 32
     basic_config['early_stop_start_epoch'] = 0
-    basic_config['lr_finder'] = True
-    basic_config['lr'] = '1e-7'
+    basic_config['lr_finder'] = False
+    # basic_config['lr'] = '1e-7'
+    basic_config['lr'] = '1e-4'
     basic_config['eps'] = '1e-8'
     basic_config['weight_decay'] = '1e-3'
     basic_config['scheduler'] = 'ReduceLROnPlateau'
+    basic_config['model_path'] = '/home/ysc/workspace/output/main/checkpoints/weather-PatchTST-512-96-0-std-2024-11-14-15:09:45/run_0/checkpoint_30.pth'
 
     # double check
     if basic_config['mode'] == 'train':
