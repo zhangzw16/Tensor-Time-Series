@@ -15,16 +15,16 @@ logger='tensorboard'        # ['none', 'wandb', 'tensorboard']
 # His & Pred 搜索范围
 # HisLenList=(12 48 96 256)
 # PredLenList=(1 3 6 12 24 48)
-HisLenList=(12)
+HisLenList=(48)
 PredLenList=(12)
 
 # 模型列表
 # TensorModelList=("NET3" "DCRNN" "AGCRN" "MTGNN" "ST_Norm" "TTS_Norm" "GRML" "GCGRU" "Mamba" "STC_GNN" "GraphWaveNet")
 # MultivarModelList=("TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID" "STWA")
-# TensorModelList=("MTGNN" "ST_Norm" "TTS_Norm" "GRML" "GCGRU" "Mamba" )  # faster
-TensorModelList=("NET3" "DCRNN" "AGCRN" "STC_GNN" "GraphWaveNet")       # slower
-# MultivarModelList=("TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID")   # faster
-MultivarModelList=("STWA") # slower
+TensorModelList=("MTGNN" "ST_Norm" "TTS_Norm" "GRML" "GCGRU" "Mamba" )  # faster
+# TensorModelList=("NET3" "DCRNN" "AGCRN" "STC_GNN" "GraphWaveNet")       # slower
+MultivarModelList=("TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID")   # faster
+# MultivarModelList=("STWA") # slower
 
 
 # 数据集：traffic, weather, finance, energy 
