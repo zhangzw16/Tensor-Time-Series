@@ -21,7 +21,10 @@ class Sklearn_StandNormalizer:
 
     def reshape(self, data, shape:tuple):
         if isinstance(data, torch.Tensor):
-            data = data.view(shape)
+            try:
+                data = data.view(shape)
+            except:
+                data = data.reshape(shape)
         elif isinstance(data, np.ndarray):
             data = data.reshape(shape)
         return data

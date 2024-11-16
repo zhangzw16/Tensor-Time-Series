@@ -2,7 +2,7 @@
 # 最终模型的保存路径：
 #  - 模型：{output_dir}/{task_name}/{checkpoints}/...
 #  - 结果：{output_dir}/{task_name}/{log}/*.yaml
-dataset_base='./datasets/data'
+dataset_base='/nas/datasets/Tensor-Time-Series-Dataset/Processed_Data'
 output_dir='./logs'
 task_name='beautiful_weekend'
 seed=2024
@@ -10,7 +10,7 @@ seed=2024
 graph_init='pearson' # only meaningful for graph-based models, ['pearson', 'inverse_pearson', 'random', 'cosine', 'unit']
 data_mode=0 
 batch_size=256       # AutoBatch is enabled in default.
-normalizer='sklearn' # ['sklearn', 'std', 'none'], sklearn is for MTS, std is for Tensor.
+normalizer='std' # ['sklearn', 'std', 'none'], sklearn is for MTS, std is for Tensor.
 logger='tensorboard'        # ['none', 'wandb', 'tensorboard']
 # His & Pred 搜索范围
 # HisLenList=(12 48 96 256)
