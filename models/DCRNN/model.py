@@ -66,12 +66,12 @@ class DCRNN_TensorModel(TensorModelBase):
             # target = torch.rand_like(truth)
             target = torch.zeros_like(truth)
         # normalize
-        source_data = self.normalizer.transform(source_data)
+        # source_data = self.normalizer.transform(source_data)
         teacher_forcing_ratio = self._compute_sampling_threshold(self.global_step, self.cl_decay_steps)
         pred = self.model(source_data, target, teacher_forcing_ratio)
         self.global_step += 1
         # inverse transform
-        pred = self.normalizer.inverse_transform(pred)
+        # pred = self.normalizer.inverse_transform(pred)
         pred = pred.permute(1,0,2,3)
         # print(pred.shape, truth.shape);exit()
         return pred, truth

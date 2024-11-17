@@ -1,4 +1,5 @@
 import wandb
+from torch.utils.tensorboard import SummaryWriter
 import yaml
 import os
 
@@ -28,8 +29,16 @@ class Logger_none(LoggerBase):
         print(f"name: {self.name}")
 
     def log(self, info: dict):
+        global_epoch = info['epoch']
         for i in info:
-            print(f'{i}: {info[i]:.5f}')
+                if i == 'valid/res':
+                    for metric in info[i]:
+                        print(f'valid/{metric}', info[i][metric], global_epoch)
+                elif i == 'valid/norm_res':
+                    for metric in info[i]:
+                        print(f'valid_norm/{metric}', info[i][metric], global_epoch)
+                else:
+                    print(i, info[i], global_epoch)
 
     def close(self):
         print('Logger_none: Goodbye...')
@@ -41,6 +50,7 @@ class Logger_wandb(LoggerBase):
         self.project_name = project
         self.run_name = name
         self.configs = configs
+
     def init(self):
         os.makedirs(self.log_dir, exist_ok=True)
         self.logger =wandb.init(
@@ -55,11 +65,48 @@ class Logger_wandb(LoggerBase):
         if self.logger is not None:
             self.logger.finish()
 
+class Logger_tensorboard(LoggerBase):
+    def __init__(self, dir:str, project:str, name:str, configs:dict) -> None:
+        super().__init__(dir, project, name)
+        init_timestamp = configs['timestamp']
+        model_name = configs['model_name']
+        run_name = f'{model_name}_{init_timestamp}'
+        self.log_dir = os.path.join(dir, 'tensorboard_log', run_name)
+        self.project_name = project
+        self.run_name = name
+        self.configs = configs
+
+    def init(self):
+        os.makedirs(self.log_dir, exist_ok=True)
+        self.logger = SummaryWriter(log_dir=self.log_dir, )
+        for key, value in self.configs.items():
+            self.logger.add_text(key, str(value))
+    
+    def log(self, info: dict):
+        global_epoch = info['epoch']
+        # print(info)
+        # exit()
+        if self.logger is not None:
+            for i in info:
+                if i == 'valid/res':
+                    for metric in info[i]:
+                        self.logger.add_scalar(f'valid/{metric}', info[i][metric], global_epoch)
+                elif i == 'valid/norm_res':
+                    for metric in info[i]:
+                        self.logger.add_scalar(f'valid_norm/{metric}', info[i][metric], global_epoch)
+                else:
+                    self.logger.add_scalar(i, info[i], global_epoch)
+    
+    def close(self):
+        if self.logger is not None:
+            self.logger.close()
+
 class LoggerManager:
     def __init__(self) -> None:
         self.log_map = {
             'none': Logger_none,
             'wandb': Logger_wandb,
+            'tensorboard': Logger_tensorboard,
         }
 
     def init_logger(self, logger_name:str, dir:str, project:str, name:str, configs:dict):

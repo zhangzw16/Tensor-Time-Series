@@ -5,8 +5,12 @@ ModelType:
     - NET3
     - DCRNN
     - GraphWaveNet
+    - GraphWaveNet_wo_GCN
+    - GraphWaveNet_wo_GCN_TCN
     - AGCRN
     - MTGNN
+    - MTGNN_unit
+    - MTGNN_wo_GCN
     - TTS_Norm
     - ST_Norm
     - GMRL

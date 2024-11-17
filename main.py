@@ -19,40 +19,50 @@ def EnsureDir(output_dir:str):
 
 if __name__=='__main__':
     # set model and dataset
-    model_name = 'NET3'
-    dataset_name = 'ETT_hour'
+    model_name = 'TTS_Norm'
+    dataset_name = 'weather'
     basic_config = get_config_template(model_name)
     # update basic_config
-    DATASET_BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datasets', 'data')
+    # DATASET_BASE = 
+    DATASET_BASE = '/nas/datasets/Tensor-Time-Series-Dataset/Processed_Data'
     # ---- 1. Basic Configuration -----
-    basic_config['project_name'] = 'main'
-    output_dir = './output'
+    basic_config['project_name'] = 'main_debug'
+    output_dir = './logs'
     basic_config['output_dir'] = os.path.join(output_dir, basic_config['project_name'])
     basic_config['mode'] = 'train'
-    basic_config['debug'] = False
-    basic_config['logger'] = 'none'
+    basic_config['debug'] = True
+    basic_config['logger'] = 'tensorboard'
     basic_config['task_device'] = 'cuda'
 
     # ---- 2. Dataset Configuration -----
     basic_config['dataset_name'] = dataset_name
-    basic_config['his_len'] = 96
+    basic_config['his_len'] = 12
     basic_config['pred_len'] = 12
     basic_config['data_mode'] = 0
     basic_config['batch_size'] = 8
-    basic_config['normalizer'] = 'std'
+    basic_config['normalizer'] = 'sklearn'
     
     # ---- 3. Training Configuration -----
     basic_config['model_name'] = model_name
+    basic_config['model_path'] = ''
     basic_config['graph_init'] = 'pearson'
     basic_config['seed'] = 2024
     basic_config['max_epoch'] = 2024
     basic_config['early_stop_max'] = 32
     basic_config['early_stop_start_epoch'] = 0
-    basic_config['lr_finder'] = True
-    basic_config['lr'] = '1e-7'
+    basic_config['lr_finder'] = False
+    # basic_config['lr'] = '1e-7'
+    basic_config['lr'] = '1e-4'
     basic_config['eps'] = '1e-8'
     basic_config['weight_decay'] = '1e-3'
     basic_config['scheduler'] = 'ReduceLROnPlateau'
+
+    # double check
+    if basic_config['mode'] == 'train':
+        basic_config['model_path'] = ''
+    elif basic_config['mode'] == 'test':
+        if basic_config['model_path'] == '':
+            raise ValueError("In test mode, model_path should not be empty.")
 
     # timestamp
     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())

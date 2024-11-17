@@ -43,7 +43,7 @@ def parse_args():
     parser.add_argument('--batch_size', type=int, default=256, required=False,
                         help='[optional] int, batch size, default=256, for some dataset, the batch size should small.')
     parser.add_argument('--normalizer', type=str, default='std', required=False,
-                        help='[optional] str, normalizer, chose one from [\'none\', \'std\'], default=\'std\'')
+                        help='[optional] str, normalizer, chose one from [\'none\', \'std\', \'sklearn\'], default=\'std\'')
     
     # ---- 3. Training Configuration -----
     parser.add_argument('--model', type=str, required=True,
@@ -55,8 +55,8 @@ def parse_args():
                         help='[optional] str, graph_init, chose one from [\'pearson\', \'inverse_pearson\', \'random\', \'cosine\, \'unit\', default=\'pearson\'')
     parser.add_argument('--seed', type=int, default=2024, required=False,
                         help='[optional] int, random seed, default=2024')
-    parser.add_argument('--epochs', type=int, default=2024, required=False,
-                        help='[optional] int, default=2024')
+    parser.add_argument('--epochs', type=int, default=1024, required=False,
+                        help='[optional] int, default=1024')
     parser.add_argument('--early_stop_max', type=int, default=10, required=False,
                         help='[optional] int, early_stop_max, default=10')
     parser.add_argument('--early_stop_start_epoch', type=int, default=0, required=False,
@@ -136,12 +136,32 @@ if __name__=='__main__':
     if basic_config['model_name'] == 'GraphWaveNet':
         basic_config['batch_size'] = 8
 
-    print("=====================================")
-    print("Configs:")
-    for k, v in basic_config.items():
-        print(f"{k}: {v}")
+    # print("=====================================")
+    # print("Configs:")
+    # for k, v in basic_config.items():
+    #     print(f"{k}: {v}")
     # exit()
 
+    # if this task is finished
+    task_path = os.path.join(basic_config['output_dir'], 'checkpoints')
+    TTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['data_mode']}-{basic_config['his_len']}-{basic_config['pred_len']}-{basic_config['graph_init']}-{basic_config['normalizer']}"
+    MTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['his_len']}-{basic_config['pred_len']}-{basic_config['data_mode']}-{basic_config['normalizer']}"
+    TTS_dirs = []
+    MTS_dirs = []
+    if os.path.exists(task_path) and basic_config['mode']=='train':
+        for dir_name in os.listdir(task_path):
+            if TTS_prefix in dir_name:
+                TTS_dirs.append(os.path.join(task_path, dir_name))
+            elif MTS_prefix in dir_name:
+                MTS_dirs.append(os.path.join(task_path, dir_name))
+        for dir_name in TTS_dirs:
+            if os.path.exists(os.path.join(dir_name, "model.pth")):
+                print(f"This task is finished in {dir_name}, continue to next one...")
+                exit()
+        for dir_name in MTS_dirs:
+            if os.path.exists(os.path.join(dir_name, "run_0", "model.pth")):
+                print(f"This task is finished in {dir_name}, continue to next one...")
+                exit()
     # timestamp
     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
     basic_config['timestamp'] = timestamp

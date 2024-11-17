@@ -38,6 +38,7 @@ dependencies = [
     "datasets",
     "mambapy",
     "mamba_ssm",
+    "tensorboard",
 ]
 
 [tool.setuptools]

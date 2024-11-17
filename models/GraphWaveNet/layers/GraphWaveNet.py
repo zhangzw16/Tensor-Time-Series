@@ -89,9 +89,6 @@ class gwnet(nn.Module):
                 self.nodevec2 = nn.Parameter(initemb2, requires_grad=True)
                 self.supports_len += 1
 
-
-
-
         for b in range(blocks):
             additional_scope = kernel_size - 1
             new_dilation = 1
@@ -198,7 +195,8 @@ class gwnet(nn.Module):
 
 
             x = self.bn[i](x)
-
+        # print(skip.shape)
+        # exit()
         x = F.relu(skip)
         x = F.relu(self.end_conv_1(x))
         

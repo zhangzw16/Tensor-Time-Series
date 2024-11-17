@@ -15,7 +15,7 @@ class TaskBase:
         if not os.path.exists(path):
             os.makedirs(path,)
 
-    def early_stop(self, epoch, valid_loss, epoch_info:dict={}, save_dir:str='', thres=1e-3)->bool:
+    def early_stop(self, epoch, valid_loss, epoch_info:dict={}, save_dir:str='', thres=5e-4)->bool:
         # check loss and update
         if valid_loss < self.best_valid_loss - thres:
             self.best_valid_loss = valid_loss
@@ -37,6 +37,15 @@ class TaskBase:
         else:
             return False
         
+    def save_checkpoint(self, epoch, interval=10, save_dir:str=''):
+        if epoch % interval == 0:
+            if self.model is not None:
+                if save_dir == '':
+                    save_dir = self.output_dir
+                save_path = os.path.join(save_dir, f'checkpoint_{epoch}.pth')
+                self.model.save_model(save_path)
+                print(f'Epoch:{epoch}: checkpoint saved in: {save_path}')
+
     def train(self):
         pass
 

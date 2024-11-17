@@ -157,7 +157,7 @@ class DLinear_MultiVarModel(MultiVarModelBase):
         # model need: [batch, hist, dim1*dim2]
         x1 = x[:, :self.input_len,:, :]
         x_hist = x1.squeeze(-1)
-        x_hist = self.normalizer.transform(x_hist)
+        # x_hist = self.normalizer.transform(x_hist)
 
         # decomposition
         season_in, trend_in = self.dcomp(x_hist)
@@ -174,7 +174,7 @@ class DLinear_MultiVarModel(MultiVarModelBase):
         #combine
         outputs = season_out + trend_out
         outputs = outputs.permute(0,2,1) # size: [batch, pred, channels]
-        outputs = self.normalizer.inverse_transform(outputs)
+        # outputs = self.normalizer.inverse_transform(outputs)
 
         #output and truth
         y_pred = outputs.unsqueeze(-1)

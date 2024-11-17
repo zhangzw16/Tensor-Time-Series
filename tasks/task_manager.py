@@ -66,8 +66,11 @@ class TaskManager:
         else:
             formatted_result = result
         for run_id in formatted_result:
-            for metric in formatted_result[run_id]:
-                formatted_result[run_id][metric] = float(formatted_result[run_id][metric])
+            for res_name in formatted_result[run_id]:
+                if res_name not in formatted_result[run_id]:
+                    formatted_result[run_id] = {res_name: {}}
+                for metric in formatted_result[run_id][res_name]:
+                    formatted_result[run_id][res_name][metric] = float(formatted_result[run_id][res_name][metric])
         return formatted_result
     
     '''

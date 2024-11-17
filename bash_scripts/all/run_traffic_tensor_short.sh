@@ -9,6 +9,12 @@ dataset_base='/data/Blob_EastUS/v-zhenwzhang/tensor_ts_datasets/Processed_Data/'
 output_dir='/data/Blob_EastUS/v-zhenwzhang/log/tensor_ts_log/20241110/'
 task_name='Main'${seed}
 
+# 参数
+normalizer='sklearn'        # 使用 sklearn 的 standard scaler
+logger='tensorboard'        # ['none', 'wandb', 'tensorboard']
+batch_size=256              # 默认开启 AutoBatch，因此这个不起作用
+graph_init='pearson'        # 后续可能会用到，先留着
+
 # His & Pred 搜索范围
 HisLenList=(12 48 96 256)
 PredLenList=(1 3 6 12)
@@ -24,7 +30,7 @@ for his_len in ${HisLenList[@]}; do
         # Tensor Model
         for model in ${TensorModelList[@]}; do
             # echo "$model, $his_len, $pred_len"
-            bash bash_scripts/run_traffic.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --dataset_base $dataset_base --seed $seed
+            bash bash_scripts/run_traffic.sh --model $model --his_len $his_len --pred_len $pred_len --output_dir $output_dir --task_name $task_name --dataset_base $dataset_base --seed $seed --graph_init $graph_init --data_mode $data_mode --batch_size $batch_size --logger $logger --normalizer $normalizer
         done
         # -------------------------------------------
         # Multivar Model

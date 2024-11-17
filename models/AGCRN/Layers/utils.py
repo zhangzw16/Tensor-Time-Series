@@ -10,9 +10,9 @@ def MAE_torch(pred, true, mask_value=None):
 
 def masked_mae_loss(scaler, mask_value):
     def loss(preds, labels):
-        if scaler:
-            preds = scaler.inverse_transform(preds)
-            labels = scaler.inverse_transform(labels)
+        # if scaler:
+        #     preds = scaler.inverse_transform(preds)
+        #     labels = scaler.inverse_transform(labels)
         mae = MAE_torch(pred=preds, true=labels, mask_value=mask_value)
         return mae
     return loss

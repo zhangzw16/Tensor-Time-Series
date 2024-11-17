@@ -279,7 +279,7 @@ class GMRL_TensorModel(TensorModelBase):
         self.input_tensor_shape = tensor_shape
         self.n_his = self.configs['his_len']
         self.n_pred = self.configs['pred_len']
-        self.normalzier = self.configs['normalizer']
+        self.normalizer = self.configs['normalizer']
         # model parameters configs
         model_configs_yaml = os.path.join( os.path.dirname(__file__), 'model.yml' )
         model_configs = yaml.safe_load(open(model_configs_yaml))
@@ -338,12 +338,12 @@ class GMRL_TensorModel(TensorModelBase):
         xh = value[:,:self.n_his, :, :]
         truth = value[:,self.n_his:self.n_his+self.n_pred, :, :]
 
-        xh = self.normalzier.transform(xh)
+        # xh = self.normalizer.transform(xh)
         # padding: ensure input_len = 2**(layers)
         n_padding = (0, 0, 0, 0, 0, 0, 0, self.len_delta)
         xh = F.pad(xh, n_padding, 'constant', 0)
         pred, feature_loss = self.model(xh)
-        pred = self.normalzier.inverse_transform(pred)
+        # pred = self.normalizer.inverse_transform(pred)
 
         self.feature_loss = feature_loss
         return pred, truth

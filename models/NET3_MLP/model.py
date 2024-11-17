@@ -165,14 +165,15 @@ class NET3_MLP_TensorModel(TensorModelBase):
         dim1 = self.model.configs['mode_dims'][0]
         dim2 = self.model.configs['mode_dims'][1]
         value = value[:, :dim1, :dim2, :]   # ensure the correct shape (test)
-        in_value = self.normalizer.transform(value[...,:-1])
+        # in_value = self.normalizer.transform(value[...,:-1])
+        in_value = value[...,:-1]
         adj = self.network
         pred, hx = self.model(values=in_value, adj=adj)        
         # print(f"out: pred:{pred.shape}, truth: {value.shape}");exit()
         if value.shape[0] != pred.shape[0]:
             d1, d2, d3, d4 = value.size()
             pred = pred.view((d1,d2,d3,d4-1))
-        model_pred = self.normalizer.inverse_transform(pred)
+        # model_pred = self.normalizer.inverse_transform(pred)
         model_pred = pred[..., -1]
         truth = value[..., -1]
         # print(model_pred.shape, truth.shape);exit()

@@ -324,10 +324,10 @@ class AutoFormer_MultiVarModel(MultiVarModelBase):
             dec_inp = torch.zeros_like(truth).float().to(x.device)
             dec_inp = torch.cat([in_data, dec_inp], dim=1).float().to(x.device)
             # normalization
-            in_data = self.normalizer.transform(in_data)
+            # in_data = self.normalizer.transform(in_data)
             pred = self.model(in_data, None, dec_inp, None)
             # inverse
-            pred = self.normalizer.inverse_transform(pred)
+            # pred = self.normalizer.inverse_transform(pred)
 
             return pred, truth
             

@@ -24,3 +24,4 @@ pathlib==1.0.1
 datasets==2.19.0
 mambapy
 mamba_ssm
+tensorboard==2.14.0
