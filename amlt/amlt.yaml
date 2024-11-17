@@ -23,7 +23,7 @@ storage:
     mount_dir: /data/Blob_EastUS
 
 code:
-  local_dir: $CONFIG_DIR
+  local_dir: $CONFIG_DIR/..
   # ignore:
   # - outputs/*
   # - log/*
