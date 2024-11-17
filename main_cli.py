@@ -133,6 +133,11 @@ if __name__=='__main__':
     elif basic_config['mode'] == 'test':
         if basic_config['model_path'] == '':
             raise ValueError("In test mode, model_path should not be empty.")
+        
+    NatureList = ['COVID_DEATHS', 'COVID_CHI', 'COVID_US']
+    if basic_config['dataset_name'] in NatureList:
+        basic_config['bacth_size'] = 1
+
     # print("=====================================")
     # print("Configs:")
     # for k, v in basic_config.items():

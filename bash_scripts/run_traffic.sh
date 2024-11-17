@@ -102,7 +102,7 @@ python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test
                     --seed $seed \
                     --dataset $dataset --model $model \
 # >>>> DS5
-dataset='METRO_SH'
+dataset='PEMSBAY'
 python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
                     --normalizer $normalizer --graph_init $graph_init \
@@ -113,7 +113,7 @@ python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test
                     --seed $seed \
                     --dataset $dataset --model $model \
 # >>>> DS6
-dataset='PEMSBAY'
+dataset='METRO_SH'
 python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
                     --normalizer $normalizer --graph_init $graph_init \

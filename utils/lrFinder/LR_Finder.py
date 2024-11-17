@@ -55,11 +55,13 @@ class LRFinder_Manager:
                     current_lr = self._get_current_lr()
                     # trainning
                     self.model.train()
-                    seq = seq.to(self.device)
-                    pred, truth = self.model.forward(seq)
-                    normalized_pred = self.model.normalizer.transform(pred)
-                    normalized_truth = self.model.normalizer.transform(truth)
-                    loss = self.model.get_loss(normalized_pred, normalized_truth)
+                    # normalize the input
+                    norm_seq = self.normalizer.transform(seq)
+                    norm_seq = norm_seq.to(self.device)
+                    # forward and get loss
+                    norm_pred, norm_truth = self.model.forward(norm_seq)
+                    loss = self.model.get_loss(norm_pred, norm_truth)
+                    # backward
                     self.model.backward(loss)
                         
                     # smooth the loss
