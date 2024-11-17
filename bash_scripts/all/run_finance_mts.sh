@@ -7,7 +7,7 @@ seed=${1:-0}
 
 dataset_base='/data/Blob_EastUS/v-zhenwzhang/tensor_ts_datasets/Processed_Data/'
 output_dir='/data/Blob_EastUS/v-zhenwzhang/log/tensor_ts_log/20241110/'
-task_name='Main'
+task_name='Main'${seed}
 
 # 参数
 normalizer='sklearn'        # 使用 sklearn 的 standard scaler
