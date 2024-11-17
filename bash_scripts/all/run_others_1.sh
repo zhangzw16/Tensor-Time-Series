@@ -18,7 +18,7 @@ ModelList=("STC_GNN" "AGCRN" "GCGRU" "GraphWaveNet" "STWA")
 
 # 因为 Nature 数据集的长度太小（大约在200个点左右），单独遍历
 NatureHisLenList=(6 12 24)
-NaturePredLenList=(1 3 6 12)
+NaturePredLenList=(1 12)
 NatureBatchSize=1   
 for his_len in ${NatureHisLenList[@]}; do
     for pred_len in ${NaturePredLenList[@]}; do
@@ -32,8 +32,8 @@ for his_len in ${NatureHisLenList[@]}; do
 done
 
 # His & Pred 搜索范围
-HisLenList=(12 48 96 256)
-PredLenList=(6 12 24 48)
+HisLenList=(12 256)
+PredLenList=(6 12 48)
 batch_size=0                # 设置 0 开启 AutoBatch
 # 数据集：traffic, weather, finance, energy
 for his_len in ${HisLenList[@]}; do
