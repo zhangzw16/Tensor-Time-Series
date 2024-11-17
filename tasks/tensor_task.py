@@ -93,12 +93,15 @@ class TensorTask(TaskBase):
         print(f"Preparation for model ({self.model_type}, {self.model_name}) is done.")
         print(f"Duration >> Model Init: {model_init_time:.4f}s, Model Set Device: {model_set_device_time:.4f}s")
         # AutoBatch
-        autoBatchManager = AutoBatch(self.model, self.trainset)
-        self.timer.mark_start_time('auto_batch')
-        best_batch_size = autoBatchManager.search_batch()
-        auto_batch_time = self.timer.mark_end_time('auto_batch')
-        print(f"Best BachSize: {best_batch_size} ({auto_batch_time:.4f}s)") 
-        self.batch_size = best_batch_size
+        print(f">>>> Batch_size: {self.batch_size}")
+        if self.batch_size == 0:
+            print(">>>> Batch_size is 0, search best batch size...")
+            autoBatchManager = AutoBatch(self.model, self.trainset)
+            self.timer.mark_start_time('auto_batch')
+            best_batch_size = autoBatchManager.search_batch()
+            auto_batch_time = self.timer.mark_end_time('auto_batch')
+            print(f"Best BachSize: {best_batch_size} ({auto_batch_time:.4f}s)") 
+            self.batch_size = best_batch_size
 
         self.trainloader = DataLoader(self.trainset, batch_size=self.batch_size, shuffle=True, drop_last=False)
         self.validloader = DataLoader(self.validset, batch_size=self.batch_size, shuffle=False, drop_last=False)

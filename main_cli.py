@@ -133,9 +133,6 @@ if __name__=='__main__':
     elif basic_config['mode'] == 'test':
         if basic_config['model_path'] == '':
             raise ValueError("In test mode, model_path should not be empty.")
-    if basic_config['model_name'] == 'GraphWaveNet':
-        basic_config['batch_size'] = 8
-
     # print("=====================================")
     # print("Configs:")
     # for k, v in basic_config.items():
