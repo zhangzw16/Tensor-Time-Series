@@ -19,8 +19,8 @@ def EnsureDir(output_dir:str):
 
 if __name__=='__main__':
     # set model and dataset
-    model_name = 'STC_GNN'
-    dataset_name = 'weather'
+    model_name = 'PatchTST'
+    dataset_name = 'PEMS07'
     basic_config = get_config_template(model_name)
     # update basic_config
     # DATASET_BASE = 
@@ -31,7 +31,7 @@ if __name__=='__main__':
     basic_config['output_dir'] = os.path.join(output_dir, basic_config['project_name'])
     basic_config['mode'] = 'train'
     basic_config['debug'] = True
-    basic_config['logger'] = 'tensorboard'
+    basic_config['logger'] = 'none'
     basic_config['task_device'] = 'cuda'
 
     # ---- 2. Dataset Configuration -----
@@ -56,6 +56,7 @@ if __name__=='__main__':
     basic_config['eps'] = '1e-8'
     basic_config['weight_decay'] = '1e-3'
     basic_config['scheduler'] = 'ReduceLROnPlateau'
+    basic_config['model_path'] = '/home/ysc/workspace/output/main/checkpoints/weather-PatchTST-512-96-0-std-2024-11-14-15:09:45/run_0/checkpoint_30.pth'
 
     # double check
     if basic_config['mode'] == 'train':
