@@ -34,6 +34,7 @@ class AutoBatch:
 
     def load_to_GPU(self, batch):
         self.model.set_device('cuda')
+        self.model.train()
         dataloader = DataLoader(self.dataset, batch_size=batch, shuffle=False, drop_last=False)
         for seq in dataloader:
             # batch data = (batch, time, dim1, dim2)
