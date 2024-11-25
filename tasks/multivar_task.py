@@ -110,6 +110,7 @@ class MultivarTask(TaskBase):
             auto_batch_time = self.timer.mark_end_time('auto_batch')
             print(f"Best BachSize: {best_batch_size} ({auto_batch_time:.4f}s)")
             self.batch_size = best_batch_size
+            self.configs['batch_size'] = best_batch_size
 
         self.trainloader = DataLoader(self.trainset, batch_size=self.batch_size, shuffle=True, drop_last=False)
         self.validloader = DataLoader(self.validset, batch_size=self.batch_size, shuffle=False, drop_last=False)
@@ -223,6 +224,7 @@ class MultivarTask(TaskBase):
             'res': result,
             'norm_res': norm_result
         }
+        print(f"Valid result:\n{res}")
         return mean_loss, res, one_epoch_time
 
     def train(self, idx_list:list=[]):
