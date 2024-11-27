@@ -8,6 +8,10 @@ import math
 from itertools import permutations
 from scipy.special import factorial
 from collections import Counter
+import numpy as np
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
 
 def calculate_correlation(matrix1, matrix2):
     # 将矩阵转换为一维数组
@@ -128,6 +132,13 @@ def tensor_to_value(windows, core = core_function):
             quantify[j] = core(window[j])
         orders.append(quantify)
     return np.array(orders)
+
+def pca_reconstruction_error(data, n_components):
+        pca = PCA(n_components=n_components)
+        data_reduced = pca.fit_transform(data)
+        data_reconstructed = pca.inverse_transform(data_reduced)
+        reconstruction_error = np.mean((data - data_reconstructed) ** 2)
+        return reconstruction_error
     
 
 
@@ -162,6 +173,11 @@ class DataAnalysis:
                 distances[i, j] = self.process[method](matrices[i], matrices[j])
                 distances[j, i] = distances[i, j]
         return distances
+    
+    def normalize(self):
+        scaler = StandardScaler()
+        self.data = self.data.reshape(self.data.shape[0], -1)
+        self.data = scaler.fit_transform(self.data)
 
     def find_periods_byacf(self, k = 3):
 
@@ -220,6 +236,42 @@ class DataAnalysis:
         windows = tensor_to_value(windows)
         pe = permutation_entropy(windows)
         return pe
+    
+    def pca_reconstruction_error(self, data, n_components):
+        pca = PCA(n_components=n_components)
+        data_reduced = pca.fit_transform(data)
+        data_reconstructed = pca.inverse_transform(data_reduced)
+        reconstruction_error = np.mean((data - data_reconstructed) ** 2)
+        return reconstruction_error
+
+    def find_best_n_components(self, data , max_components=10):
+        errors = []
+        for n in range(1, max_components + 1):
+            error = pca_reconstruction_error(data, n)
+            errors.append(error)
+        
+        best_n_components = np.argmin(errors) + 1
+        return best_n_components, errors
+
+    def plot_reconstruction_errors(self, errors, title='PCA Reconstruction Error vs Number of Components',errors2 = None):
+        if errors2 is not None:
+            plt.figure(figsize=(10, 6))
+            plt.plot(range(1, len(errors) + 1), errors, marker='o', label='Mannual Data')
+            plt.plot(range(1, len(errors2) + 1), errors2, marker='x', label='Original Data')
+            plt.xlabel('Number of Components')
+            plt.ylabel('Reconstruction Error')
+            plt.title(title)
+            plt.legend()
+            plt.grid(True)
+            plt.show()
+        else:
+            plt.figure(figsize=(10, 6))
+            plt.plot(range(1, len(errors) + 1), errors, marker='o')
+            plt.xlabel('Number of Components')
+            plt.ylabel('Reconstruction Error')
+            plt.title(title)
+            plt.grid(True)
+            plt.show()
 
 
 

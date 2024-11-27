@@ -40,7 +40,7 @@ class Model(nn.Module):
         x = x + seq_last
         return x # [Batch, Output length, Channel]
 
-class NLTSF_MultiVarModel(MultiVarModelBase):
+class NLinear_MultiVarModel(MultiVarModelBase):
     def __init__(self, configs: dict = ...) -> None:
         super().__init__(configs)
         self.configs = configs
@@ -94,7 +94,7 @@ class NLTSF_MultiVarModel(MultiVarModelBase):
         # model need: (batch, time(hist), dim1*dim2), so squeeze needed
         x1 = x[:, : self.input_len, :, :]
         x_hist = x1.squeeze(-1)
-        x_hist = self.normalizer.transform(x_hist)  # normalizer added
+        # x_hist = self.normalizer.transform(x_hist)  # normalizer added
         # pre-processing
         seq_last = x_hist[:, -1, :].detach()
         seq_last = seq_last.unsqueeze(1)
@@ -105,7 +105,7 @@ class NLTSF_MultiVarModel(MultiVarModelBase):
             outputs[:, :, i] = self.model[i](x_in[:, :, i])
         outputs = outputs + seq_last
         # return
-        outputs = self.normalizer.inverse_transform(outputs)
+        # outputs = self.normalizer.inverse_transform(outputs)
         y_pred = outputs.unsqueeze(-1)
         truth = x[:, self.input_len:self.input_len+self.pred_len, :, :]
 

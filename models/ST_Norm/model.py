@@ -239,10 +239,10 @@ class ST_Norm_TensorModel(TensorModelBase):
         in_data = value[:, :, :, :self.input_len]
         truth = value[:, :, :, self.input_len:self.input_len+self.pred_len]
         # normal
-        in_data = self.normalizer.transform(in_data)
+        # in_data = self.normalizer.transform(in_data)
         # print(in_data.shape);exit()
         pred = self.model(in_data)
-        pred = self.normalizer.inverse_transform(pred)
+        # pred = self.normalizer.inverse_transform(pred)
         return pred, truth
     
     def backward(self, loss):

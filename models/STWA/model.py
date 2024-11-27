@@ -351,9 +351,9 @@ class STWA_MultiVarModel(MultiVarModelBase):
         self.optim = torch.optim.Adam(self.model.parameters(),lr=lr, eps=eps, weight_decay=weight_decay, amsgrad=False)
         # self.optim = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=0, eps=1e-8)
         
-        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optim,
-                                                              milestones=self.milestone,
-                                                              gamma=self.lr_decay)
+        # self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optim,
+        #                                                       milestones=self.milestone,
+        #                                                       gamma=self.lr_decay)
         
         self.criterion = nn.SmoothL1Loss()
 
@@ -363,9 +363,9 @@ class STWA_MultiVarModel(MultiVarModelBase):
     def forward(self, x, aux_info: dict = ...):
         x_hist = x[:, :self.input_len, :, :]
         truth = x[:, self.input_len:(self.input_len+self.pred_len), :, :]
-        x_hist = self.normalizer.transform(x_hist)
+        # x_hist = self.normalizer.transform(x_hist)
         y_pred = self.model(x_hist)
-        y_pred = self.normalizer.inverse_transform(y_pred)
+        # y_pred = self.normalizer.inverse_transform(y_pred)
 
         return y_pred, truth
     

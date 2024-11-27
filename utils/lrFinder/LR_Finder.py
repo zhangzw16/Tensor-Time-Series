@@ -7,13 +7,14 @@ from models.model_base import ModelBase
 from models import ModelManager
 
 class LRFinder_Manager:
-    def __init__(self, model_name:str, model_configs:dict, trainloader, valloader, output_dir:str, device:str='cuda') -> None:
+    def __init__(self, model_name:str, model_configs:dict, trainloader, valloader, output_dir:str, normalizer, device:str='cuda') -> None:
         # basic configs
         self.model_name = model_name
         self.model_configs = model_configs
         self.trainloader = trainloader
         self.valloader = valloader
         self.output_dir = output_dir
+        self.normalizer = normalizer
         self.device = device
         # init model
         model_manager = ModelManager()
@@ -32,7 +33,7 @@ class LRFinder_Manager:
         for param_group, lr in zip(self.model.optim.param_groups, new_lrs):
             param_group['lr'] = lr
 
-    def search_lr(self, lr_start=1e-6, lr_end=1, num_iter=500, smooth_f=0.05, diverge_th=5):
+    def search_lr(self, lr_start=1e-4, lr_end=1e-2, num_iter=64, smooth_f=0.05, diverge_th=5, diverge_paience_thres=3):
         self.lr_start = lr_start
         self.lr_end = lr_end
         # calculate the multiple of lr
@@ -43,19 +44,24 @@ class LRFinder_Manager:
         # initialization
         n_iter = 0
         smoothed_loss = 0.0
+        diverge_paience = 0
 
         # model to device
         self.model.set_device(self.device)
         with tqdm(total=num_iter, desc="Searching optimal learning rate") as pbar:
-            for _ in range(num_iter):
+            while n_iter < num_iter:
                 for seq in self.trainloader:
                     n_iter += 1
                     current_lr = self._get_current_lr()
                     # trainning
                     self.model.train()
-                    seq = seq.to(self.device)
-                    pred, truth = self.model.forward(seq)
-                    loss = self.model.get_loss(pred, truth)
+                    # normalize the input
+                    norm_seq = self.normalizer.transform(seq)
+                    norm_seq = norm_seq.to(self.device)
+                    # forward and get loss
+                    norm_pred, norm_truth = self.model.forward(norm_seq)
+                    loss = self.model.get_loss(norm_pred, norm_truth)
+                    # backward
                     self.model.backward(loss)
                         
                     # smooth the loss
@@ -75,10 +81,12 @@ class LRFinder_Manager:
                         self.best_loss = smoothed_loss
                     else:
                         if smoothed_loss > diverge_th * self.best_loss:
-                            print("Stopping early, the loss has diverged")
-                            return
+                            diverge_paience += 1
                         if smoothed_loss < self.best_loss:
                             self.best_loss = smoothed_loss
+                            diverge_paience = 0
+                    if diverge_paience > diverge_paience_thres:
+                        return
                     
                     # update learning rate
                     new_lr = [lr * self.mult for lr in current_lr]
@@ -89,6 +97,9 @@ class LRFinder_Manager:
                     pbar.update(1)
                     if n_iter >= num_iter:
                         break
+                if n_iter >= num_iter:
+                        break
+                
     def save_plot(self):
         plt.figure()
         loss = np.log10(self.history["loss"])
@@ -103,7 +114,7 @@ class LRFinder_Manager:
 
         plt.xscale("log")
         plt.xlabel("Learning rate")
-        plt.ylabel("Loss(log10)")
+        plt.ylabel("Loss(log)")
         plt.savefig(os.path.join(self.output_dir, "lr_finder.png"))
         plt.close()
 

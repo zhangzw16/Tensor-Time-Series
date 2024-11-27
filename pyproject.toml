@@ -37,6 +37,8 @@ dependencies = [
     "pathlib",
     "datasets",
     "mambapy",
+    "mamba_ssm",
+    "tensorboard",
 ]
 
 [tool.setuptools]

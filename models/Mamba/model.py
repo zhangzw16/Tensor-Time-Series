@@ -751,10 +751,10 @@ class Mamba_TensorModel(TensorModelBase):
         # data loaded: [batch, hist+pred, dim1, dim2]
         # model need: [batch, hist, num_nodes(dim1), dim2]
         x_hist = x[:, :self.input_len, :, :]
-        x_hist = self.normalizer.transform(x_hist)
+        # x_hist = self.normalizer.transform(x_hist)
         # forward and transform
         y_pred = self.model(x_hist)
-        y_pred = self.normalizer.inverse_transform(y_pred)
+        # y_pred = self.normalizer.inverse_transform(y_pred)
         truth = x[:, self.input_len:self.input_len+self.pred_len, :, :]
 
         return y_pred, truth

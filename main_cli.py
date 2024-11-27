@@ -40,23 +40,25 @@ def parse_args():
     parser.add_argument('--dataset_base', type=str, default=DATASET_BASE, required=False,
                         help='[optional] str, dataset base path, default=DATASET_BASE')
     # [optional]
-    parser.add_argument('--batch_size', type=int, default=128, required=False,
-                        help='[optional] int, batch size, default=128, for some dataset, the batch size should small.')
+    parser.add_argument('--batch_size', type=int, default=256, required=False,
+                        help='[optional] int, batch size, default=256, for some dataset, the batch size should small.')
     parser.add_argument('--normalizer', type=str, default='std', required=False,
-                        help='[optional] str, normalizer, chose one from [\'none\', \'std\'], default=\'std\'')
+                        help='[optional] str, normalizer, chose one from [\'none\', \'std\', \'sklearn\'], default=\'std\'')
     
     # ---- 3. Training Configuration -----
     parser.add_argument('--model', type=str, required=True,
                         help='model name')
     # [optional]
+    parser.add_argument('--model_path', type=str, default='', required=False,
+                        help='[optional] str, model path, for test mode only, load the model from model_path. If mode is train, model_path will be ignored.')
     parser.add_argument('--graph_init', type=str, default='pearson', required=False,
                         help='[optional] str, graph_init, chose one from [\'pearson\', \'inverse_pearson\', \'random\', \'cosine\, \'unit\', default=\'pearson\'')
     parser.add_argument('--seed', type=int, default=2024, required=False,
                         help='[optional] int, random seed, default=2024')
-    parser.add_argument('--epochs', type=int, default=2024, required=False,
-                        help='[optional] int, default=2024')
-    parser.add_argument('--early_stop_max', type=int, default=32, required=False,
-                        help='[optional] int, early_stop_max, default=32')
+    parser.add_argument('--epochs', type=int, default=1024, required=False,
+                        help='[optional] int, default=1024')
+    parser.add_argument('--early_stop_max', type=int, default=10, required=False,
+                        help='[optional] int, early_stop_max, default=10')
     parser.add_argument('--early_stop_start_epoch', type=int, default=0, required=False,
                         help='[optional] int, early_stop_start_epoch, ignore early stop in first X epoches, default=0')
     parser.add_argument('--lr_finder', default=False, action='store_true', required=False,
@@ -108,9 +110,12 @@ if __name__=='__main__':
     basic_config['data_mode'] = args.data_mode
     basic_config['batch_size'] = args.batch_size
     basic_config['normalizer'] = args.normalizer
+    basic_config['dataset_base'] = args.dataset_base
+    DATASET_BASE = args.dataset_base
     
     # ---- 3. Training Configuration -----
     basic_config['model_name'] = args.model
+    basic_config['model_path'] = args.model_path
     basic_config['graph_init'] = args.graph_init
     basic_config['seed'] = args.seed
     basic_config['max_epoch'] = args.epochs
@@ -122,6 +127,43 @@ if __name__=='__main__':
     basic_config['weight_decay'] = args.weight_decay
     basic_config['scheduler'] = args.scheduler
 
+    # double check configs
+    if basic_config['mode'] == 'train':
+        basic_config['model_path'] = ''
+    elif basic_config['mode'] == 'test':
+        if basic_config['model_path'] == '':
+            raise ValueError("In test mode, model_path should not be empty.")
+        
+    NatureList = ['COVID_DEATHS', 'COVID_CHI', 'COVID_US']
+    if basic_config['dataset_name'] in NatureList:
+        basic_config['bacth_size'] = 1
+
+    # print("=====================================")
+    # print("Configs:")
+    # for k, v in basic_config.items():
+    #     print(f"{k}: {v}")
+    # exit()
+
+    # if this task is finished
+    task_path = os.path.join(basic_config['output_dir'], 'checkpoints')
+    TTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['data_mode']}-{basic_config['his_len']}-{basic_config['pred_len']}-{basic_config['graph_init']}-{basic_config['normalizer']}"
+    MTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['his_len']}-{basic_config['pred_len']}-{basic_config['data_mode']}-{basic_config['normalizer']}"
+    TTS_dirs = []
+    MTS_dirs = []
+    if os.path.exists(task_path) and basic_config['mode']=='train':
+        for dir_name in os.listdir(task_path):
+            if TTS_prefix in dir_name:
+                TTS_dirs.append(os.path.join(task_path, dir_name))
+            elif MTS_prefix in dir_name:
+                MTS_dirs.append(os.path.join(task_path, dir_name))
+        for dir_name in TTS_dirs:
+            if os.path.exists(os.path.join(dir_name, "model.pth")):
+                print(f"This task is finished in {dir_name}, continue to next one...")
+                exit()
+        for dir_name in MTS_dirs:
+            if os.path.exists(os.path.join(dir_name, "run_0", "model.pth")):
+                print(f"This task is finished in {dir_name}, continue to next one...")
+                exit()
     # timestamp
     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
     basic_config['timestamp'] = timestamp
@@ -129,7 +171,7 @@ if __name__=='__main__':
     log_dir = os.path.join(basic_config['output_dir'], 'log')
     EnsureDir(log_dir)
 
-    task_manager = TaskManager('checkpoints', basic_config['output_dir'], dataset_path=DATASET_BASE)
+    task_manager = TaskManager('checkpoints', basic_config['output_dir'], dataset_path=basic_config['dataset_base'])
     only_test = True if basic_config['mode']=='test' else False
     res = task_manager.TaskRun(basic_config['dataset_name'], basic_config['model_name'], basic_config, only_test=only_test)
 
@@ -139,6 +181,7 @@ if __name__=='__main__':
         'data_mode': basic_config['data_mode'],
         'graph_init': basic_config['graph_init'],
         'seed': basic_config['seed'],
+        'batch_szie': basic_config['batch_size'],
         'his_len': basic_config['his_len'],
         'pred_len': basic_config['pred_len'],
         'timestamp': timestamp,

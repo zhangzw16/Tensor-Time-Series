@@ -166,8 +166,15 @@ class PatchEmbedding(nn.Module):
         # do patching
         n_vars = x.shape[1]
         x = self.padding_patch_layer(x)
+        
+        # if x.shape[-1] < self.patch_len:
+        #     pad_size = self.patch_len - x.shape[-1]
+        #     x = F.pad(x, (0, pad_size))
+        # print(x.shape, self.patch_len, self.stride)
         x = x.unfold(dimension=-1, size=self.patch_len, step=self.stride)
+        # print(x.shape, self.patch_len, self.stride)
         x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))
+        # print(x.shape, self.patch_len, self.stride)
         # Input encoding
         x = self.value_embedding(x) + self.position_embedding(x)
         return self.dropout(x), n_vars

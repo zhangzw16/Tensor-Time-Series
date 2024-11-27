@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import torch.nn.functional as F
 from .layers.Transformer_EncDec import Encoder, EncoderLayer
 from .layers.SelfAttention_Family import FullAttention, AttentionLayer
 from .layers.Embed import PatchEmbedding
@@ -34,6 +35,7 @@ class Model(nn.Module):
         self.task_name = configs.task_name
         self.seq_len = configs.seq_len
         self.pred_len = configs.pred_len
+        self.patch_len = patch_len
         padding = stride
 
         # patching and embedding
@@ -305,12 +307,12 @@ class PatchTST_MultiVarModel(MultiVarModelBase):
         parser.add_argument('--output_attention', type = bool, default= False, help='whether to output attention in ecoder')
 
         # optimization
-        parser.add_argument('--num_workers', type=int, default=10, help='data loader num workers')
+        # parser.add_argument('--num_workers', type=int, default=10, help='data loader num workers')
         parser.add_argument('--itr', type=int, default=1, help='experiments times')
-        parser.add_argument('--train_epochs', type=int, default=10, help='train epochs')
-        parser.add_argument('--batch_size', type=int, default=32, help='batch size of train input data')
-        parser.add_argument('--patience', type=int, default=3, help='early stopping patience')
-        parser.add_argument('--learning_rate', type=float, default=0.0001, help='optimizer learning rate')
+        # parser.add_argument('--train_epochs', type=int, default=10, help='train epochs')
+        parser.add_argument('--batch_size', type=int, default=self.configs['batch_size'], help='batch size of train input data')
+        # parser.add_argument('--patience', type=int, default=3, help='early stopping patience')
+        # parser.add_argument('--learning_rate', type=float, default=0.0001, help='optimizer learning rate')
         parser.add_argument('--des', type=str, default='test', help='exp description')
         parser.add_argument('--loss', type=str, default='MSE', help='loss function')
         parser.add_argument('--lradj', type=str, default='type1', help='adjust learning rate')
@@ -318,9 +320,9 @@ class PatchTST_MultiVarModel(MultiVarModelBase):
 
         # GPU
         parser.add_argument('--use_gpu', type=bool, default=True, help='use gpu')
-        parser.add_argument('--gpu', type=int, default=0, help='gpu')
-        parser.add_argument('--use_multi_gpu', type = bool, default= False, help='use multiple gpus')
-        parser.add_argument('--devices', type=str, default='0,1,2,3', help='device ids of multile gpus')
+        # parser.add_argument('--gpu', type=int, default=0, help='gpu')
+        # parser.add_argument('--use_multi_gpu', type = bool, default= False, help='use multiple gpus')
+        # parser.add_argument('--devices', type=str, default=self.configs['device'], help='device ids of multile gpus')
 
         # de-stationary projector params
         parser.add_argument('--p_hidden_dims', type=int, nargs='+', default=[128, 128],
@@ -383,10 +385,12 @@ class PatchTST_MultiVarModel(MultiVarModelBase):
             dec_inp = torch.zeros_like(truth).float().to(x.device)
             dec_inp = torch.cat([in_data, dec_inp], dim=1).float().to(x.device)
             # normalization
-            in_data = self.normalizer.transform(in_data)
+            # in_data = self.normalizer.transform(in_data)
+            patch_len = self.model.patch_len
+            # print(f"patch_len: {patch_len}, in_data.shape: {in_data.shape}")
             pred = self.model(in_data, None, dec_inp, None)
             # inverse
-            pred = self.normalizer.inverse_transform(pred)
+            # pred = self.normalizer.inverse_transform(pred)
 
             return pred, truth
             

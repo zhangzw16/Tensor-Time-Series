@@ -95,7 +95,7 @@ class LTSF_MultiVarModel(MultiVarModelBase):
         # model need: (batch, time(hist), dim1*dim2), so squeeze needed
         x1 = x[:, : self.input_len, :, :]
         x_hist = x1.squeeze(-1)
-        x_hist = self.normalizer.transform(x_hist)  # normalizer added
+        # x_hist = self.normalizer.transform(x_hist)  # normalizer added
 
         # model is channel independent
         outputs = torch.zeros(x.size(0), self.pred_len, self.channels).to(self.device)

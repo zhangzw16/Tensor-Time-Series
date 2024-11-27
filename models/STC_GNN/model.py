@@ -355,9 +355,9 @@ class STC_GNN_TensorModel(TensorModelBase):
         value = x[:, :, :self.tensor_shape[0], :self.tensor_shape[1]] # ensure the input shape
         in_data = value[:, :self.input_len, :, :]
         truth = value[:, self.input_len:self.input_len+self.pred_len, :, :]
-        in_data = self.normalizer.transform(in_data)
+        # in_data = self.normalizer.transform(in_data)
         pred = self.model(X_seq=in_data, As=self.As, Ac=self.Ac)
-        pred = self.normalizer.inverse_transform(pred)
+        # pred = self.normalizer.inverse_transform(pred)
         return pred, truth
     
     def backward(self, loss):

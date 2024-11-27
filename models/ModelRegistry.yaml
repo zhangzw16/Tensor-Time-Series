@@ -3,14 +3,24 @@
 ModelType:
   Tensor:
     - NET3
+    - NET3_unit
+    - NET3_MLP
     - DCRNN
     - GraphWaveNet
+    - GraphWaveNet_unit
+    - GraphWaveNet_wo_GCN
+    - GraphWaveNet_wo_GCN_TCN
     - AGCRN
     - MTGNN
+    - MTGNN_unit
+    - MTGNN_wo_GCN
     - TTS_Norm
     - ST_Norm
     - GMRL
-    - NET3_MLP
+    - GCGRU
+    - GCLSTM
+    - Mamba
+    - STC_GNN
 
   MultiVar:
     - TimesNet
@@ -18,13 +28,16 @@ ModelType:
     - AutoFormer
     - CrossFormer
     - PatchTST
-    - DLTSF
+    - DLinear
     - LTSF
     - LTSF_share
-    - NLTSF
+    - NLinear
+    - STID
+    - STWA
     
   Stat:
     - HM
+    - HI
 
 # Optional Registry
 GraphModel:

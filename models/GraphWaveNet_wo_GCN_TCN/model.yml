@@ -1,0 +1,12 @@
+dropout: 0.3
+gcn_bool: true
+addaptadj: true
+aptinit: false
+residual_channels: 32
+dilation_channels: 32
+skip_channels: 256
+end_channels: 512
+kernel_size: 2
+blocks: 4
+layers: 2
+# !!! abs(his_len - pred_len) <= block*(2**layer-1) 

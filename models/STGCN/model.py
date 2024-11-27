@@ -353,9 +353,9 @@ class STGCN_MultiVarModel(MultiVarModelBase):
         x_hist = x1.permute(0, 3, 1, 2)
         y = x[:, self.input_len + self.pred_len - 1, :, :]
         truth = y.squeeze()
-        x_hist = self.normalizer.transform(x_hist)
+        # x_hist = self.normalizer.transform(x_hist)
         y_pred = self.model(x_hist).view(len(x), -1)  # y_pred: [batch_size, n_vertex]
-        y_pred = self.normalizer.inverse_transform(y_pred)
+        # y_pred = self.normalizer.inverse_transform(y_pred)
         # print(f"{y_pred.shape}, {truth.shape}")
         # exit()
         return y_pred, truth

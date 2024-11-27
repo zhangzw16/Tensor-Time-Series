@@ -20,7 +20,7 @@ output_dir='./output'
 train_test='train'
 device='cuda'
 logger='none'
-
+seed=2024
 # 2. Dataset configuration
 batch_size=128
 his_len=96
@@ -44,9 +44,15 @@ while [[ "$#" -gt 0 ]]; do
         --model) model="$2"; shift ;;
         --his_len) his_len="$2"; shift ;;
         --pred_len) pred_len="$2"; shift ;;
+        --batch_size) batch_size="$2"; shift ;;
         --output_dir) output_dir="$2"; shift ;;
         --task_name) task_name="$2"; shift ;;
         --dataset_base) dataset_base="$2"; shift ;;
+        --seed) seed="$2"; shift ;;
+        --graph_init) graph_init="$2"; shift ;;
+        --logger) logger="$2"; shift ;;
+        --normalizer) normalizer="$2"; shift ;;
+        --data_mode) data_mode="$2"; shift ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
