@@ -3,8 +3,11 @@
 ModelType:
   Tensor:
     - NET3
+    - NET3_unit
+    - NET3_MLP
     - DCRNN
     - GraphWaveNet
+    - GraphWaveNet_unit
     - GraphWaveNet_wo_GCN
     - GraphWaveNet_wo_GCN_TCN
     - AGCRN
@@ -14,7 +17,6 @@ ModelType:
     - TTS_Norm
     - ST_Norm
     - GMRL
-    - NET3_MLP
     - GCGRU
     - GCLSTM
     - Mamba

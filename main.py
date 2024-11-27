@@ -19,7 +19,7 @@ def EnsureDir(output_dir:str):
 
 if __name__=='__main__':
     # set model and dataset
-    model_name = 'PatchTST'
+    model_name = 'GraphWaveNet_unit'
     dataset_name = 'PEMS07'
     basic_config = get_config_template(model_name)
     # update basic_config
@@ -45,7 +45,7 @@ if __name__=='__main__':
     # ---- 3. Training Configuration -----
     basic_config['model_name'] = model_name
     basic_config['model_path'] = ''
-    basic_config['graph_init'] = 'pearson'
+    basic_config['graph_init'] = 'unit'
     basic_config['seed'] = 2024
     basic_config['max_epoch'] = 2024
     basic_config['early_stop_max'] = 32
