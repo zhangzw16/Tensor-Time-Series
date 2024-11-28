@@ -8,7 +8,7 @@ from .layers.net import gtnet
 from .layers import utils
 from models.model_base import TensorModelBase
 
-class MTGNN_TensorModel(TensorModelBase):
+class MTGNN_unit_TensorModel(TensorModelBase):
     def __init__(self, configs:dict={})->None:
         super().__init__(configs)
         self.configs = configs
