@@ -7,7 +7,7 @@ source $SCRIPT_DIR/env.sh
 
 # 模型配置
 # ModelList=("STC_GNN" "AGCRN" "GCGRU" "GraphWaveNet" "STWA")
-ModelList=("Mamba" "MTGNN" "ST_Norm" "TTS_Norm" "TimesNet" "StemGNN" "STID")
+ModelList=("AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" )
 
 # 运行
 HisLenList=(96 256)
