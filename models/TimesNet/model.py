@@ -19,7 +19,6 @@ class TimesNet_MultiVarModel(MultiVarModelBase):
         self.tensor_shape = self.configs['tensor_shape']
         # print(self.tensor_shape);exit()
         self.num_var = int(self.tensor_shape[0]*self.tensor_shape[1])
-        self.normalizer = self.configs['normalizer']
         self.input_len = self.configs['his_len']
         self.pred_len = self.configs['pred_len']
         # read model configs
@@ -66,6 +65,7 @@ class TimesNet_MultiVarModel(MultiVarModelBase):
     def forward(self, x, aux_info: dict = ...):
         # x [batch, time, dim1, dim2]
         # TimesNet [batch, time, dim1*dim2]
+        # print(x.size())
         batch, time, dim1, dim2 = x.size()
         value = x.view(batch, time, dim1*dim2)
         in_data = value[:, :self.input_len, :]

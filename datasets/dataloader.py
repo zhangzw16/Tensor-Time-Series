@@ -62,7 +62,7 @@ class MTS_DataLoader:
         self.his_len = dataset.his_len
         self.pred_len = dataset.pred_len
         self.time_range = dataset.time_range
-        self.time_series_num = dataset.time_series_num
+        self.time_series_num = dataset.subset_num
         self.batch_size = batch_size
         self.drop_last = drop_last
         self.data_index = self.dataset.get_dataset(name)

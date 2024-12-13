@@ -396,7 +396,7 @@ class GCLSTM_TensorModel(TensorModelBase):
 
         # prepare adjacency matrix
         self.graph_generator = self.configs["graphGenerator"]
-        self.adj = self.graph_generator.gen_graph(n_dim=0, normal=True)
+        self.adj = self.graph_generator.load_graph(n_dim=0, normal=True)
 
         # load learning parameters
         self.lr = model_configs['lr']

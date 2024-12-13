@@ -14,6 +14,7 @@ TTM
 Processed_Data
 Tensor_output
 visual
+graph_generate.py
 # *.sh
 
 .amltconfig

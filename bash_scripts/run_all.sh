@@ -19,9 +19,9 @@ HisLenList=(48)
 PredLenList=(12)
 
 # 模型列表
-# TensorModelList=("NET3" "DCRNN" "AGCRN" "MTGNN" "ST_Norm" "TTS_Norm" "GRML" "GCGRU" "Mamba" "STC_GNN" "GraphWaveNet")
+# TensorModelList=("NET3" "DCRNN" "AGCRN" "MTGNN" "ST_Norm" "TTS_Norm" "GMRL" "GCGRU" "Mamba" "STC_GNN" "GraphWaveNet")
 # MultivarModelList=("TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID" "STWA")
-TensorModelList=("MTGNN" "ST_Norm" "TTS_Norm" "GRML" "GCGRU" "Mamba" )  # faster
+TensorModelList=("MTGNN" "ST_Norm" "TTS_Norm" "GMRL" "GCGRU" "Mamba" )  # faster
 # TensorModelList=("NET3" "DCRNN" "AGCRN" "STC_GNN" "GraphWaveNet")       # slower
 MultivarModelList=("TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID")   # faster
 # MultivarModelList=("STWA") # slower

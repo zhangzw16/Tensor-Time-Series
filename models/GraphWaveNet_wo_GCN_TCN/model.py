@@ -45,7 +45,7 @@ class GraphWaveNet_wo_GCN_TCN_TensorModel(TensorModelBase):
         if self.aptinit:
             self.supports = None
         else:
-            graph = self.configs['graphGenerator'].gen_graph(n_dim=0, normal=True)
+            graph = self.configs['graphGenerator'].load_graph(n_dim=0, normal=True)
             graph = torch.from_numpy(graph).float()
             self.supports = [graph]
             self.aptinit = graph
