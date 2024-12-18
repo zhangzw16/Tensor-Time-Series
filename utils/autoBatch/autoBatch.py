@@ -36,16 +36,24 @@ class AutoBatch:
         self.model.set_device('cuda')
         self.model.train()
         dataloader = DataLoader(self.dataset, batch_size=batch, shuffle=False, drop_last=False)
+        # optimizer = torch.optim.Adam(self.model.model.parameters(), lr=1e-4)
         for seq in dataloader:
             # batch data = (batch, time, dim1, dim2)
             seq = seq.to('cuda')
+            # print(f"AutoBatch: {batch}, seq: {seq.shape}")
             pred, truth = self.model.forward(seq)
+            loss = self.model.get_loss(pred, truth)
+            self.model.backward(loss)
+            # optimizer.zero_grad()
+            # loss.backward()
+            # optimizer.step()
             break
-        torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()
 
     def search_batch(self):
         while self.init_batch > 1:
             try:
+                # torch.cuda.empty_cache()
                 self.load_to_GPU(self.init_batch)
                 if self.verbose:
                     print(f"Batch: {self.init_batch} OK!")
@@ -55,7 +63,9 @@ class AutoBatch:
                     print(f"Batch: {self.init_batch} failed...")
                     self.update_func()
                     print(f"Try next batch size: {self.init_batch}")
+                    # torch.cuda.empty_cache()
                 else:
+                    # torch.cuda.empty_cache()
                     raise
 
     def exp_strategy(self, factor=2):

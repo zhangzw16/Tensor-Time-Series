@@ -5,7 +5,7 @@ import yaml
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
-
+import gc
 from tasks.task_base import TaskBase
 from models import ModelManager
 from datasets.dataset import MTS_DatasetManager
@@ -86,29 +86,30 @@ class MultivarTask(TaskBase):
         model_configs = self.configs.copy()
         model_configs['tensor_shape'] = self.dataset.get_tensor_shape()
         # model_configs['dim_num'] = self.dataset.get_modality_num()
-        self.timer.mark_start_time('model_init')
-        self.model = model_manager.get_model_class(self.model_name)(model_configs)
-        model_init_time = self.timer.mark_end_time('model_init')
-        self.timer.mark_start_time('model_set_device')
-        self.model.set_device(self.device)
-        model_set_device_time = self.timer.mark_end_time('model_set_device')
-        print(f"Preparation for model ({self.model_type}, {self.model_name}) is done.")
-        print(f"Duration >> Model Init: {model_init_time:.4f}s, Model Set Device: {model_set_device_time:.4f}s")
+        test_model = model_manager.get_model_class(self.model_name)(model_configs)
+        test_model.set_device(self.device)
+        
         # prepare for dataloader
         self.trainset = MTS_Dataset_Torch(self.dataset, 'train', subset_idx=subset_idx)
         self.validset = MTS_Dataset_Torch(self.dataset, 'valid', subset_idx=subset_idx)
         self.testset = MTS_Dataset_Torch(self.dataset, 'test', subset_idx=subset_idx)
+        
         # AutoBatch
         print(f">>>> Batch_size: {self.batch_size}")
         if self.batch_size == 0:
             print(">>>> Batch_size is 0, search best batch size...")
-            autoBatchManager = AutoBatch(self.model, self.trainset)
+            autoBatchManager = AutoBatch(test_model, self.trainset)
             self.timer.mark_start_time('auto_batch')
             best_batch_size = autoBatchManager.search_batch()
             auto_batch_time = self.timer.mark_end_time('auto_batch')
             print(f"Best BachSize: {best_batch_size} ({auto_batch_time:.4f}s)")
             self.batch_size = best_batch_size
             self.configs['batch_size'] = best_batch_size
+            test_model.set_device('cpu')
+            del autoBatchManager
+            gc.collect()
+            torch.cuda.empty_cache()
+
 
         self.trainloader = DataLoader(self.trainset, batch_size=self.batch_size, shuffle=True, drop_last=False)
         self.validloader = DataLoader(self.validset, batch_size=self.batch_size, shuffle=False, drop_last=False)
@@ -119,7 +120,7 @@ class MultivarTask(TaskBase):
         # LR Finder
         if model_configs['lr_finder'] and model_configs['mode'] == 'train':
             print("LR Finder is enable")
-            lr_finder_manager = LRFinder_Manager(self.model_name, model_configs, self.trainloader, self.validloader, self.run_dir, self.normalizer, self.device)
+            lr_finder_manager = LRFinder_Manager(test_model, self.trainloader, self.validloader, self.run_dir, self.device)
             self.timer.mark_start_time('lr_finder')
             lr_finder_manager.search_lr()
             lr_finder_time = self.timer.mark_end_time('lr_finder')
@@ -127,11 +128,27 @@ class MultivarTask(TaskBase):
             lr_finder_manager.save_plot()
             print(f"LR Finder is done. The best learning rate is: {best_mean_lr} ({lr_finder_time:.4f}s)")
             print(f"plot is saved in {self.run_dir}/lr_finder.png")
-            lr_finder_manager.set_optim_with_lr(self.model, best_mean_lr)
+            # lr_finder_manager.set_optim_with_lr(self.model, best_mean_lr)
             self.configs['lr'] = best_mean_lr
-            # for param_group in self.model.optim.param_groups:
-            #     print(f"Learning rate: {param_group['lr']}")
-            # exit()
+            del lr_finder_manager
+            gc.collect()
+            torch.cuda.empty_cache()
+
+        # init model
+        test_model.set_device('cpu')
+        del test_model
+        gc.collect()
+        torch.cuda.empty_cache()
+        print("clear cache...")
+        # input
+        self.timer.mark_start_time('model_init')
+        self.model = model_manager.get_model_class(self.model_name)(model_configs)
+        model_init_time = self.timer.mark_end_time('model_init')
+        self.timer.mark_start_time('model_set_device')
+        self.model.set_device(self.device)
+        model_set_device_time = self.timer.mark_end_time('model_set_device')
+        print(f"Preparation for model ({self.model_type}, {self.model_name}) is done.")
+        print(f"Duration >> Model Init: {model_init_time:.4f}s, Model Set Device: {model_set_device_time:.4f}s")
 
         # prepare for scheduler
         self.scheduler_manager = SchedulerManager()

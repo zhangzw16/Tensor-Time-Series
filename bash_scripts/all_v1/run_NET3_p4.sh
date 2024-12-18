@@ -10,9 +10,9 @@ ModelList=("NET3")
 
 # 运行
 HisLenList=(256)
-PredLenList=(6 12 48)
+PredLenList=(12 48)
 batch_size=0  # 设置 0 开启 AutoBatch
-DatasetList=('crypto12' 'METRO_HZ' 'stocknet' 'ETT_hour' 'JONAS_NYC_taxi' 'JONAS_NYC_bike' 'weather' 'Metr-LA' 'PEMS03' 'electricity' 'METRO_SH' 'Jena_climate' 'nasdaq100' 'PEMSBAY')
+DatasetList=('crypto12' 'METRO_HZ' 'stocknet' 'ETT_hour' 'JONAS_NYC_taxi' 'JONAS_NYC_bike' 'weather' 'Metr-LA' 'electricity' 'METRO_SH' 'Jena_climate' 'nasdaq100')
 # 时间统计
 # +----------------+----------+
 # |  dataset_name  | one_epoch|

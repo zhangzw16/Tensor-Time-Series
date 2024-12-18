@@ -3,6 +3,7 @@ import os
 import pickle
 import scipy
 import scipy.stats
+from tqdm import tqdm
 from sklearn.metrics.pairwise import cosine_similarity
 
 from datasets.dataset import TTS_DatasetManager
@@ -39,6 +40,8 @@ class GraphGenerator:
         if n_dim == 0:
             self.data = self.data.transpose(0,2,1)
         graph = np.zeros((dim, dim))
+        total_num = int(dim*(dim+1)) // 2
+        progress_bar = tqdm(total=total_num, desc=f'Generating Pearson Matrix --> {dim}x{dim}')
         for i in range(dim):
             seq_i = self.data[:, :, i].flatten()
             for j in range(i, dim):
@@ -50,10 +53,13 @@ class GraphGenerator:
                         p = scipy.stats.pearsonr(seq_i, seq_j)[0]
                     if normal:
                         p = np.abs(p)
-                except:
+                except KeyboardInterrupt:
+                    exit()
+                except :
                     p = 0
                 graph[i,j] = p
                 graph[j,i] = p
+                progress_bar.update(1)
         return graph
 
     def inverse_pearson_matrix(self, n_dim:int, normal=True):
@@ -86,6 +92,7 @@ class GraphGenerator:
         if n_dim == 0:
             self.data = self.data.transpose(0,2,1)
         graph = np.zeros((dim, dim))
+        progress_bar = tqdm(total=dim*dim/2+dim, desc=f'Generating Cosine Matrix--> {dim}x{dim}')
         for i in range(dim):
             seq_i = self.data[:, :, i]
             for j in range(i, dim):
@@ -94,10 +101,13 @@ class GraphGenerator:
                     try: 
                         sim = cosine_similarity(seq_i, seq_j)[0][0]
                         sim = (sim+1)/2
+                    except KeyboardInterrupt:
+                        exit()
                     except:
                         sim = 0.5
                 graph[i,j] = sim
                 graph[j,i] = sim
+                progress_bar.update(1)
         return graph
     
     def load_pkl_graph(self, pkl_path:str):

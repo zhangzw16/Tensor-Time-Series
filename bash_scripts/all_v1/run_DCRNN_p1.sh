@@ -10,11 +10,11 @@ ModelList=("DCRNN")
 
 # 运行
 HisLenList=(12)
-PredLenList=(6 12 48)
+PredLenList=(12 48)
 batch_size=0  # 设置 0 开启 AutoBatch
 # 共 16 个数据集
 # DatasetList=('crypto12' 'COVID_CHI' 'COVID_DEATHS' 'stocknet' 'COVID_US' 'METRO_HZ' 'ETT_hour' 'JONAS_NYC_bike' 'weather' 'JONAS_NYC_taxi' 'Jena_climate' 'METRO_SH' 'nasdaq100' 'Metr-LA' 'electricity' 'PEMSBAY')
-DatasetList=('crypto12' 'stocknet' 'METRO_HZ' 'ETT_hour' 'JONAS_NYC_bike' 'weather' 'JONAS_NYC_taxi' 'Jena_climate' 'METRO_SH' 'nasdaq100' 'Metr-LA' 'electricity' 'PEMSBAY')
+DatasetList=('crypto12' 'stocknet' 'METRO_HZ' 'ETT_hour' 'JONAS_NYC_bike' 'weather' 'JONAS_NYC_taxi' 'Jena_climate' 'METRO_SH' 'nasdaq100' 'Metr-LA' 'electricity')
 # 时间统计
 # +----------------+----------+
 # |  dataset_name  | one_epoch|

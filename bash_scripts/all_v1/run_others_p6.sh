@@ -10,12 +10,12 @@ source $SCRIPT_DIR/env.sh
 ModelList=("Mamba" "MTGNN" "ST_Norm" "TTS_Norm" "TimesNet" "StemGNN" "STID")
 
 # 运行
-HisLenList=(96 256)
-PredLenList=(6 12 48)
+HisLenList=(96)
+PredLenList=(12 48)
 batch_size=0  # 设置 0 开启 AutoBatch
 # 共 16 个数据集
 # DatasetList=('COVID_DEATHS' 'crypto12' 'METRO_HZ' 'COVID_CHI' 'stocknet' 'ETT_hour' 'COVID_US' 'JONAS_NYC_taxi' 'JONAS_NYC_bike' 'weather' 'Metr-LA' 'electricity' 'METRO_SH' 'Jena_climate' 'nasdaq100' 'PEMSBAY')
-DatasetList=('crypto12' 'METRO_HZ' 'stocknet' 'ETT_hour' 'JONAS_NYC_taxi' 'JONAS_NYC_bike' 'weather' 'Metr-LA' 'PEMS03' 'electricity' 'METRO_SH' 'Jena_climate' 'nasdaq100' 'PEMSBAY')
+DatasetList=('crypto12' 'METRO_HZ' 'stocknet' 'ETT_hour' 'JONAS_NYC_taxi' 'JONAS_NYC_bike' 'weather' 'Metr-LA' 'electricity' 'METRO_SH' 'Jena_climate' 'nasdaq100')
 
 # ==================== Traffic + Weather + Energy + Finance Datasets ====================
 for his_len in ${HisLenList[@]}; do

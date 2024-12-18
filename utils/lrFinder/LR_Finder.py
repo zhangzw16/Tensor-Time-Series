@@ -7,18 +7,18 @@ from models.model_base import ModelBase
 from models import ModelManager
 
 class LRFinder_Manager:
-    def __init__(self, model_name:str, model_configs:dict, trainloader, valloader, output_dir:str, normalizer, device:str='cuda') -> None:
+    def __init__(self, model, trainloader, valloader, output_dir:str, device:str='cuda') -> None:
         # basic configs
-        self.model_name = model_name
-        self.model_configs = model_configs
+        # self.model_name = model_name
+        # self.model_configs = model_configs
         self.trainloader = trainloader
         self.valloader = valloader
         self.output_dir = output_dir
-        self.normalizer = normalizer
+        # self.normalizer = normalizer
         self.device = device
         # init model
-        model_manager = ModelManager()
-        self.model = model_manager.get_model_class(self.model_name)(model_configs)
+        # model_manager = ModelManager()
+        self.model = model
         self.history = {"lr": [], "mean_lr": [], "loss": []}
         self.best_loss = None
 
@@ -56,7 +56,7 @@ class LRFinder_Manager:
                     # trainning
                     self.model.train()
                     # normalize the input
-                    norm_seq = self.normalizer.transform(seq)
+                    norm_seq = seq
                     norm_seq = norm_seq.to(self.device)
                     # forward and get loss
                     norm_pred, norm_truth = self.model.forward(norm_seq)

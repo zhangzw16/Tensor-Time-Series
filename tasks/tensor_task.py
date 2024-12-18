@@ -4,7 +4,7 @@ import yaml
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
-
+import gc
 from tasks.task_base import TaskBase
 from models import ModelManager
 from datasets.dataset import TTS_DatasetManager
@@ -83,24 +83,24 @@ class TensorTask(TaskBase):
         graph_init = model_configs['graph_init']
         model_configs['graphGenerator'] = GraphGeneratorManager(graph_init, self.dataset)
         model_configs['tensor_shape'] = self.dataset.get_tensor_shape()
-        self.timer.mark_start_time('model_init')
-        self.model = model_manager.get_model_class(self.model_name)(model_configs)
-        model_init_time = self.timer.mark_end_time('model_init')
-        self.timer.mark_start_time('model_set_device')
-        self.model.set_device(self.device)
-        model_set_device_time = self.timer.mark_end_time('model_set_device')
-        print(f"Preparation for model ({self.model_type}, {self.model_name}) is done.")
-        print(f"Duration >> Model Init: {model_init_time:.4f}s, Model Set Device: {model_set_device_time:.4f}s")
+
+
+        test_model = model_manager.get_model_class(self.model_name)(model_configs)
+        test_model.set_device(self.device)
+
         # AutoBatch
         print(f">>>> Batch_size: {self.batch_size}")
         if self.batch_size == 0:
             print(">>>> Batch_size is 0, search best batch size...")
-            autoBatchManager = AutoBatch(self.model, self.trainset)
+            autoBatchManager = AutoBatch(test_model, self.trainset)
             self.timer.mark_start_time('auto_batch')
             best_batch_size = autoBatchManager.search_batch()
             auto_batch_time = self.timer.mark_end_time('auto_batch')
             print(f"Best BachSize: {best_batch_size} ({auto_batch_time:.4f}s)") 
             self.batch_size = best_batch_size
+            del autoBatchManager
+            gc.collect()
+            torch.cuda.empty_cache()
 
         self.trainloader = DataLoader(self.trainset, batch_size=self.batch_size, shuffle=True, drop_last=False)
         self.validloader = DataLoader(self.validset, batch_size=self.batch_size, shuffle=False, drop_last=False)
@@ -114,7 +114,7 @@ class TensorTask(TaskBase):
             graph_init = model_configs['graph_init']
             model_configs['graphGenerator'] = GraphGeneratorManager(graph_init, self.dataset)
             model_configs['tensor_shape'] = self.dataset.get_tensor_shape()
-            lr_finder_manager = LRFinder_Manager(self.model_name, model_configs, self.trainloader, self.validloader, self.output_dir, self.normalizer, self.device)
+            lr_finder_manager = LRFinder_Manager(test_model, self.trainloader, self.validloader, self.output_dir, self.device)
             self.timer.mark_start_time('lr_finder')
             lr_finder_manager.search_lr()
             lr_finder_time = self.timer.mark_end_time('lr_finder')
@@ -122,12 +122,28 @@ class TensorTask(TaskBase):
             lr_finder_manager.save_plot()
             print(f"LR Finder is done. The best learning rate is: {best_mean_lr} ({lr_finder_time:.4f}s)")
             print(f"plot is saved in {self.output_dir}/lr_finder.png")
-            lr_finder_manager.set_optim_with_lr(self.model, best_mean_lr)
+            # lr_finder_manager.set_optim_with_lr(self.model, best_mean_lr)
             self.configs['lr'] = best_mean_lr
-            # for param_group in self.model.optim.param_groups:
-            #     print(f"Learning rate: {param_group['lr']}")
-            # exit()
+            del lr_finder_manager
+            gc.collect()
+            torch.cuda.empty_cache()
 
+        # model
+        test_model.set_device('cpu')
+        del test_model
+        gc.collect()
+        torch.cuda.empty_cache()
+        print("clear cache...")
+        # input()
+        self.timer.mark_start_time('model_init')
+        self.model = model_manager.get_model_class(self.model_name)(model_configs)
+        model_init_time = self.timer.mark_end_time('model_init')
+        self.timer.mark_start_time('model_set_device')
+        self.model.set_device(self.device)
+        model_set_device_time = self.timer.mark_end_time('model_set_device')
+        print(f"Preparation for model ({self.model_type}, {self.model_name}) is done.")
+        print(f"Duration >> Model Init: {model_init_time:.4f}s, Model Set Device: {model_set_device_time:.4f}s")
+            
         # prepare for scheduler
         self.scheduler_manager = SchedulerManager()
         self.scheduler_name = self.configs['scheduler']
@@ -170,6 +186,7 @@ class TensorTask(TaskBase):
             epoch_info = {
                 'epoch': i,
             }
+            # print(f"Epoch: {i}")
             epoch_mean_train_loss, one_epoch_time_train = self.epoch_train()
             epoch_mean_valid_loss, valid_result, one_epoch_time_valid = self.epoch_valid()
             # scheduler
@@ -216,6 +233,7 @@ class TensorTask(TaskBase):
         for seq in self.trainloader:
             # normalization
             # print(seq.size()); exit()
+            self.timer.mark_start_time('one_seq')
             norm_seq = (seq)
             norm_seq = norm_seq.to(self.device)
             # forward & get_loss
@@ -225,6 +243,8 @@ class TensorTask(TaskBase):
             self.model.backward(epoch_train_loss)
             # record loss
             loss_list.append(epoch_train_loss.item())
+            one_seq_time = self.timer.mark_end_time('one_seq')
+            # print(f"one seq: {one_seq_time:.4f}s")
         one_epoch_time = self.timer.mark_end_time('one_epoch_train')
         print(f"one train epoch: {one_epoch_time:.4f}s")
         mean_loss = sum(loss_list)/len(loss_list)
