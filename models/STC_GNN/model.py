@@ -352,6 +352,7 @@ class STC_GNN_TensorModel(TensorModelBase):
     def forward(self, x, axu_info:dict={}):
         # x [batch, time, dim1, dm2], dim=graid * grid, dim2=categories
         # STC-GNN: (batch, time, grids, categories)
+        # print(x.shape)
         value = x[:, :, :self.tensor_shape[0], :self.tensor_shape[1]] # ensure the input shape
         in_data = value[:, :self.input_len, :, :]
         truth = value[:, self.input_len:self.input_len+self.pred_len, :, :]

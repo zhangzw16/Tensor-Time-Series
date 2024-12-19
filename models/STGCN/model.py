@@ -338,7 +338,7 @@ class STGCN_MultiVarModel(MultiVarModelBase):
         #                    0         1
         self.graph_generator = self.configs['graphGenerator']
         self.adj = torch.from_numpy(
-            self.graph_generator.gen_graph(n_dim=0, normal=True)
+            self.graph_generator.load_graph(n_dim=0, normal=True)
         ).float()
         self.n_vertex = self.adj.size(0)
 

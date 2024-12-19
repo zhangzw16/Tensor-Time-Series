@@ -146,16 +146,23 @@ if __name__=='__main__':
 
     # if this task is finished
     task_path = os.path.join(basic_config['output_dir'], 'checkpoints')
-    TTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['data_mode']}-{basic_config['his_len']}-{basic_config['pred_len']}-{basic_config['graph_init']}-{basic_config['normalizer']}"
+    GraphTTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['data_mode']}-{basic_config['his_len']}-{basic_config['pred_len']}-{basic_config['graph_init']}-{basic_config['normalizer']}"
+    NoGraphTTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['data_mode']}-{basic_config['his_len']}-{basic_config['pred_len']}-{basic_config['normalizer']}"
     MTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['his_len']}-{basic_config['pred_len']}-{basic_config['data_mode']}-{basic_config['normalizer']}"
     TTS_dirs = []
     MTS_dirs = []
     if os.path.exists(task_path) and basic_config['mode']=='train':
         for dir_name in os.listdir(task_path):
-            if TTS_prefix in dir_name:
+            if GraphTTS_prefix in dir_name:
+                TTS_dirs.append(os.path.join(task_path, dir_name))
+            elif NoGraphTTS_prefix in dir_name:
                 TTS_dirs.append(os.path.join(task_path, dir_name))
             elif MTS_prefix in dir_name:
                 MTS_dirs.append(os.path.join(task_path, dir_name))
+        # print(f"Check finished tasks in {task_path}")
+        # print(f"Task: {GraphTTS_prefix}")
+        # print(f"Task: {NoGraphTTS_prefix}")
+        # print(f"Task: {MTS_prefix}")
         for dir_name in TTS_dirs:
             if os.path.exists(os.path.join(dir_name, "model.pth")):
                 print(f"This task is finished in {dir_name}, continue to next one...")

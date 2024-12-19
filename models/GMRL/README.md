@@ -23,7 +23,7 @@ Maintained by ChongKaKam - zhuangjx23@mails.tsinghua.edu.cn
 + model input args:
     ```python
     '''
-    Model: GRML
+    Model: GMRL
     Args:
         - device: 'cpu' or 'cuda'
         - num_comp: number of Gaussian components

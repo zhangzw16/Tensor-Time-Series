@@ -16,11 +16,13 @@ def get_config_template(model_name:str):
 def EnsureDir(output_dir:str):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-
+# "NET3" "DCRNN" "AGCRN" "STC_GNN" "GraphWaveNet"
+# "MTGNN" "ST_Norm" "TTS_Norm" "GMRL" "GCGRU" "Mamba"
+# "TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID"
 if __name__=='__main__':
     # set model and dataset
-    model_name = 'GraphWaveNet_unit'
-    dataset_name = 'PEMS07'
+    model_name = 'STC_GNN'
+    dataset_name = 'Metr-LA'
     basic_config = get_config_template(model_name)
     # update basic_config
     # DATASET_BASE = 
@@ -39,7 +41,7 @@ if __name__=='__main__':
     basic_config['his_len'] = 12
     basic_config['pred_len'] = 12
     basic_config['data_mode'] = 0
-    basic_config['batch_size'] = 256
+    basic_config['batch_size'] = 0
     basic_config['normalizer'] = 'sklearn'
     
     # ---- 3. Training Configuration -----
@@ -50,7 +52,7 @@ if __name__=='__main__':
     basic_config['max_epoch'] = 2024
     basic_config['early_stop_max'] = 32
     basic_config['early_stop_start_epoch'] = 0
-    basic_config['lr_finder'] = False
+    basic_config['lr_finder'] = True 
     # basic_config['lr'] = '1e-7'
     basic_config['lr'] = '1e-4'
     basic_config['eps'] = '1e-8'

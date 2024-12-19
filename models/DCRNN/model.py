@@ -35,7 +35,7 @@ class DCRNN_TensorModel(TensorModelBase):
 
         # adj
         self.graph_generator = self.configs['graphGenerator']
-        self.adj_mat = self.graph_generator.gen_graph(n_dim=0, normal=True)
+        self.adj_mat = self.graph_generator.load_graph(n_dim=0)
 
         self.model = DCRNNModel(self.adj_mat, self.enc_input_dim, self.dec_input_dim,
                                 self.max_diffusion_step, self.tensor_shape[0],self.num_rnn_layers,

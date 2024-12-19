@@ -5,7 +5,7 @@ import yaml
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
-
+import gc
 from tasks.task_base import TaskBase
 from models import ModelManager
 from datasets.dataset import MTS_DatasetManager
@@ -43,7 +43,7 @@ class MultivarTask(TaskBase):
         self.data_mode = configs['data_mode']
         self.his_len = configs['his_len']
         self.pred_len = configs['pred_len']
-        normalizer_name = configs['normalizer']
+        self.normalizer_name = configs['normalizer']
         self.model_type = configs['model_type']
         self.model_name = configs['model_name']
 
@@ -53,7 +53,7 @@ class MultivarTask(TaskBase):
         if self.model_type != 'MultiVar':
             raise ValueError(f"model_type: {self.model_type} is not MultiVar.")
                
-        self.task_id = f"{self.dataset_name}-{self.model_name}-{self.his_len}-{self.pred_len}-{self.data_mode}-{normalizer_name}-{self.init_time_stamp}"
+        self.task_id = f"{self.dataset_name}-{self.model_name}-{self.his_len}-{self.pred_len}-{self.data_mode}-{self.normalizer_name}-{self.init_time_stamp}"
         self.output_dir = os.path.join(self.output_dir, self.project_name, self.task_id)
         self.ensure_output_dir(self.output_dir)
         with open(os.path.join(self.output_dir, 'configs.yml'), 'w') as file:
@@ -62,9 +62,9 @@ class MultivarTask(TaskBase):
         self.timer = Timer(self.model_name, self.dataset_name)
         # prepare for dataset
         self.dataset = MTS_DatasetManager(self.pkl_path, 
-                                   his_len=self.his_len, pred_len=self.pred_len ,
+                                   his_len=self.his_len, pred_len=self.pred_len, normalizer_name=self.normalizer_name,
                                    test_ratio=0.1, valid_ratio=0.1, seed=self.seed, data_mode=self.data_mode)
-        self.time_series_num = self.dataset.get_time_series_num()
+        self.subset_num = self.dataset.get_subset_num()
         # self.trainloader = MTS_DataLoader(self.dataset, 'train', batch_size=self.batch_size, drop_last=False)
         # self.validloader = MTS_DataLoader(self.dataset, 'valid', batch_size=self.batch_size, drop_last=False)
         # self.testloader = MTS_DataLoader(self.dataset, 'test', batch_size=self.batch_size, drop_last=False)
@@ -77,40 +77,39 @@ class MultivarTask(TaskBase):
         self.evaluator = Evaluator(self.metrics_list, self.metrics_thres)
         print(f"Preparation for evaluation is done.")
 
-    def init_new_model_logger(self, run_idx:int):
-        print(f"Init model and logger... ({int(run_idx+1)}/{self.time_series_num})")
-        self.run_dir = os.path.join(self.output_dir, f'run_{run_idx}')
+    def init_new_model_logger(self, subset_idx:int):
+        print(f"Init model and logger... ({int(subset_idx+1)}/{self.subset_num})")
+        self.run_dir = os.path.join(self.output_dir, f'run_{subset_idx}')
         self.ensure_output_dir(self.run_dir)
         # prepare for model
         model_manager = ModelManager()
         model_configs = self.configs.copy()
-        normalizer_name = model_configs['normalizer']
-        model_configs['tensor_shape'] = (self.dataset.get_dim_num() , 1)
-        self.normalizer = self.dataset.get_normalizer(normalizer_name)[run_idx]
-        model_configs['dim_num'] = self.dataset.get_dim_num()
-        self.timer.mark_start_time('model_init')
-        self.model = model_manager.get_model_class(self.model_name)(model_configs)
-        model_init_time = self.timer.mark_end_time('model_init')
-        self.timer.mark_start_time('model_set_device')
-        self.model.set_device(self.device)
-        model_set_device_time = self.timer.mark_end_time('model_set_device')
-        print(f"Preparation for model ({self.model_type}, {self.model_name}) is done.")
-        print(f"Duration >> Model Init: {model_init_time:.4f}s, Model Set Device: {model_set_device_time:.4f}s")
+        model_configs['tensor_shape'] = self.dataset.get_tensor_shape()
+        # model_configs['dim_num'] = self.dataset.get_modality_num()
+        test_model = model_manager.get_model_class(self.model_name)(model_configs)
+        test_model.set_device(self.device)
+        
         # prepare for dataloader
-        self.trainset = MTS_Dataset_Torch(self.dataset, 'train', ts_idx=run_idx)
-        self.validset = MTS_Dataset_Torch(self.dataset, 'valid', ts_idx=run_idx)
-        self.testset = MTS_Dataset_Torch(self.dataset, 'test', ts_idx=run_idx)
+        self.trainset = MTS_Dataset_Torch(self.dataset, 'train', subset_idx=subset_idx)
+        self.validset = MTS_Dataset_Torch(self.dataset, 'valid', subset_idx=subset_idx)
+        self.testset = MTS_Dataset_Torch(self.dataset, 'test', subset_idx=subset_idx)
+        
         # AutoBatch
         print(f">>>> Batch_size: {self.batch_size}")
         if self.batch_size == 0:
             print(">>>> Batch_size is 0, search best batch size...")
-            autoBatchManager = AutoBatch(self.model, self.trainset)
+            autoBatchManager = AutoBatch(test_model, self.trainset)
             self.timer.mark_start_time('auto_batch')
             best_batch_size = autoBatchManager.search_batch()
             auto_batch_time = self.timer.mark_end_time('auto_batch')
             print(f"Best BachSize: {best_batch_size} ({auto_batch_time:.4f}s)")
             self.batch_size = best_batch_size
             self.configs['batch_size'] = best_batch_size
+            test_model.set_device('cpu')
+            del autoBatchManager
+            gc.collect()
+            torch.cuda.empty_cache()
+
 
         self.trainloader = DataLoader(self.trainset, batch_size=self.batch_size, shuffle=True, drop_last=False)
         self.validloader = DataLoader(self.validset, batch_size=self.batch_size, shuffle=False, drop_last=False)
@@ -121,7 +120,7 @@ class MultivarTask(TaskBase):
         # LR Finder
         if model_configs['lr_finder'] and model_configs['mode'] == 'train':
             print("LR Finder is enable")
-            lr_finder_manager = LRFinder_Manager(self.model_name, model_configs, self.trainloader, self.validloader, self.run_dir, self.normalizer, self.device)
+            lr_finder_manager = LRFinder_Manager(test_model, self.trainloader, self.validloader, self.run_dir, self.device)
             self.timer.mark_start_time('lr_finder')
             lr_finder_manager.search_lr()
             lr_finder_time = self.timer.mark_end_time('lr_finder')
@@ -129,11 +128,27 @@ class MultivarTask(TaskBase):
             lr_finder_manager.save_plot()
             print(f"LR Finder is done. The best learning rate is: {best_mean_lr} ({lr_finder_time:.4f}s)")
             print(f"plot is saved in {self.run_dir}/lr_finder.png")
-            lr_finder_manager.set_optim_with_lr(self.model, best_mean_lr)
+            # lr_finder_manager.set_optim_with_lr(self.model, best_mean_lr)
             self.configs['lr'] = best_mean_lr
-            # for param_group in self.model.optim.param_groups:
-            #     print(f"Learning rate: {param_group['lr']}")
-            # exit()
+            del lr_finder_manager
+            gc.collect()
+            torch.cuda.empty_cache()
+
+        # init model
+        test_model.set_device('cpu')
+        del test_model
+        gc.collect()
+        torch.cuda.empty_cache()
+        print("clear cache...")
+        # input
+        self.timer.mark_start_time('model_init')
+        self.model = model_manager.get_model_class(self.model_name)(model_configs)
+        model_init_time = self.timer.mark_end_time('model_init')
+        self.timer.mark_start_time('model_set_device')
+        self.model.set_device(self.device)
+        model_set_device_time = self.timer.mark_end_time('model_set_device')
+        print(f"Preparation for model ({self.model_type}, {self.model_name}) is done.")
+        print(f"Duration >> Model Init: {model_init_time:.4f}s, Model Set Device: {model_set_device_time:.4f}s")
 
         # prepare for scheduler
         self.scheduler_manager = SchedulerManager()
@@ -155,7 +170,7 @@ class MultivarTask(TaskBase):
         print(f"Dataset: {self.pkl_path}")
         print(f"Data shape: {self.dataset.get_data_shape()}")
         print(f"Batch_size: {self.batch_size}")
-        print(f"his_len: {self.his_len}, pred_len: {self.pred_len}, normalizer: {normalizer_name}")
+        print(f"his_len: {self.his_len}, pred_len: {self.pred_len}, normalizer: {self.normalizer_name}")
         print(f"max_epoch: {self.max_epoch}, early_stop: {self.early_stop_max}")
         print(f"The output path: {self.run_dir}")
         print(f"LR Finder: {self.configs['lr_finder']}")
@@ -169,7 +184,9 @@ class MultivarTask(TaskBase):
         self.timer.mark_start_time('one_epoch_train')
         for seq in self.trainloader:
             # normalization
-            norm_seq = self.normalizer.transform(seq)
+            # print(seq.size())
+            # exit()
+            norm_seq = seq
             norm_seq = norm_seq.to(self.device)
             # forward & get loss
             norm_pred, norm_truth = self.model.forward(norm_seq)
@@ -194,7 +211,7 @@ class MultivarTask(TaskBase):
         with torch.no_grad():
             for seq in self.validloader:
                 # normalization
-                norm_seq = self.normalizer.transform(seq)
+                norm_seq = seq
                 norm_seq = norm_seq.to(self.device)
                 # forward & get loss
                 norm_pred, norm_truth = self.model.forward(norm_seq)
@@ -206,43 +223,44 @@ class MultivarTask(TaskBase):
                 norm_pred_list.append(norm_pred)
                 norm_truth_list.append(norm_truth)
                 # inverse normalization
-                pred = self.normalizer.inverse_transform(norm_pred)
-                truth = self.normalizer.inverse_transform(norm_truth)
-                pred_list.append(pred)
-                truth_list.append(truth)
+                # pred = self.normalizer.inverse_transform(norm_pred)
+                # truth = self.normalizer.inverse_transform(norm_truth)
+                # pred_list.append(pred)
+                # truth_list.append(truth)
         one_epoch_time = self.timer.mark_end_time('one_epoch_valid')
         print(f"one valid epoch: {one_epoch_time:.4f}s")
         mean_loss = sum(loss_list) / len(loss_list)
         # evaluation
-        pred = np.concatenate(pred_list, axis=0)
-        truth = np.concatenate(truth_list, axis=0)
+        # pred = np.concatenate(pred_list, axis=0)
+        # truth = np.concatenate(truth_list, axis=0)
         norm_pred = np.concatenate(norm_pred_list, axis=0)
         norm_truth = np.concatenate(norm_truth_list, axis=0)
-        result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
+        # result = self.evaluator.eval(pred, truth, verbose=self.eval_verbose)
         norm_result = self.evaluator.eval(norm_pred, norm_truth, verbose=self.eval_verbose)
         res = {
-            'res': result,
+            # 'res': result,
+            'res': {},
             'norm_res': norm_result
         }
         print(f"Valid result:\n{res}")
         return mean_loss, res, one_epoch_time
 
-    def train(self, idx_list:list=[]):
-        if idx_list == []:
-            idx_list = list(range(self.time_series_num))
-        for run_idx in idx_list:
+    def train(self, subset_list:list=[]):
+        if subset_list == []:
+            subset_list = list(range(self.subset_num))
+        for subset_idx in subset_list:
             # reset best_valid_loss
             self.best_valid_loss = math.inf
             self.early_stop_cnt = 0
             # init model and logger
-            self.init_new_model_logger(run_idx)
+            self.init_new_model_logger(subset_idx)
             self.best_epoch_info = {}
             for i in range(self.max_epoch):
                 epoch_info = {
                     'epoch': i,
                 }
-                epoch_mean_train_loss, one_epoch_time_train = self.epoch_train(run_idx)
-                epoch_mean_valid_loss, valid_result, one_epoch_time_valid = self.epoch_valid(run_idx)
+                epoch_mean_train_loss, one_epoch_time_train = self.epoch_train(subset_idx)
+                epoch_mean_valid_loss, valid_result, one_epoch_time_valid = self.epoch_valid(subset_idx)
                 # scheduler
                 if self.scheduler_name == 'ReduceLROnPlateau':
                     self.scheduler.step(epoch_mean_valid_loss)
@@ -289,7 +307,7 @@ class MultivarTask(TaskBase):
             
         # specify the idx_list
         if idx_list == []:
-            idx_list = list(range(self.time_series_num))
+            idx_list = list(range(self.subset_num))
 
         test_result = {}
         self.configs['mode'] = 'test' 
@@ -318,7 +336,7 @@ class MultivarTask(TaskBase):
                 norm_hist_list = []
                 for seq in self.testloader:
                     # normalization
-                    norm_seq = self.normalizer.transform(seq)
+                    norm_seq = seq
                     norm_hist = norm_seq[:, :self.his_len, :, :].numpy()
                     norm_seq = norm_seq.to(self.device)
                     # forward (inference)
@@ -330,29 +348,30 @@ class MultivarTask(TaskBase):
                     norm_truth_list.append(norm_truth)
                     norm_hist_list.append(norm_hist)
                     # inverse normalization
-                    pred = self.normalizer.inverse_transform(norm_pred)
-                    truth = self.normalizer.inverse_transform(norm_truth)
-                    hist = self.normalizer.inverse_transform(norm_hist)
-                    pred_list.append(pred)
-                    truth_list.append(truth)
-                    hist_list.append(hist)
+                    # pred = self.normalizer.inverse_transform(norm_pred)
+                    # truth = self.normalizer.inverse_transform(norm_truth)
+                    # hist = self.normalizer.inverse_transform(norm_hist)
+                    # pred_list.append(pred)
+                    # truth_list.append(truth)
+                    # hist_list.append(hist)
             # evaluation
-            pred_list = np.concatenate(pred_list, axis=0)
-            truth_list = np.concatenate(truth_list, axis=0)
-            hist_list = np.concatenate(hist_list, axis=0)
+            # pred_list = np.concatenate(pred_list, axis=0)
+            # truth_list = np.concatenate(truth_list, axis=0)
+            # hist_list = np.concatenate(hist_list, axis=0)
             norm_pred_list = np.concatenate(norm_pred_list, axis=0)
             norm_truth_list = np.concatenate(norm_truth_list, axis=0)
             norm_hist_list = np.concatenate(norm_hist_list, axis=0)
             # results
-            result = self.evaluator.eval(pred_list, truth_list, verbose=self.eval_verbose)
-            scaled_result = self.evaluator.scaled_eval(hist_list, pred_list, truth_list, verbose=self.eval_verbose)
-            result.update(scaled_result)
+            # result = self.evaluator.eval(pred_list, truth_list, verbose=self.eval_verbose)
+            # scaled_result = self.evaluator.scaled_eval(hist_list, pred_list, truth_list, verbose=self.eval_verbose)
+            # result.update(scaled_result)
             # norm_result
             norm_result = self.evaluator.eval(norm_pred_list, norm_truth_list, verbose=self.eval_verbose)
             norm_scaled_result = self.evaluator.scaled_eval(norm_hist_list, norm_pred_list, norm_truth_list, verbose=self.eval_verbose)
             norm_result.update(norm_scaled_result)
             res = {
-                'res': result,
+                # 'res': result,
+                'res': {},
                 'norm_res': norm_result
             }
             print(f"Test result:\n{res}")

@@ -20,7 +20,7 @@ HisLenList=(12 48 96 256)
 PredLenList=(1 3 6 12)
 
 # 模型列表
-TensorModelList=("DCRNN" "NET3" "AGCRN" "MTGNN" "ST_Norm" "TTS_Norm" "GRML" "GraphWaveNet")
+TensorModelList=("DCRNN" "NET3" "AGCRN" "MTGNN" "ST_Norm" "TTS_Norm" "GMRL" "GraphWaveNet")
 MultivarModelList=("TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "Mamba")
 
 # 数据集：traffic, weather, finance, energy 

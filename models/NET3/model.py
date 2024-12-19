@@ -104,7 +104,6 @@ class NET3_TensorModel(TensorModelBase):
         tensor_shape = self.configs['tensor_shape']
         self.tensor_shape = tensor_shape
         model_configs['mode_dims'] = {0: tensor_shape[0], 1:tensor_shape[1]}       
-        self.normalizer = self.configs['normalizer']
         self.graph_generator = self.configs['graphGenerator']
         self.model = NET3(model_configs) 
         # update optimizer configs 
@@ -119,8 +118,8 @@ class NET3_TensorModel(TensorModelBase):
         self.network = {}
         # self.network[0] = torch.from_numpy(self.graph_generator.cosine_similarity_matrix(n_dim=0, normal=True)).float()
         # self.network[1] = torch.from_numpy(self.graph_generator.pearson_matrix(n_dim=1, normal=True)).float()
-        self.network[0] = torch.from_numpy(self.graph_generator.gen_graph(n_dim=0, normal=True)).float()
-        self.network[1] = torch.from_numpy(self.graph_generator.gen_graph(n_dim=1, normal=True)).float()
+        self.network[0] = torch.from_numpy(self.graph_generator.load_graph(n_dim=0, normal=True)).float()
+        self.network[1] = torch.from_numpy(self.graph_generator.load_graph(n_dim=1, normal=True)).float()
 
     def set_device(self, device='cpu'):
         self.model.to(device)
