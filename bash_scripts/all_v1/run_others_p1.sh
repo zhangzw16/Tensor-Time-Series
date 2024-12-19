@@ -21,8 +21,8 @@ DatasetList=('crypto12' 'METRO_HZ' 'stocknet' 'ETT_hour' 'JONAS_NYC_taxi' 'JONAS
 # ==================== Traffic + Weather + Energy + Finance Datasets ====================
 for his_len in ${HisLenList[@]}; do
     for pred_len in ${PredLenList[@]}; do
-        for model in ${ModelList[@]}; do
-            for dataset in ${DatasetList[@]}; do
+        for dataset in ${DatasetList[@]}; do
+            for model in ${ModelList[@]}; do
                 # -------------------------------------------
                 python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test $train_test --device $device \
                     --batch_size $batch_size --his_len $his_len --pred_len $pred_len --data_mode $data_mode \
