@@ -21,7 +21,7 @@ def EnsureDir(output_dir:str):
 # "TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID"
 if __name__=='__main__':
     # set model and dataset
-    model_name = 'STC_GNN'
+    model_name = 'TimesNet'
     dataset_name = 'Metr-LA'
     basic_config = get_config_template(model_name)
     # update basic_config
@@ -40,7 +40,7 @@ if __name__=='__main__':
     basic_config['dataset_name'] = dataset_name
     basic_config['his_len'] = 12
     basic_config['pred_len'] = 12
-    basic_config['data_mode'] = 0
+    basic_config['data_mode'] = 2
     basic_config['batch_size'] = 0
     basic_config['normalizer'] = 'sklearn'
     

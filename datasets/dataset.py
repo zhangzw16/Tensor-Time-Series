@@ -3,7 +3,7 @@ import pickle as pkl
 import numpy as np
 import random
 
-# from .normalizer import Sklearn_StandNormalizer, DoNothing, StandNormalizer
+from .normalizer import Sklearn_StandNormalizer, DoNothing, StandNormalizer
 
 os.chdir(os.path.dirname(__file__))
 
@@ -118,6 +118,8 @@ class ST_MoveSample(object):
         else:
             combined_features = np.concatenate([trend, period, closeness], axis=-2)
         combined_features = np.squeeze(combined_features, axis=-1)
+        combined_features = np.transpose(combined_features, [0, 3, 1, 2])
+        y = np.transpose(y, [0, 3, 1, 2])
         # y = np.squeeze(y, axis = -1)
         return combined_features, y
 
@@ -193,7 +195,7 @@ class TTS_DatasetManager:
         data = self.data[idx]
         return data
 
-    def make_datasets(self, data_mode:int):
+    def make_datasets(self, data_mode:int, lag_input = [0,2,10]):
         self.data = self.data_pkl['data']
         sample_length = self.his_len + self.pred_len
         sample_num = self.data.shape[0] - sample_length
@@ -203,93 +205,144 @@ class TTS_DatasetManager:
         # normalize data
         self.normalizer = self.init_normalizer(self.normalizer_name, self.raw_train_data)
         self.data = self.normalizer.transform(self.data)
+        if lag_input:
+            self.moving_sampler = ST_MoveSample(closeness_len=lag_input[2], period_len=lag_input[1], trend_len=lag_input[0], target_length=self.pred_len)
         # the shape of data read from .pkl is (T, N, M),
         # set data mode to change the shape
         # - 0: Tensor Direct        (T, N, M)
         # - 1: Modality-Independent (T x M, N, 1)
         # - 2: Modality-Individual  (T, N, 1) x M
-        if data_mode == 0:
-            # Tensor Direct
-            # (T, N, M) -> (1, T, N, M)
-            self.subset_num = 1
-            data_shape = self.data.shape
-            self.time_range = data_shape[0]
-            self.variable_num = data_shape[1]
-            self.modality_num = data_shape[2]
-            sample_list = []
-            for i in range(sample_num):
-                sample_list.append(self.data[i: i+sample_length])
-            self.data = np.array(sample_list)
-            self.data = np.expand_dims(self.data, axis=0)
-            self.trainset = self.data[:, :train_end]
-            self.validset = self.data[:, train_end:valid_end]
-            self.testset  = self.data[:, valid_end:]
-        elif data_mode == 1:
-            # Modality-Independent
-            # (T, N, M) -> (1, T x M, N, 1)
-            self.subset_num = 1
-            data_shape = self.data.shape
-            self.time_range = data_shape[0]
-            self.variable_num = data_shape[1]
-            self.modality_num = 1
-            T = self.data.shape[0]
-            N = self.data.shape[1]
-            M = self.data.shape[2]
-            trainset = []
-            validset = []
-            testset = []
-            # trainset
-            for i in range(train_end):
-                for j in range(M):
-                    sample = self.data[i:i+sample_length, :, j]
-                    trainset.append(sample)
-            # validset
-            for i in range(train_end, valid_end):
-                for j in range(M):
-                    sample = self.data[i:i+sample_length, :, j]
-                    validset.append(sample)
-            # testset
-            for i in range(valid_end, sample_num):
-                for j in range(M):
-                    sample = self.data[i:i+sample_length, :, j]
-                    testset.append(sample)
-            # dataset
-            self.trainset = np.array(trainset)
-            self.trainset = np.expand_dims(self.trainset, axis=0)
-            self.trainset = np.expand_dims(self.trainset, axis=-1)
-            self.validset = np.array(validset)
-            self.validset = np.expand_dims(self.validset, axis=0)
-            self.validset = np.expand_dims(self.validset, axis=-1)
-            self.testset  = np.array(testset)
-            self.testset  = np.expand_dims(self.testset, axis=0)
-            self.testset = np.expand_dims(self.testset, axis=-1)
-        elif data_mode == 2:
-            # Modality-Individual
-            # (T, N, M) -> (M, T, N, 1)
-            self.subset_num = int(self.data.shape[2])
-            data_shape = self.data.shape
-            self.time_range = data_shape[0]
-            self.variable_num = data_shape[1]
-            self.modality_num = 1
-            T = self.data.shape[0]
-            N = self.data.shape[1]
-            M = self.data.shape[2]
-            trainset = np.zeros((self.subset_num, train_end, sample_length, N))
-            validset = np.zeros((self.subset_num, valid_end-train_end, sample_length, N))
-            testset  = np.zeros((self.subset_num, sample_num-valid_end, sample_length, N))
-            for sub in range(self.subset_num):
+        if lag_input:
+            if data_mode == 0:
+                self.subset_num = 1
+                data_shape = self.data.shape
+                self.time_range = data_shape[0]
+                self.variable_num = data_shape[1]
+                self.modality_num = data_shape[2]
+                input, targets = self.moving_sampler.move_sample(self.data)
+                sample_num = input.shape[0]
+                train_end = int(sample_num * self.train_ratio)
+                valid_end = int(sample_num * self.valid_ratio) + train_end
+                all_sets = np.concatenate([input, targets], axis=1)
+                all_sets = np.expand_dims(all_sets, axis=0)
+                self.trainset = all_sets[:, :train_end]
+                self.validset = all_sets[:, train_end:valid_end]
+                self.testset  = all_sets[:, valid_end:]
+            elif data_mode == 1:
+                self.subset_num = 1
+                data_shape = self.data.shape
+                self.time_range = data_shape[0]
+                self.variable_num = data_shape[1]
+                self.modality_num = 1
+                T = self.data.shape[0]
+                N = self.data.shape[1]
+                M = self.data.shape[2]
+                trainset = []
+                validset = []
+                testset = []
+                for i in range(M):
+                    input, targets = self.moving_sampler.move_sample(np.expand_dims(self.data[:,:,i],-1))
+                    sample_num = input.shape[0]
+                    train_end = int(sample_num * self.train_ratio)
+                    valid_end = int(sample_num * self.valid_ratio) + train_end
+                    all_sets = np.concatenate([input, targets], axis=1)
+                    all_sets = np.expand_dims(all_sets, axis=0)
+                    trainset.append(all_sets[:, :train_end])
+                    validset.append(all_sets[:, train_end:valid_end])
+                    testset.append(all_sets[:, valid_end:])
+                self.trainset = np.concatenate(trainset, axis=1)
+                self.validset = np.concatenate(validset, axis=1)
+                self.testset  = np.concatenate(testset, axis=1)
+                # self.trainset = np.array(trainset)
+                # self.validset = np.array(validset)
+                # self.testset = np.array(testset)
+            
+
+        else:
+            if data_mode == 0:
+                # Tensor Direct
+                # (T, N, M) -> (1, T, N, M)
+                self.subset_num = 1
+                data_shape = self.data.shape
+                self.time_range = data_shape[0]
+                self.variable_num = data_shape[1]
+                self.modality_num = data_shape[2]
+                sample_list = []
+                for i in range(sample_num):
+                    sample_list.append(self.data[i: i+sample_length])
+                self.data = np.array(sample_list)
+                self.data = np.expand_dims(self.data, axis=0)
+                self.trainset = self.data[:, :train_end]
+                self.validset = self.data[:, train_end:valid_end]
+                self.testset  = self.data[:, valid_end:]
+            elif data_mode == 1:
+                # Modality-Independent
+                # (T, N, M) -> (1, T x M, N, 1)
+                # (T, N, M) -> (1,BS， T x M, N, 1)
+                # (T, N, M) -> (1, BS*M, T ，N, 1)
+                self.subset_num = 1
+                data_shape = self.data.shape
+                self.time_range = data_shape[0]
+                self.variable_num = data_shape[1]
+                self.modality_num = 1
+                T = self.data.shape[0]
+                N = self.data.shape[1]
+                M = self.data.shape[2]
+                trainset = []
+                validset = []
+                testset = []
+                # trainset
                 for i in range(train_end):
-                    sample = self.data[i:i+sample_length, :, sub]
-                    trainset[sub, i] = sample
+                    for j in range(M):
+                        sample = self.data[i:i+sample_length, :, j]
+                        trainset.append(sample)
+                # validset
                 for i in range(train_end, valid_end):
-                    sample = self.data[i:i+sample_length, :, sub]
-                    validset[sub, i-train_end] = sample
+                    for j in range(M):
+                        sample = self.data[i:i+sample_length, :, j]
+                        validset.append(sample)
+                # testset
                 for i in range(valid_end, sample_num):
-                    sample = self.data[i:i+sample_length, :, sub]
-                    testset[sub, i-valid_end] = sample
-            self.trainset = trainset
-            self.validset = validset
-            self.testset  = testset
+                    for j in range(M):
+                        sample = self.data[i:i+sample_length, :, j]
+                        testset.append(sample)
+                # dataset
+                self.trainset = np.array(trainset)
+                self.trainset = np.expand_dims(self.trainset, axis=0)
+                self.trainset = np.expand_dims(self.trainset, axis=-1)
+                self.validset = np.array(validset)
+                self.validset = np.expand_dims(self.validset, axis=0)
+                self.validset = np.expand_dims(self.validset, axis=-1)
+                self.testset  = np.array(testset)
+                self.testset  = np.expand_dims(self.testset, axis=0)
+                self.testset = np.expand_dims(self.testset, axis=-1)
+            elif data_mode == 2:
+                # Modality-Individual
+                # (T, N, M) -> (M, T, N, 1)
+                self.subset_num = int(self.data.shape[2])
+                data_shape = self.data.shape
+                self.time_range = data_shape[0]
+                self.variable_num = data_shape[1]
+                self.modality_num = 1
+                T = self.data.shape[0]
+                N = self.data.shape[1]
+                M = self.data.shape[2]
+                trainset = np.zeros((self.subset_num, train_end, sample_length, N))
+                validset = np.zeros((self.subset_num, valid_end-train_end, sample_length, N))
+                testset  = np.zeros((self.subset_num, sample_num-valid_end, sample_length, N))
+                for sub in range(self.subset_num):
+                    for i in range(train_end):
+                        sample = self.data[i:i+sample_length, :, sub]
+                        trainset[sub, i] = sample
+                    for i in range(train_end, valid_end):
+                        sample = self.data[i:i+sample_length, :, sub]
+                        validset[sub, i-train_end] = sample
+                    for i in range(valid_end, sample_num):
+                        sample = self.data[i:i+sample_length, :, sub]
+                        testset[sub, i-valid_end] = sample
+                self.trainset = trainset
+                self.validset = validset
+                self.testset  = testset
 
     def get_subset_num(self):
         return self.subset_num
@@ -369,7 +422,7 @@ class MTS_DatasetManager:
             'test' : self.testset
         }
 
-    def make_datasets(self, data_mode:int, normalizer_name:str='none'):
+    def make_datasets(self, data_mode:int, normalizer_name:str='none', lag_input = [0,2,10]):
         self.data = self.data_pkl['data']
         sample_length = self.his_len + self.pred_len
         sample_num = self.data.shape[0] - sample_length
@@ -379,140 +432,211 @@ class MTS_DatasetManager:
         # normalize data
         self.normalizer = self.init_normalizer(normalizer_name, self.raw_train_data)
         self.data = self.normalizer.transform(self.data)
+        if lag_input:
+            self.moving_sampler = ST_MoveSample(closeness_len=lag_input[2], period_len=lag_input[1], trend_len=lag_input[0], target_length=self.pred_len)
         # the shape of data read from .pkl is (T, N, M),
         # set data mode to change the shape
         # - 0: Channel-Modality-Mixing      (T, NxM, 1)       (Train one model)
         # - 1: Channel-Modality-Independent (T x N x M, 1, 1) (Train one model)
         # - 2: Modality-Independent         (T x M, N)        (Trian one model)
         # - 3: Modality-Individual          (T, N) x M        (Train M models)
-        if data_mode == 0:
-            # Channel-Modality-Mixing
-            # (T, N, M) -> (1, T, NxM, 1)
-            self.subset_num = 1
-            self.time_range = int(self.data.shape[0])
-            self.variable_num = int(self.data.shape[1] * self.data.shape[2])
-            self.modality_num = 1
-            self.data = self.data.reshape(self.time_range, -1, 1)
-            # self.data = np.expand_dims(self.data, axis=-1)
+        if lag_input:
+            if data_mode == 0:
+                self.subset_num = 1
+                self.time_range = int(self.data.shape[0])
+                self.variable_num = int(self.data.shape[1] * self.data.shape[2])
+                self.modality_num = 1
+                self.data = self.data.reshape(self.time_range, -1, 1)
+                input, targets = self.moving_sampler.move_sample(self.data)
+                sample_num = input.shape[0]
+                train_end = int(sample_num * self.train_ratio)
+                valid_end = int(sample_num * self.valid_ratio) + train_end
+                all_sets = np.concatenate([input, targets], axis=1)
+                all_sets = np.expand_dims(all_sets, axis=0)
+                self.trainset = all_sets[:, :train_end]
+                self.validset = all_sets[:, train_end:valid_end]
+                self.testset  = all_sets[:, valid_end:]
+            elif data_mode == 1:
+                self.subset_num = 1
+                self.subset_num = 1
+                self.time_range = int(self.data.shape[0])
+                self.modality_num = 1
+                self.variable_num = 1
+                self.data = self.data.reshape(self.time_range, 1, -1)
+                T = self.data.shape[0]
+                N = self.data.shape[1]
+                M = self.data.shape[2]
+                trainset = []
+                validset = []
+                testset = []
+                for i in range(M):
+                    input, targets = self.moving_sampler.move_sample(np.expand_dims(self.data[:,:,i],-1))
+                    sample_num = input.shape[0]
+                    train_end = int(sample_num * self.train_ratio)
+                    valid_end = int(sample_num * self.valid_ratio) + train_end
+                    all_sets = np.concatenate([input, targets], axis=1)
+                    all_sets = np.expand_dims(all_sets, axis=0)
+                    trainset.append(all_sets[:, :train_end])
+                    validset.append(all_sets[:, train_end:valid_end])
+                    testset.append(all_sets[:, valid_end:])
+                self.trainset = np.concatenate(trainset, axis=1)
+                self.validset = np.concatenate(validset, axis=1)
+                self.testset  = np.concatenate(testset, axis=1)
+            elif data_mode == 2:
+                self.subset_num = 1
+                self.time_range = int(self.data.shape[0])
+                self.modality_num = 1
+                self.variable_num = int(self.data.shape[1])
+                trainset = []
+                validset = []
+                testset = []
+                T = self.data.shape[0]
+                N = self.data.shape[1]
+                M = self.data.shape[2]
+                for i in range(M):
+                    input, targets = self.moving_sampler.move_sample(np.expand_dims(self.data[:,:,i],-1))
+                    sample_num = input.shape[0]
+                    train_end = int(sample_num * self.train_ratio)
+                    valid_end = int(sample_num * self.valid_ratio) + train_end
+                    all_sets = np.concatenate([input, targets], axis=1)
+                    all_sets = np.expand_dims(all_sets, axis=0)
+                    trainset.append(all_sets[:, :train_end])
+                    validset.append(all_sets[:, train_end:valid_end])
+                    testset.append(all_sets[:, valid_end:])
+                self.trainset = np.concatenate(trainset, axis=1)
+                self.validset = np.concatenate(validset, axis=1)
+                self.testset  = np.concatenate(testset, axis=1)
+
             
-            sample_list = []
-            for i in range(sample_num):
-                data = self.data[i: i+sample_length]
-                # print(data.shape)
-                sample_list.append(data)
-            self.data = np.array(sample_list)
-            # self.data = np.concatenate(sample_list, axis=0)
-            self.data = np.expand_dims(self.data, axis=0)
-            self.trainset = self.data[:, :train_end]
-            self.validset = self.data[:, train_end:valid_end]
-            self.testset  = self.data[:, valid_end:]
-        elif data_mode == 1:
-            # Channel-Modality-Independent
-            # (T, N, M) -> (1, T x N x M, 1, 1)
-            self.subset_num = 1
-            self.time_range = int(self.data.shape[0])
-            self.modality_num = 1
-            self.variable_num = 1
-            trainset = []
-            validset = []
-            testset = []
-            T = self.data.shape[0]
-            N = self.data.shape[1]
-            M = self.data.shape[2]
-            # trainset
-            for i in range(train_end):
-                for j in range(N):
-                    for k in range(M):
-                        sample = self.data[i:i+sample_length, j, k]
-                        trainset.append(sample)
-            # validset
-            for i in range(train_end, valid_end):
-                for j in range(N):
-                    for k in range(M):
-                        sample = self.data[i:i+sample_length, j, k]
-                        validset.append(sample)
-            # testset
-            for i in range(valid_end, sample_num):
-                for j in range(N):
-                    for k in range(M):
-                        sample = self.data[i:i+sample_length, j, k]
-                        testset.append(sample)
-            self.trainset = np.array(trainset)
-            self.trainset = np.expand_dims(self.trainset, axis=0)
-            self.trainset = np.expand_dims(self.trainset, axis=-1)
-            self.validset = np.array(validset)
-            self.validset = np.expand_dims(self.validset, axis=0)
-            self.validset = np.expand_dims(self.validset, axis=-1)
-            # self.trainset = np.expand_dims(self.validset, axis=-1)
-            self.testset  = np.array(testset)
-            self.testset  = np.expand_dims(self.testset, axis=0)
-            self.testset = np.expand_dims(self.testset, axis=-1)
-            # self.trainset = np.expand_dims(self.testset, axis=-1)
-
-        elif data_mode == 2:
-            # Modality-Independent
-            # (T, N, M) -> (1, T x M, N, 1)
-            self.subset_num = 1
-            self.time_range = int(self.data.shape[0])
-            self.modality_num = 1
-            self.variable_num = int(self.data.shape[1])
-            trainset = []
-            validset = []
-            testset = []
-            T = self.data.shape[0]
-            N = self.data.shape[1]
-            M = self.data.shape[2]
-            # trainset
-            for i in range(train_end):
-                for j in range(M):
-                    sample = self.data[i:i+sample_length, :, j]
-                    trainset.append(sample)
-            # validset
-            for i in range(train_end, valid_end):
-                for j in range(M):
-                    sample = self.data[i:i+sample_length, :, j]
-                    validset.append(sample)
-            # testset
-            for i in range(valid_end, sample_num):
-                for j in range(M):
-                    sample = self.data[i:i+sample_length, :, j]
-                    testset.append(sample)
-            self.trainset = np.array(trainset)
-            self.trainset = np.expand_dims(self.trainset, axis=0)
-            self.trainset = np.expand_dims(self.trainset, axis=-1)
-            self.validset = np.array(validset)
-            self.validset = np.expand_dims(self.validset, axis=0)
-            self.validset = np.expand_dims(self.validset, axis=-1)
-            self.testset  = np.array(testset)
-            self.testset  = np.expand_dims(self.testset, axis=0)
-            self.testset = np.expand_dims(self.testset, axis=-1)
-
-        elif data_mode == 3:
-            # Modality-Individual
-            # (T, N, M) -> (M, T, N, 1)
-            self.subset_num = int(self.data.shape[2])
-            self.time_range = int(self.data.shape[0])
-            self.modality_num = 1
-            self.variable_num = int(self.data.shape[1])
-            T = self.data.shape[0]
-            N = self.data.shape[1]
-            M = self.data.shape[2]
-            trainset = np.zeros((self.subset_num, train_end, sample_length, N))
-            validset = np.zeros((self.subset_num, valid_end-train_end, sample_length, N))
-            testset  = np.zeros((self.subset_num, sample_num-valid_end, sample_length, N))
-            for sub in range(self.subset_num):
+        else:
+            if data_mode == 0:
+                # Channel-Modality-Mixing
+                # (T, N, M) -> (1, T, NxM, 1)
+                self.subset_num = 1
+                self.time_range = int(self.data.shape[0])
+                self.variable_num = int(self.data.shape[1] * self.data.shape[2])
+                self.modality_num = 1
+                self.data = self.data.reshape(self.time_range, -1, 1)
+                # self.data = np.expand_dims(self.data, axis=-1)
+                
+                sample_list = []
+                for i in range(sample_num):
+                    data = self.data[i: i+sample_length]
+                    # print(data.shape)
+                    sample_list.append(data)
+                self.data = np.array(sample_list)
+                # self.data = np.concatenate(sample_list, axis=0)
+                self.data = np.expand_dims(self.data, axis=0)
+                self.trainset = self.data[:, :train_end]
+                self.validset = self.data[:, train_end:valid_end]
+                self.testset  = self.data[:, valid_end:]
+            elif data_mode == 1:
+                # Channel-Modality-Independent
+                # (T, N, M) -> (1, T x N x M, 1, 1)
+                self.subset_num = 1
+                self.time_range = int(self.data.shape[0])
+                self.modality_num = 1
+                self.variable_num = 1
+                trainset = []
+                validset = []
+                testset = []
+                T = self.data.shape[0]
+                N = self.data.shape[1]
+                M = self.data.shape[2]
+                # trainset
                 for i in range(train_end):
-                    sample = self.data[i:i+sample_length, :, sub]
-                    trainset[sub, i] = sample
+                    for j in range(N):
+                        for k in range(M):
+                            sample = self.data[i:i+sample_length, j, k]
+                            trainset.append(sample)
+                # validset
                 for i in range(train_end, valid_end):
-                    sample = self.data[i:i+sample_length, :, sub]
-                    validset[sub, i-train_end] = sample
+                    for j in range(N):
+                        for k in range(M):
+                            sample = self.data[i:i+sample_length, j, k]
+                            validset.append(sample)
+                # testset
                 for i in range(valid_end, sample_num):
-                    sample = self.data[i:i+sample_length, :, sub]
-                    testset[sub, i-valid_end] = sample
-            self.trainset = trainset
-            self.validset = validset
-            self.testset  = testset
+                    for j in range(N):
+                        for k in range(M):
+                            sample = self.data[i:i+sample_length, j, k]
+                            testset.append(sample)
+                self.trainset = np.array(trainset)
+                self.trainset = np.expand_dims(self.trainset, axis=0)
+                self.trainset = np.expand_dims(self.trainset, axis=-1)
+                self.validset = np.array(validset)
+                self.validset = np.expand_dims(self.validset, axis=0)
+                self.validset = np.expand_dims(self.validset, axis=-1)
+                # self.trainset = np.expand_dims(self.validset, axis=-1)
+                self.testset  = np.array(testset)
+                self.testset  = np.expand_dims(self.testset, axis=0)
+                self.testset = np.expand_dims(self.testset, axis=-1)
+                # self.trainset = np.expand_dims(self.testset, axis=-1)
+
+            elif data_mode == 2:
+                # Modality-Independent
+                # (T, N, M) -> (1, T x M, N, 1)
+                self.subset_num = 1
+                self.time_range = int(self.data.shape[0])
+                self.modality_num = 1
+                self.variable_num = int(self.data.shape[1])
+                trainset = []
+                validset = []
+                testset = []
+                T = self.data.shape[0]
+                N = self.data.shape[1]
+                M = self.data.shape[2]
+                # trainset
+                for i in range(train_end):
+                    for j in range(M):
+                        sample = self.data[i:i+sample_length, :, j]
+                        trainset.append(sample)
+                # validset
+                for i in range(train_end, valid_end):
+                    for j in range(M):
+                        sample = self.data[i:i+sample_length, :, j]
+                        validset.append(sample)
+                # testset
+                for i in range(valid_end, sample_num):
+                    for j in range(M):
+                        sample = self.data[i:i+sample_length, :, j]
+                        testset.append(sample)
+                self.trainset = np.array(trainset)
+                self.trainset = np.expand_dims(self.trainset, axis=0)
+                self.trainset = np.expand_dims(self.trainset, axis=-1)
+                self.validset = np.array(validset)
+                self.validset = np.expand_dims(self.validset, axis=0)
+                self.validset = np.expand_dims(self.validset, axis=-1)
+                self.testset  = np.array(testset)
+                self.testset  = np.expand_dims(self.testset, axis=0)
+                self.testset = np.expand_dims(self.testset, axis=-1)
+
+            elif data_mode == 3:
+                # Modality-Individual
+                # (T, N, M) -> (M, T, N, 1)
+                self.subset_num = int(self.data.shape[2])
+                self.time_range = int(self.data.shape[0])
+                self.modality_num = 1
+                self.variable_num = int(self.data.shape[1])
+                T = self.data.shape[0]
+                N = self.data.shape[1]
+                M = self.data.shape[2]
+                trainset = np.zeros((self.subset_num, train_end, sample_length, N))
+                validset = np.zeros((self.subset_num, valid_end-train_end, sample_length, N))
+                testset  = np.zeros((self.subset_num, sample_num-valid_end, sample_length, N))
+                for sub in range(self.subset_num):
+                    for i in range(train_end):
+                        sample = self.data[i:i+sample_length, :, sub]
+                        trainset[sub, i] = sample
+                    for i in range(train_end, valid_end):
+                        sample = self.data[i:i+sample_length, :, sub]
+                        validset[sub, i-train_end] = sample
+                    for i in range(valid_end, sample_num):
+                        sample = self.data[i:i+sample_length, :, sub]
+                        testset[sub, i-valid_end] = sample
+                self.trainset = trainset
+                self.validset = validset
+                self.testset  = testset
 
     def get_dataset(self, name:str):
         return self.dataset_map[name]
