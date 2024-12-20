@@ -428,7 +428,7 @@ class MTS_DatasetManager:
         sample_num = self.data.shape[0] - sample_length
         train_end = int(sample_num * self.train_ratio)
         valid_end = int(sample_num * self.valid_ratio) + train_end
-        self.raw_train_data = self.data[:, :train_end]
+        self.raw_train_data = self.data[:train_end]
         # normalize data
         self.normalizer = self.init_normalizer(normalizer_name, self.raw_train_data)
         self.data = self.normalizer.transform(self.data)
