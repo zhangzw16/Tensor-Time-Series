@@ -6,7 +6,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source $SCRIPT_DIR/env.sh
 
 # 模型配置
-ModelList=("STWA" "NET3" "DCRNN")
+ModelList=("Mamba" "MTGNN" "ST_Norm" "TimesNet" "StemGNN" "STID")
 # ModelList=("Mamba" "MTGNN" "ST_Norm" "TTS_Norm" "TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID")
 
 
@@ -39,7 +39,7 @@ ModelList=("STWA" "NET3" "DCRNN")
 # 运行
 HisLenList=(12 48 96)
 # PredLenList=(6 12 48)
-PredLenList=(48)
+PredLenList=(96)
 batch_size=0  # 设置 0 开启 AutoBatch
 # 共 16 个数据集
 # DatasetList=('COVID_DEATHS' 'crypto12' 'METRO_HZ' 'COVID_CHI' 'stocknet' 'ETT_hour' 'COVID_US' 'JONAS_NYC_taxi' 'JONAS_NYC_bike' 'weather' 'Metr-LA' 'electricity' 'METRO_SH' 'Jena_climate' 'nasdaq100' 'PEMSBAY')
@@ -65,5 +65,3 @@ for dataset in ${DatasetList[@]}; do
         done
     done
 done
-
-
