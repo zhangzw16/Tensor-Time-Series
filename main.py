@@ -21,15 +21,15 @@ def EnsureDir(output_dir:str):
 # "TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID"
 if __name__=='__main__':
     # set model and dataset
-    model_name = 'PatchTST'
-    dataset_name = 'COVID_DEATHS'
+    model_name = 'GraphWaveNet'
+    dataset_name = 'weather'
     basic_config = get_config_template(model_name)
     # update basic_config
     # DATASET_BASE = 
     DATASET_BASE = '/nas/datasets/Tensor-Time-Series-Dataset/Processed_Data'
     # ---- 1. Basic Configuration -----
     basic_config['project_name'] = 'main_debug'
-    output_dir = './logs'
+    output_dir = '/data4t/zjx_dataset/workspace/Tensor-Time-Series/nas_logs'
     basic_config['output_dir'] = os.path.join(output_dir, basic_config['project_name'])
     basic_config['mode'] = 'train'
     basic_config['debug'] = True
@@ -38,8 +38,8 @@ if __name__=='__main__':
 
     # ---- 2. Dataset Configuration -----
     basic_config['dataset_name'] = dataset_name
-    basic_config['his_len'] = 12
-    basic_config['pred_len'] = 6
+    basic_config['his_len'] = 96
+    basic_config['pred_len'] = 12
     basic_config['data_mode'] = 0
     basic_config['batch_size'] = 1
     basic_config['normalizer'] = 'sklearn'
