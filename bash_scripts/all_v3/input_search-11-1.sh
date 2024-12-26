@@ -11,10 +11,10 @@ ModelList=("DCRNN")
 
 
 # ==================== Nature Datasets ====================
-HisLenList=(6 12 24)
-PredLenList=(24)
-batch_size=1  # 设置 1
-DatasetList=('COVID_DEATHS')
+HisLenList=(48)
+PredLenList=(12)
+batch_size=0  # 设置 1
+DatasetList=('JONAS_NYC_taxi')
 
 for pred_len in ${PredLenList[@]}; do
     for his_len in ${HisLenList[@]}; do
@@ -37,15 +37,14 @@ done
 
 
 # 运行
-# HisLenList=(12 48 96)
+# HisLenList=(48 96)
 # # PredLenList=(6 12 48)
-# PredLenList=(12)
+# PredLenList=(96)
 # batch_size=0  # 设置 0 开启 AutoBatch
 # # 共 16 个数据集
 # # DatasetList=('COVID_DEATHS' 'crypto12' 'METRO_HZ' 'COVID_CHI' 'stocknet' 'ETT_hour' 'COVID_US' 'JONAS_NYC_taxi' 'JONAS_NYC_bike' 'weather' 'Metr-LA' 'electricity' 'METRO_SH' 'Jena_climate' 'nasdaq100' 'PEMSBAY')
 # # DatasetList=('crypto12' 'METRO_HZ' 'stocknet' 'ETT_hour' 'JONAS_NYC_taxi' 'JONAS_NYC_bike' 'weather' 'Metr-LA' 'electricity' 'METRO_SH' 'Jena_climate' 'nasdaq100')
-# DatasetList=('COVID_CHI' 'JONAS_NYC_taxi' 'crypto12' 'METRO_HZ' 'ETT_hour' 'weather')
-
+# DatasetList=('COVID_CHI') # 'crypto12' 'METRO_HZ' 'ETT_hour' 'weather'
 
 # # ==================== Traffic + Weather + Energy + Finance Datasets ====================
 # for dataset in ${DatasetList[@]}; do
@@ -66,5 +65,3 @@ done
 #         done
 #     done
 # done
-
-
