@@ -6,7 +6,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source $SCRIPT_DIR/env.sh
 
 # 模型配置
-ModelList=("DCRNN")
+ModelList=("STWA" "NET3" "DCRNN")
 # ModelList=("Mamba" "MTGNN" "ST_Norm" "TTS_Norm" "TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID")
 
 
