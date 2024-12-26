@@ -99,6 +99,7 @@ class NLinear_MultiVarModel(MultiVarModelBase):
         seq_last = x_hist[:, -1, :].detach()
         seq_last = seq_last.unsqueeze(1)
         x_in = x_hist - seq_last
+        # print(x_in.shape, x_hist.shape, seq_last.shape)
         # forward
         outputs = torch.zeros([x_in.size(0), self.pred_len, x_in.size(2)], dtype=x_in.dtype).to(self.device)
         for i in range(0, self.channels):

@@ -178,6 +178,7 @@ class DLinear_MultiVarModel(MultiVarModelBase):
 
         #output and truth
         y_pred = outputs.unsqueeze(-1)
+        # print(f"x shape: {x.shape}, y_pred shape: {y_pred.shape}, input_len: {self.input_len}, pred_len: {self.pred_len}");exit()
         truth = x[:, self.input_len:self.input_len+self.pred_len, :, :]
 
         return y_pred, truth

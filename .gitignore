@@ -15,7 +15,9 @@ Processed_Data
 Tensor_output
 visual
 graph_generate.py
+nas_logs
 # *.sh
+*.html
 
 .amltconfig
 # amlt.yaml
