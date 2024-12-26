@@ -43,17 +43,21 @@ class MultivarTask(TaskBase):
         self.data_mode = configs['data_mode']
         self.his_len = configs['his_len']
         self.pred_len = configs['pred_len']
+        self.lag_input = configs['lag_input']
         self.normalizer_name = configs['normalizer']
         self.model_type = configs['model_type']
         self.model_name = configs['model_name']
-
+        self.show_start_info()
         # backup configs
         self.configs = configs.copy()
         # check model_type
         if self.model_type != 'MultiVar':
             raise ValueError(f"model_type: {self.model_type} is not MultiVar.")
-               
-        self.task_id = f"{self.dataset_name}-{self.model_name}-{self.his_len}-{self.pred_len}-{self.data_mode}-{self.normalizer_name}-{self.init_time_stamp}"
+        if self.lag_input==[]:
+            lag_input_str = ''
+        else:
+            lag_input_str = '-['+"-".join([str(i) for i in self.lag_input])+']'
+        self.task_id = f"{self.dataset_name}-{self.model_name}-{self.his_len}-{self.pred_len}{lag_input_str}-{self.data_mode}-{self.normalizer_name}-{self.init_time_stamp}"
         self.output_dir = os.path.join(self.output_dir, self.project_name, self.task_id)
         self.ensure_output_dir(self.output_dir)
         with open(os.path.join(self.output_dir, 'configs.yml'), 'w') as file:
@@ -63,7 +67,7 @@ class MultivarTask(TaskBase):
         # prepare for dataset
         self.dataset = MTS_DatasetManager(self.pkl_path, 
                                    his_len=self.his_len, pred_len=self.pred_len, normalizer_name=self.normalizer_name,
-                                   test_ratio=0.1, valid_ratio=0.1, seed=self.seed, data_mode=self.data_mode)
+                                   test_ratio=0.1, valid_ratio=0.1, seed=self.seed, data_mode=self.data_mode, lag_input=self.lag_input)
         self.subset_num = self.dataset.get_subset_num()
         # self.trainloader = MTS_DataLoader(self.dataset, 'train', batch_size=self.batch_size, drop_last=False)
         # self.validloader = MTS_DataLoader(self.dataset, 'valid', batch_size=self.batch_size, drop_last=False)
@@ -177,6 +181,20 @@ class MultivarTask(TaskBase):
         print(f"Optimizer: lr: {self.configs['lr']}, eps: {self.configs['eps']}, weight_decay: {self.configs['weight_decay']}")
         print(f"Scheduler: {self.scheduler_name}")
         print('-'*40)
+
+    def show_start_info(self):
+        print('='*40)
+        print('Task Infomation:')
+        print(f"Dataset: {self.dataset_name}")
+        print(f"Model: {self.model_name}")
+        print(f"His_len: {self.his_len}, Pred_len: {self.pred_len}, Lag_input: {self.lag_input}")
+        print(f"Normalizer: {self.normalizer_name}")
+        if self.batch_size == 0:
+            print(f"Batch_size: AutoBatch")
+        else:
+            print(f"Batch_size: {self.batch_size}")
+        print(f"LRFinder: {self.configs['lr_finder']}")
+        print('='*40)
 
     def epoch_train(self, run_idx:int=0):
         self.model.train()

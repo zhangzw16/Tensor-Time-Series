@@ -27,8 +27,9 @@ dataset_pkl: '/nas/datasets/Tensor-Time-Series-Dataset/Processed_Data/ETT_hour/E
 # - 3: Modality-Individual          (T, N) x M        (Train M models)
 data_mode: 0
 batch_size: 64
-his_len:  96
-pred_len: 12
+his_len:  96    # input length, if lag_input is not empty, this parameter is invalid
+pred_len: 12    # output length
+lag_input: []   # [trend, period, closeness], set [] to use hie_len
 normalizer: 'std' # ['none', 'std']
 test_ratio: 0.1
 valid_ratio: 0.1

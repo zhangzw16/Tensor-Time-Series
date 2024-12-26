@@ -38,10 +38,11 @@ if __name__=='__main__':
 
     # ---- 2. Dataset Configuration -----
     basic_config['dataset_name'] = dataset_name
-    basic_config['his_len'] = 96
+    basic_config['his_len'] = 6
     basic_config['pred_len'] = 12
+    basic_config['lag_input'] = []
     basic_config['data_mode'] = 0
-    basic_config['batch_size'] = 1
+    basic_config['batch_size'] = 2
     basic_config['normalizer'] = 'sklearn'
     
     # ---- 3. Training Configuration -----
@@ -66,6 +67,13 @@ if __name__=='__main__':
     elif basic_config['mode'] == 'test':
         if basic_config['model_path'] == '':
             raise ValueError("In test mode, model_path should not be empty.")
+    if basic_config['lag_input'] != []:
+        basic_config['his_len'] = sum(basic_config['lag_input'])
+    lag_input = basic_config['lag_input']
+    if lag_input == []:
+        lag_input_str = ""
+    else:
+        lag_input_str = '-['+"-".join([str(i) for i in lag_input])+']'
 
     # timestamp
     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
@@ -86,8 +94,9 @@ if __name__=='__main__':
         'seed': basic_config['seed'],
         'his_len': basic_config['his_len'],
         'pred_len': basic_config['pred_len'],
+        'lag_input': basic_config['lag_input'],
         'timestamp': timestamp,
         'result': res,
     }
-    save_path = os.path.join(log_dir, f"{basic_config['model_name']}_{basic_config['dataset_name']}_{basic_config['his_len']}-{basic_config['pred_len']}-Mode{basic_config['data_mode']}-{timestamp}.yaml")
+    save_path = os.path.join(log_dir, f"{basic_config['model_name']}_{basic_config['dataset_name']}_{basic_config['his_len']}-{basic_config['pred_len']}{lag_input_str}-Mode{basic_config['data_mode']}-{timestamp}.yaml")
     yaml.safe_dump(task_result, open(save_path, 'w'))
