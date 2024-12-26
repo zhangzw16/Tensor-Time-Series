@@ -22,7 +22,7 @@ def EnsureDir(output_dir:str):
 if __name__=='__main__':
     # set model and dataset
     model_name = 'TimesNet'
-    dataset_name = 'Metr-LA'
+    dataset_name = 'crypto12'
     basic_config = get_config_template(model_name)
     # update basic_config
     # DATASET_BASE = 
