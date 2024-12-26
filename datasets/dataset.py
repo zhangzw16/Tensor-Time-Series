@@ -132,6 +132,12 @@ Param:
 Method:
     -
 '''
+
+DatasetTemporalResolution = {
+    'JONAS_NYC_taxi': 24 * 2,
+    'METRO_HZ': 24 * 4
+}
+
 class TTS_DatasetManager:
     def __init__(self, pkl_path:str, his_len:int, pred_len:int, normalizer_name:str='none',
                  test_ratio=0.1, valid_ratio=0.1, seed=2024, data_mode:int=0, lag_input:list=[]) -> None:
@@ -143,8 +149,15 @@ class TTS_DatasetManager:
         # load pkl
         if not os.path.exists(pkl_path):
             raise FileExistsError(f"Can not find file: {pkl_path}")
+        self.dataset_name = pkl_path.split('/')[-2]
+        if len(lag_input)==3:
+            if self.dataset_name in DatasetTemporalResolution.keys():
+                self.time_fitness = DatasetTemporalResolution[self.dataset_name]
+            else:
+                raise ValueError(f"Unknown dataset temporal resolution: {self.dataset_name}")
         with open(pkl_path, 'rb') as file:
             self.data_pkl = pkl.load(file)
+        self.dataset_name = self.data_pkl.split('/')[-2]
         train_ratio = 1 - test_ratio - valid_ratio
         self.train_ratio = train_ratio
         self.valid_ratio = valid_ratio
@@ -206,7 +219,7 @@ class TTS_DatasetManager:
         self.normalizer = self.init_normalizer(self.normalizer_name, self.raw_train_data)
         self.data = self.normalizer.transform(self.data)
         if len(lag_input)==3:
-            self.moving_sampler = ST_MoveSample(closeness_len=lag_input[2], period_len=lag_input[1], trend_len=lag_input[0], target_length=self.pred_len)
+            self.moving_sampler = ST_MoveSample(closeness_len=lag_input[2], period_len=lag_input[1], trend_len=lag_input[0], target_length=self.pred_len, daily_slots=self.time_fitness)
         # the shape of data read from .pkl is (T, N, M),
         # set data mode to change the shape
         # - 0: Tensor Direct        (T, N, M)
@@ -398,6 +411,12 @@ class MTS_DatasetManager:
         # load pkl
         if not os.path.exists(pkl_path):
             raise FileExistsError(f"Can not find file: {pkl_path}")
+        self.dataset_name = pkl_path.split('/')[-2]
+        if len(lag_input)==3:
+            if self.dataset_name in DatasetTemporalResolution.keys():
+                self.time_fitness = DatasetTemporalResolution[self.dataset_name]
+            else:
+                raise ValueError(f"Unknown dataset temporal resolution: {self.dataset_name}")
         with open(pkl_path, 'rb') as file:
             self.data_pkl = pkl.load(file)
         # split dataset
@@ -432,7 +451,7 @@ class MTS_DatasetManager:
         self.normalizer = self.init_normalizer(normalizer_name, self.raw_train_data)
         self.data = self.normalizer.transform(self.data)
         if len(lag_input)==3:
-            self.moving_sampler = ST_MoveSample(closeness_len=lag_input[2], period_len=lag_input[1], trend_len=lag_input[0], target_length=self.pred_len)
+            self.moving_sampler = ST_MoveSample(closeness_len=lag_input[2], period_len=lag_input[1], trend_len=lag_input[0], target_length=self.pred_len, daily_slots=self.time_fitness)
         # the shape of data read from .pkl is (T, N, M),
         # set data mode to change the shape
         # - 0: Channel-Modality-Mixing      (T, NxM, 1)       (Train one model)
