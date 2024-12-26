@@ -26,8 +26,9 @@ dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series
 # - 2: Modality-Individual  (T, N, 1) x M
 data_mode: 0
 batch_size: 64
-his_len:  96
-pred_len: 12
+his_len:  96    # input length, if lag_input is not empty, this parameter is invalid
+pred_len: 12    # output length
+lag_input: []   # [trend, period, closeness], set [] to use hie_len
 normalizer: 'std' # ['none', 'std']
 graph_init: 'pearson'  # ['pearson', 'invers_pearson', 'random', 'cosine', 'unit']
 test_ratio:  0.1

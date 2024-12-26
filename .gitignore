@@ -18,6 +18,7 @@ graph_generate.py
 nas_logs
 # *.sh
 *.html
+*.tex
 
 .amltconfig
 # amlt.yaml

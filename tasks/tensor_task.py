@@ -43,9 +43,11 @@ class TensorTask(TaskBase):
         self.data_mode = configs['data_mode']
         self.his_len = configs['his_len']
         self.pred_len = configs['pred_len']
+        self.lag_input = configs['lag_input']
         self.normalizer_name = configs['normalizer']
         self.model_type = configs['model_type']
         self.model_name = configs['model_name']
+        self.show_start_info()
         # backup configs
         self.configs = configs.copy()
         # check model_type
@@ -56,7 +58,11 @@ class TensorTask(TaskBase):
             graph_init = f"-{configs['graph_init']}"
         else:
             graph_init = ''
-        task_id = f"{self.dataset_name}-{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}{graph_init}-{self.normalizer_name}-{self.init_time_stamp}"
+        if self.lag_input == []:
+            lag_input_str = ''
+        else:
+            lag_input_str = '-['+"-".join([str(i) for i in self.lag_input])+']'
+        task_id = f"{self.dataset_name}-{self.model_name}-{self.data_mode}-{self.his_len}-{self.pred_len}{lag_input_str}{graph_init}-{self.normalizer_name}-{self.init_time_stamp}"
         
         self.output_dir = os.path.join(self.output_dir, self.project_name, task_id)
         if self.configs['mode'] == 'train':
@@ -69,7 +75,7 @@ class TensorTask(TaskBase):
         # prepare for dataset
         self.dataset = TTS_DatasetManager(self.pkl_path, 
                                    his_len=self.his_len, pred_len=self.pred_len, normalizer_name=self.normalizer_name,
-                                   test_ratio=0.1, valid_ratio=0.1, seed=self.seed, data_mode=self.data_mode)
+                                   test_ratio=0.1, valid_ratio=0.1, seed=self.seed, data_mode=self.data_mode, lag_input=self.lag_input)
         # self.trainloader = TTS_DataLoader(self.dataset, 'train', batch_size=self.batch_size, drop_last=False)
         # self.validloader = TTS_DataLoader(self.dataset, 'valid', batch_size=self.batch_size, drop_last=False)
         # self.testloader  = TTS_DataLoader(self.dataset, 'test' , batch_size=1, drop_last=False)
@@ -180,6 +186,20 @@ class TensorTask(TaskBase):
         print(f"Scheduler: {self.configs['scheduler']}")
         print('-'*40)
         
+    def show_start_info(self):
+        print('='*40)
+        print('Task Infomation:')
+        print(f"Dataset: {self.dataset_name}")
+        print(f"Model: {self.model_name}")
+        print(f"His_len: {self.his_len}, Pred_len: {self.pred_len}, Lag_input: {self.lag_input}")
+        print(f"Normalizer: {self.normalizer_name}")
+        if self.batch_size == 0:
+            print(f"Batch_size: AutoBatch")
+        else:
+            print(f"Batch_size: {self.batch_size}")
+        print(f"LRFinder: {self.configs['lr_finder']}")
+        print('='*40)
+
     def train(self):
         self.best_epoch_info = {}
         for i in range(self.max_epoch):

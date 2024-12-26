@@ -134,7 +134,7 @@ Method:
 '''
 class TTS_DatasetManager:
     def __init__(self, pkl_path:str, his_len:int, pred_len:int, normalizer_name:str='none',
-                 test_ratio=0.1, valid_ratio=0.1, seed=2024, data_mode:int=0) -> None:
+                 test_ratio=0.1, valid_ratio=0.1, seed=2024, data_mode:int=0, lag_input:list=[]) -> None:
         random.seed(seed)
         self.pkl_path = pkl_path
         self.his_len = his_len
@@ -153,7 +153,7 @@ class TTS_DatasetManager:
             raise ValueError(f"invalid ratio. train:{train_ratio}, valid:{valid_ratio}, test:{test_ratio}")
         # TTS format:
         # shape = (t, dim1, dim2)
-        self.make_datasets(data_mode)
+        self.make_datasets(data_mode, lag_input)
         # self.data = self.data_pkl['data']
         # data_shape = self.data.shape
         # self.time_range = data_shape[0]
@@ -195,7 +195,7 @@ class TTS_DatasetManager:
         data = self.data[idx]
         return data
 
-    def make_datasets(self, data_mode:int, lag_input = False):
+    def make_datasets(self, data_mode:int, lag_input = []):
         self.data = self.data_pkl['data']
         sample_length = self.his_len + self.pred_len
         sample_num = self.data.shape[0] - sample_length
@@ -205,14 +205,14 @@ class TTS_DatasetManager:
         # normalize data
         self.normalizer = self.init_normalizer(self.normalizer_name, self.raw_train_data)
         self.data = self.normalizer.transform(self.data)
-        if lag_input:
+        if len(lag_input)==3:
             self.moving_sampler = ST_MoveSample(closeness_len=lag_input[2], period_len=lag_input[1], trend_len=lag_input[0], target_length=self.pred_len)
         # the shape of data read from .pkl is (T, N, M),
         # set data mode to change the shape
         # - 0: Tensor Direct        (T, N, M)
         # - 1: Modality-Independent (T x M, N, 1)
         # - 2: Modality-Individual  (T, N, 1) x M
-        if lag_input:
+        if len(lag_input)==3:
             if data_mode == 0:
                 self.subset_num = 1
                 data_shape = self.data.shape
@@ -256,8 +256,7 @@ class TTS_DatasetManager:
                 # self.trainset = np.array(trainset)
                 # self.validset = np.array(validset)
                 # self.testset = np.array(testset)
-            
-
+        
         else:
             if data_mode == 0:
                 # Tensor Direct
@@ -391,7 +390,7 @@ Dataset format:
 '''
 class MTS_DatasetManager:
     def __init__(self, pkl_path:str, his_len:int, pred_len:int, normalizer_name:str='none',
-                 test_ratio=0.1, valid_ratio=0.1, seed:int=2024, data_mode:int=0) -> None:
+                 test_ratio=0.1, valid_ratio=0.1, seed:int=2024, data_mode:int=0, lag_input:list=[]) -> None:
         random.seed(seed)
         self.his_len = his_len
         self.pred_len = pred_len
@@ -410,7 +409,7 @@ class MTS_DatasetManager:
             raise ValueError(f"invalid ratio. train:{train_ratio}, valid:{valid_ratio}, test:{test_ratio}")
         
         # set data mode
-        self.make_datasets(data_mode, normalizer_name)
+        self.make_datasets(data_mode, normalizer_name, lag_input)
 
         # random shuffle the dataset
         random.shuffle(self.trainset)
@@ -422,7 +421,7 @@ class MTS_DatasetManager:
             'test' : self.testset
         }
 
-    def make_datasets(self, data_mode:int, normalizer_name:str='none', lag_input = False):
+    def make_datasets(self, data_mode:int, normalizer_name:str='none', lag_input = []):
         self.data = self.data_pkl['data']
         sample_length = self.his_len + self.pred_len
         sample_num = self.data.shape[0] - sample_length
@@ -432,7 +431,7 @@ class MTS_DatasetManager:
         # normalize data
         self.normalizer = self.init_normalizer(normalizer_name, self.raw_train_data)
         self.data = self.normalizer.transform(self.data)
-        if lag_input:
+        if len(lag_input)==3:
             self.moving_sampler = ST_MoveSample(closeness_len=lag_input[2], period_len=lag_input[1], trend_len=lag_input[0], target_length=self.pred_len)
         # the shape of data read from .pkl is (T, N, M),
         # set data mode to change the shape
@@ -440,7 +439,7 @@ class MTS_DatasetManager:
         # - 1: Channel-Modality-Independent (T x N x M, 1, 1) (Train one model)
         # - 2: Modality-Independent         (T x M, N)        (Trian one model)
         # - 3: Modality-Individual          (T, N) x M        (Train M models)
-        if lag_input:
+        if len(lag_input)==3:
             if data_mode == 0:
                 self.subset_num = 1
                 self.time_range = int(self.data.shape[0])

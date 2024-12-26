@@ -334,6 +334,11 @@ class PatchTST_MultiVarModel(MultiVarModelBase):
         # self.configs, unknown = parser.parse_known_args()
         self.configs = parser
         self.configs.d_ff = self.d_ff
+        if self.configs.seq_len < 8:
+            stride = self.configs.seq_len
+        else:
+            stride = 8
+        #     self.configs.add_argument('--stride', type=int, default=stride, help='stride for patch embedding')
         # args.use_gpu = True if torch.cuda.is_available() and args.use_gpu else False
 
         # if args.use_gpu and args.use_multi_gpu:
@@ -342,7 +347,7 @@ class PatchTST_MultiVarModel(MultiVarModelBase):
         #     args.device_ids = [int(id_) for id_ in device_ids]
         #     args.gpu = args.device_ids[0]
 
-        self.model = Model(self.configs).float()
+        self.model = Model(self.configs, patch_len=int(2*stride),stride=stride).float()
         # update optimizer configs 
         lr = self.configs.learning_rate if self.optimizer_configs['lr'] == None else self.optimizer_configs['lr']
         eps = 1.0e-8 if self.optimizer_configs['eps'] == None else self.optimizer_configs['eps']

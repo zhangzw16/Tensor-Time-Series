@@ -35,6 +35,8 @@ def parse_args():
                         help='int, his_len, input history length')
     parser.add_argument('--pred_len', type=int, required=True,
                         help='int, pred_len, output prediction length')
+    parser.add_argument('--lag_input', type=str, default=[], required=False,
+                        help='[optional] list, lag_input=[trend, period, closeness], default=[]')
     parser.add_argument('--data_mode', type=int, default=0, required=True,
                         help='int, data_mode, \nTensorModel: 0:(time, dim1, dim2); 1:(time, dim2, dim1); 2:(time, dim1 x dim2, 1)\nMultiVarModel: 0:(1, time, dim1*dim2, 1); 1:(dim1, time, dim2, 1); 2:(dim2, time, dim1, 1)')
     parser.add_argument('--dataset_base', type=str, default=DATASET_BASE, required=False,
@@ -107,6 +109,11 @@ if __name__=='__main__':
     basic_config['dataset_name'] = args.dataset
     basic_config['his_len'] = args.his_len
     basic_config['pred_len'] = args.pred_len
+    lag_input = (args.lag_input)
+    if lag_input != []:
+        lag_input = lag_input.strip('[]').split(',')
+        lag_input = [int(i) for i in lag_input]
+    basic_config['lag_input'] = lag_input
     basic_config['data_mode'] = args.data_mode
     basic_config['batch_size'] = args.batch_size
     basic_config['normalizer'] = args.normalizer
@@ -133,6 +140,8 @@ if __name__=='__main__':
     elif basic_config['mode'] == 'test':
         if basic_config['model_path'] == '':
             raise ValueError("In test mode, model_path should not be empty.")
+    if basic_config['lag_input'] != []:
+        basic_config['his_len'] = sum(basic_config['lag_input'])
         
     NatureList = ['COVID_DEATHS', 'COVID_CHI', 'COVID_US']
     if basic_config['dataset_name'] in NatureList:
@@ -145,10 +154,14 @@ if __name__=='__main__':
     # exit()
 
     # if this task is finished
+    if lag_input == []:
+        lag_input_str = ""
+    else:
+        lag_input_str = '-['+"-".join([str(i) for i in lag_input])+']'
     task_path = os.path.join(basic_config['output_dir'], 'checkpoints')
-    GraphTTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['data_mode']}-{basic_config['his_len']}-{basic_config['pred_len']}-{basic_config['graph_init']}-{basic_config['normalizer']}"
-    NoGraphTTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['data_mode']}-{basic_config['his_len']}-{basic_config['pred_len']}-{basic_config['normalizer']}"
-    MTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['his_len']}-{basic_config['pred_len']}-{basic_config['data_mode']}-{basic_config['normalizer']}"
+    GraphTTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['data_mode']}-{basic_config['his_len']}-{basic_config['pred_len']}{lag_input_str}-{basic_config['graph_init']}-{basic_config['normalizer']}"
+    NoGraphTTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['data_mode']}-{basic_config['his_len']}-{basic_config['pred_len']}{lag_input_str}-{basic_config['normalizer']}"
+    MTS_prefix = f"{basic_config['dataset_name']}-{basic_config['model_name']}-{basic_config['his_len']}-{basic_config['pred_len']}{lag_input_str}-{basic_config['data_mode']}-{basic_config['normalizer']}"
     TTS_dirs = []
     MTS_dirs = []
     if os.path.exists(task_path) and basic_config['mode']=='train':
@@ -191,8 +204,9 @@ if __name__=='__main__':
         'batch_szie': basic_config['batch_size'],
         'his_len': basic_config['his_len'],
         'pred_len': basic_config['pred_len'],
+        'lag_input': basic_config['lag_input'],
         'timestamp': timestamp,
         'result': res,
     }
-    save_path = os.path.join(log_dir, f"{basic_config['model_name']}_{basic_config['dataset_name']}_{basic_config['his_len']}-{basic_config['pred_len']}-Mode{basic_config['data_mode']}-{timestamp}.yaml")
+    save_path = os.path.join(log_dir, f"{basic_config['model_name']}_{basic_config['dataset_name']}_{basic_config['his_len']}-{basic_config['pred_len']}-{lag_input_str}-Mode{basic_config['data_mode']}-{timestamp}.yaml")
     yaml.safe_dump(task_result, open(save_path, 'w'))
