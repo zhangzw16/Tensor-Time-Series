@@ -21,13 +21,8 @@ def EnsureDir(output_dir:str):
 # "TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID"
 if __name__=='__main__':
     # set model and dataset
-<<<<<<< HEAD
     model_name = 'TimesNet'
     dataset_name = 'crypto12'
-=======
-    model_name = 'GraphWaveNet'
-    dataset_name = 'weather'
->>>>>>> 36e0a02d86449694c9941de46dfaf6a1084eef44
     basic_config = get_config_template(model_name)
     # update basic_config
     # DATASET_BASE = 
