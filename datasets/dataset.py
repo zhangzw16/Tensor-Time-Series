@@ -19,6 +19,8 @@ class MoveSample(object):
         target = []
         # sample_num = len(data) - window_size + 1
         # window_size = feature_length + (feature_step-1)*feature_stride + target_length
+        x = len(data) - self.feature_length - (self.feature_step-1)*self.feature_stride - self.target_length + 1
+        print(len(data), self.feature_length, self.feature_step, self.feature_stride, self.target_length, x)
         for i in range(len(data) - self.feature_length -
                        (self.feature_step-1)*self.feature_stride - self.target_length + 1):
             feature.append([data[i + step*self.feature_stride: i + step*self.feature_stride + self.feature_length]
@@ -87,6 +89,7 @@ class ST_MoveSample(object):
         trend = trend[-min_length:]
 
         # 4 remove tail of period and trend
+        print(period.shape, trend.shape)
         period = period[:, :-1]
         trend = trend[:, :-1]
 
@@ -135,7 +138,8 @@ Method:
 
 DatasetTemporalResolution = {
     'JONAS_NYC_taxi': 24 * 2,
-    'METRO_HZ': 24 * 4
+    'METRO_HZ': 24 * 4,
+    'COVID_CHI': 12,
 }
 
 class TTS_DatasetManager:
@@ -157,7 +161,7 @@ class TTS_DatasetManager:
                 raise ValueError(f"Unknown dataset temporal resolution: {self.dataset_name}")
         with open(pkl_path, 'rb') as file:
             self.data_pkl = pkl.load(file)
-        self.dataset_name = self.data_pkl.split('/')[-2]
+        # self.dataset_name = self.data_pkl.split('/')[-2]
         train_ratio = 1 - test_ratio - valid_ratio
         self.train_ratio = train_ratio
         self.valid_ratio = valid_ratio
@@ -701,7 +705,88 @@ class MTS_DatasetManager:
             raise ValueError(f'unknown normalizer: {norm}...')
         
 # class LagInput_DatasetManager:
-        
+
+class Stat_DatasetManager:
+    def __init__(self, pkl_path:str, his_len:int, pred_len:int, normalizer_name:str='none', 
+                 test_ratio=0.1, valid_ratio=0.1, seed:int=2024, data_mode:int=0, lag_input:list=[]) -> None:
+        random.seed(seed)
+        self.pkl_path = pkl_path
+        self.his_len = his_len
+        self.pred_len = pred_len
+        self.normalizer_name = normalizer_name
+        # load pkl
+        if not os.path.exists(pkl_path):
+            raise FileExistsError(f"Can not find file: {pkl_path}")
+        self.dataset_name = pkl_path.split('/')[-2]
+        with open(pkl_path, 'rb') as file:
+            self.data_pkl = pkl.load(file)
+        # split dataset
+        train_ratio = 1 - test_ratio - valid_ratio
+        self.train_ratio = train_ratio
+        self.valid_ratio = valid_ratio
+        self.test_ratio = test_ratio
+        if train_ratio < 0:
+            raise ValueError(f"invalid ratio. train:{train_ratio}, valid:{valid_ratio}, test:{test_ratio}")
+        # set data mode
+        pass
+        self.make_datasets(data_mode, lag_input)
+        self.dataset_map = {
+            'train': self.trainset,
+            'valid': self.validset,
+            'test' : self.testset
+        }
+    def get_his_pred_from_idx(self, idx:int):
+        data = self.data[idx]
+        his = data[:self.his_len]
+        pred = data[self.his_len:]
+        return his, pred
+    
+    def get_seq_from_idx(self, idx:int):
+        data = self.data[idx]
+        return data
+
+    def make_datasets(self, data_mode:int, lag_input=[]):
+        self.data = self.data_pkl['data']
+        sample_length = self.his_len + self.pred_len
+        sample_num = self.data.shape[0] - sample_length
+        train_end = int(sample_num * self.train_ratio)
+        valid_end = int(sample_num * self.valid_ratio) + train_end
+        self.raw_train_data = self.data[:train_end]
+        # normalize data
+        self.normalizer = self.init_normalizer(self.normalizer_name, self.raw_train_data)
+        self.data = self.normalizer.transform(self.data)
+
+        self.subset_num = 1
+        data_shape = self.data.shape
+        self.time_range = data_shape[0]
+        self.variable_num = data_shape[1]
+        self.modality_num = data_shape[2]
+        sample_list = []
+        for i in range(sample_num):
+            sample_list.append(self.data[i: i+sample_length])
+        self.data = np.array(sample_list)
+        self.data = np.expand_dims(self.data, axis=0)
+        self.trainset = self.data[:, :train_end]
+        self.validset = self.data[:, train_end:valid_end]
+        self.testset  = self.data[:, valid_end:]
+    def get_subset_num(self):
+        return self.subset_num
+    def get_tensor_shape(self):
+        return (self.variable_num, self.modality_num)
+    def get_data_shape(self):
+        return (self.time_range, self.variable_num, self.modality_num)
+    def get_dataset(self, name:str):
+        return self.dataset_map[name]
+    def init_normalizer(self, norm, train_data):
+        if norm == 'none':
+            return DoNothing()
+        elif norm == 'sklearn':
+            return Sklearn_StandNormalizer(train_data)
+        elif norm == 'std':
+            return StandNormalizer(train_data)
+        else:
+            raise ValueError(f'unknown normalizer: {norm}...')
+
 if __name__ == '__main__':
     import numpy as np
     # 示例数据：一天中每小时的温度记录（24小时）

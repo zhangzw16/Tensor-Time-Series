@@ -1,0 +1,297 @@
+NET3:
+  COVID_DEATHS:
+    - 12  # pred=6
+    - 6  # pred=12
+    - 6  # pred=24
+  JONAS_NYC_taxi:
+    - 12  # pred=12
+    - 48  # pred=48
+    - 96  # pred=96
+  COVID_CHI:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  METRO_HZ:
+    - 48   # pred=12
+    - 48  # pred=48
+    - 96  # pred=96
+  ETT_hour:
+    - 48  # pred=12
+    - 12  # pred=48
+    - 96  # pred=96
+  weather:
+    - 48  # pred=12
+    - 48  # pred=48
+    - 96  # pred=96
+  crypto12:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  stocknet:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+AGCRN:
+  JONAS_NYC_taxi:
+    - 12  # pred=12
+    - 48  # pred=48
+    - 48  # pred=96
+  COVID_CHI:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  METRO_HZ:
+    - 48  # pred=12
+    - 48  # pred=48
+    - 48  # pred=96
+  ETT_hour:
+    - 48  # pred=12
+    - 48  # pred=48
+    - 48  # pred=96
+  weather:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  crypto12:
+    - 96  # pred=12
+    - 48  # pred=48
+    - 12  # pred=96
+  stocknet:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  COVID_DEATHS:
+    - 6  # pred=6
+    - 6  # pred=12
+    - 6  # pred=24
+MTGNN:
+  JONAS_NYC_taxi:
+    - 48  # pred=12
+    - 48  # pred=48
+    - 48  # pred=96
+  COVID_CHI:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  METRO_HZ:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  ETT_hour:
+    - 96  # pred=12
+    - 48  # pred=48
+    - 96  # pred=96
+  weather:
+    - 12  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  crypto12:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  stocknet:
+    - 96  # pred=12
+    - 48  # pred=48
+    - 12  # pred=96
+  COVID_DEATHS:
+    - 12  # pred=6
+    - 12  # pred=12
+    - 12  # pred=24
+GraphWaveNet:
+  JONAS_NYC_taxi:
+    - 48  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  COVID_CHI:
+    - 12  # pred=12
+    - 48  # pred=48
+    - 96  # pred=96
+  METRO_HZ:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  ETT_hour:
+    - 48  # pred=12
+    - 48  # pred=48
+    - 96  # pred=96
+  weather:
+    - 48  # pred=12
+    - 48  # pred=48
+    - 96  # pred=96
+  crypto12:
+    - 12  # pred=12
+    - 48  # pred=48
+    - 96  # pred=96
+  stocknet:
+    - 12  # pred=12
+    - 48  # pred=48
+    - 96  # pred=96
+  COVID_DEATHS:
+    - 6  # pred=6
+    - 12  # pred=12
+    - 12  # pred=24
+TimesNet:
+  JONAS_NYC_taxi:
+    - 12  # pred=12
+    - 48  # pred=48
+    - 48  # pred=96
+  COVID_CHI:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  METRO_HZ:
+    - 96  # pred=12
+    - 48  # pred=48
+    - 96  # pred=96
+  ETT_hour:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  weather:
+    - 12  # pred=12
+    - 48  # pred=48
+    - 96  # pred=96
+  crypto12:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  stocknet:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  COVID_DEATHS:
+    - 6  # pred=6
+    - 6  # pred=12
+    - 6  # pred=24
+PatchTST:
+  JONAS_NYC_taxi:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  COVID_CHI:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  METRO_HZ:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  ETT_hour:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  weather:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 96  # pred=96
+  crypto12:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  stocknet:
+    - 48  # pred=12
+    - 48  # pred=48
+    - 48  # pred=96
+  COVID_DEATHS:
+    - 12  # pred=6
+    - 12  # pred=12
+    - 12  # pred=24
+NLinear:
+  JONAS_NYC_taxi:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  COVID_CHI:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  METRO_HZ:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  ETT_hour:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  weather:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  crypto12:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  stocknet:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  COVID_DEATHS:
+    - 6  # pred=6
+    - 6  # pred=12
+    - 6  # pred=24
+DLinear:
+  JONAS_NYC_taxi:
+    - 48  # pred=12
+    - 48  # pred=48
+    - 48  # pred=96
+  COVID_CHI:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  METRO_HZ:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  ETT_hour:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  weather:
+    - 12  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  crypto12:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  stocknet:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  COVID_DEATHS:
+    - 6  # pred=6
+    - 6  # pred=12
+    - 6  # pred=24
+STID:
+  JONAS_NYC_taxi:
+    - 48  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  COVID_CHI:
+    - 48  # pred=12
+    - 48  # pred=48
+    - 48  # pred=96
+  METRO_HZ:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  ETT_hour:
+    - 96  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  weather:
+    - 12  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  crypto12:
+    - 48  # pred=12
+    - 48  # pred=48
+    - 96  # pred=96
+  stocknet:
+    - 48  # pred=12
+    - 48  # pred=48
+    - 48  # pred=96
+  COVID_DEATHS:
+    - 6  # pred=6
+    - 6  # pred=12
+    - 6  # pred=24

@@ -21,8 +21,8 @@ def EnsureDir(output_dir:str):
 # "TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID"
 if __name__=='__main__':
     # set model and dataset
-    model_name = 'TimesNet'
-    dataset_name = 'METRO_HZ'
+    model_name = 'HM'
+    dataset_name = 'weather'
     basic_config = get_config_template(model_name)
     # update basic_config
     # DATASET_BASE = 
@@ -38,10 +38,10 @@ if __name__=='__main__':
 
     # ---- 2. Dataset Configuration -----
     basic_config['dataset_name'] = dataset_name
-    basic_config['his_len'] = 6
-    basic_config['pred_len'] = 12
+    basic_config['his_len'] = 48
+    basic_config['pred_len'] = 96
     basic_config['lag_input'] = [1,3,5]
-    basic_config['data_mode'] = 0
+    basic_config['data_mode'] = 512
     basic_config['batch_size'] = 2
     basic_config['normalizer'] = 'sklearn'
     
@@ -99,4 +99,5 @@ if __name__=='__main__':
         'result': res,
     }
     save_path = os.path.join(log_dir, f"{basic_config['model_name']}_{basic_config['dataset_name']}_{basic_config['his_len']}-{basic_config['pred_len']}{lag_input_str}-Mode{basic_config['data_mode']}-{timestamp}.yaml")
+    print(f"Save result to {save_path}")
     yaml.safe_dump(task_result, open(save_path, 'w'))

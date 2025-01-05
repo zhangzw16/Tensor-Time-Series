@@ -1,0 +1,59 @@
+# Basic configuration
+mode: 'train' # ['train', 'test']
+seed: 2024
+task_device: 'cuda'
+max_epoch: 1024
+early_stop_max: 16
+early_stop_start_epoch: 10
+debug: false
+
+# Output path & Logger
+output_dir: './output/'
+logger: 'none'
+project_name: 'auto_run'
+
+# Model
+model_type: 'Stat'  # ['Tensor', 'Stat']
+model_name: ''
+model_path: '' # for test only, load model paramters from this path
+
+# Dataset & Dataloader
+dataset_pkl: ''
+# the shape of data read from .pkl is (T, N, M),
+# set data mode to change the shape
+# - 0: Tensor Direct        (T, N, M)
+# - 1: Modality-Independent (T x M, N, 1)
+# - 2: Modality-Individual  (T, N, 1) x M
+data_mode: 0
+batch_size: 64
+his_len:  96    # input length, if lag_input is not empty, this parameter is invalid
+pred_len: 12    # output length
+lag_input: []   # [trend, period, closeness], set [] to use hie_len
+normalizer: 'std' # ['none', 'std']
+graph_init: 'pearson'  # ['pearson', 'invers_pearson', 'random', 'cosine', 'unit']
+test_ratio:  0.1
+valid_ratio: 0.1
+
+# Optimizer
+lr_finder: false  # whether to use lr_finder to set the lr automatically
+lr: '1e-3'          # string, set '' to use default lr
+eps: '1e-8'         # string, set '' to use default eps
+weight_decay: '0'   # string, set '' to use default weight_decay
+
+# Scheduler (stay tuned...)
+scheduler: 'None' # ['None', 'MultiStepLR', 'MultiStepLR', 'ExponentialLR', 'ReduceLROnPlateau']
+
+# Evaluation
+evaluator_verbose: false
+metrics_list:
+  - mae
+  - rmse
+  - mape
+  - smape
+  # - mase
+  # - rmsse
+  - r_square
+  # - pcc
+
+metrics_thres: {}
+

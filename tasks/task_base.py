@@ -37,7 +37,7 @@ class TaskBase:
         else:
             return False
         
-    def save_checkpoint(self, epoch, interval=10, save_dir:str=''):
+    def save_checkpoint(self, epoch, interval=1024, save_dir:str=''):
         if epoch % interval == 0:
             if self.model is not None:
                 if save_dir == '':

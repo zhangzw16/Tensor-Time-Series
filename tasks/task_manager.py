@@ -4,12 +4,14 @@ import yaml
 from models import ModelManager
 from tasks.tensor_task import TensorTask
 from tasks.multivar_task import MultivarTask
+from tasks.stat_task import StatTask
 
 # Basic Configurations
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = {
     'Tensor': os.path.join(CURRENT_PATH, 'tensor_tasks_template.yaml'),
     'MultiVar': os.path.join(CURRENT_PATH, 'multivariate_tasks_template.yaml'),
+    'Stat': os.path.join(CURRENT_PATH, 'stat_tasks_template.yaml'),
 }
 DATASET_PATH = os.path.join(os.path.dirname(CURRENT_PATH), 'datasets', 'data')
 DEFAULT_OUTPUT_DIR = os.path.join(os.path.dirname(CURRENT_PATH), 'output')
@@ -29,6 +31,7 @@ class TaskManager:
         self.task_map = {
             'Tensor': self.TensorTaskRun,
             'MultiVar': self.MultiVarTaskRun,
+            'Stat': self.StatTaskRun,
         }
 
     '''
@@ -155,4 +158,22 @@ class TaskManager:
             result = str(exp)
         return result
     
+    def StatTaskRun(self, dataset_name:str, model_name:str, configs:dict={}, only_test:bool=False):
+        if configs == {}:
+            configs = yaml.safe_load(open(self.template_path['Stat'], 'r'))
+        task_config = configs.copy()
+        task_config['output_dir'] = self.output_dir
+        task_config['project_name'] = self.project_name
+        task_config['dataset_pkl'] = self.search_pkl(dataset_name)
+        task_config['model_name'] = model_name
+        task_config['model_type'] = 'Stat'
+        # only test
+        pass
+        # debug
+        task = StatTask(task_config)
+        result = task.test()
+        result = self.format_result(result)
+        return result
 
+
+            

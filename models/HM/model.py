@@ -59,7 +59,7 @@ class HM_StatModel(StatModelBase):
         pred = self.model(in_data)
         # inverse
         # pred = self.normalizer.inverse_transform(pred)
-
+        # print(pred.size(), truth.size())
         return pred, truth
         
     def backward(self, loss):

@@ -12,5 +12,5 @@ export scheduler='ReduceLROnPlateau'
 export logger='tensorboard'
 export normalizer='sklearn'
 export graph_init='pearson'
-export data_mode=0
+
 

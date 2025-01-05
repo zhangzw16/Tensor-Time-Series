@@ -19,7 +19,7 @@ batch_size=256  # 设置 0 开启 AutoBatch
 # 共 16 个数据集
 # DatasetList=('COVID_DEATHS' 'crypto12' 'METRO_HZ' 'COVID_CHI' 'stocknet' 'ETT_hour' 'COVID_US' 'JONAS_NYC_taxi' 'JONAS_NYC_bike' 'weather' 'Metr-LA' 'electricity' 'METRO_SH' 'Jena_climate' 'nasdaq100' 'PEMSBAY')
 # DatasetList=('crypto12' 'METRO_HZ' 'stocknet' 'ETT_hour' 'JONAS_NYC_taxi' 'JONAS_NYC_bike' 'weather' 'Metr-LA' 'electricity' 'METRO_SH' 'Jena_climate' 'nasdaq100')
-DatasetList=('METRO_HZ' 'JONAS_NYC_taxi')
+DatasetList=('COVID_CHI' 'JONAS_NYC_taxi')
 
 # ==================== Traffic + Weather + Energy + Finance Datasets ====================
 for dataset in ${DatasetList[@]}; do
