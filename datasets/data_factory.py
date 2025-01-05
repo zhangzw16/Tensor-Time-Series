@@ -112,7 +112,7 @@ def Crypto_data():
             arrays.append(data)
     data = np.stack(arrays, axis=1)
     print(absent)
-    return data, data.shape, 'finance', data.shape, '1day'
+    return data, data.shape, 'finance', data.shape, '1D'
 
 def Nasdaq100_data():
     path = os.path.join(dataset_dir,'nasdaq100','nasdaq100','full')
@@ -180,7 +180,7 @@ def StockNet_data():
             arrays.append(data)
     data = np.stack(arrays, axis=1)
     print(absent)
-    return data, data.shape, 'finance', data.shape, '1day'
+    return data, data.shape, 'finance', data.shape, '1D'
 def weather_data():
     df = pd.read_csv(os.path.join(dataset_dir,'weather','weather.csv'))
     df['date'] = pd.to_datetime(df['date'])
@@ -193,7 +193,7 @@ def weather_data():
     raw_shape = data.shape
     data = np.expand_dims(data, axis=-1)
     data_type = 'weather'
-    resolution = '10mins'
+    resolution = '10T'
     return data, data.shape, data_type, raw_shape, resolution
 def JenaClimate_data():
     csv_path = os.path.join(dataset_dir,'Jena_climate','jena_climate_2009_2016.csv')
@@ -207,7 +207,7 @@ def JenaClimate_data():
     raw_shape = data.shape
     data = np.expand_dims(data, axis=-1)
     data_type = 'weather'
-    resolution = '10mins'
+    resolution = '10T'
     return data, data.shape, data_type, raw_shape, resolution
 
 
@@ -235,7 +235,7 @@ def Shifts_data(d_type):
     raw_shape = data.shape
     data = np.expand_dims(data, axis=-1)
     data_type = 'traffic'
-    data_resolution = '15mins'
+    data_resolution = '15T'
     return data, data.shape, data_type, raw_shape, data_resolution
 def COVID_data(d_type):
     if d_type == 'COVID-CHI':
@@ -246,14 +246,14 @@ def COVID_data(d_type):
         raw_shape = data.shape
         data = np.reshape(data,(raw_shape[0],14,-1)).astype(float)
         data_type = 'transport'
-        resolution = '2hours'
+        resolution = '2H'
         
     elif d_type == 'COVID-US':
         signal = np.load(os.path.join(dataset_dir,'COVID-US','COVID-US-51x1-20191114-20200531.npz'))
         data_type = 'travel'
         data = signal['poi']
         raw_shape = data.shape
-        resolution = '1hour'
+        resolution = '1H'
 
     elif d_type == 'COVID-DEATHS':
         path = os.path.join(dataset_dir,'COVID-DEATHS','covid_deaths_dataset.tsf')
@@ -265,7 +265,7 @@ def COVID_data(d_type):
         data = np.array(fetch_data).T
         raw_shape = data.shape
         data = np.expand_dims(data, axis=-1)
-        resolution = '1day'
+        resolution = '1D'
         data_type = 'natural'
     data_shape = data.shape
     return data, data_shape, data_type, raw_shape, resolution
@@ -297,7 +297,7 @@ def Metro_data(d_type):
     raw_shape = data.shape
     # data = np.expand_dims(data, axis=-1)
     data_type = 'traffic'
-    data_resolution = '15mins'
+    data_resolution = '15T'
     return data, data.shape, data_type, raw_shape, data_resolution
     
 def Metr_LA_data():
@@ -308,7 +308,7 @@ def Metr_LA_data():
     data = np.expand_dims(df.values, axis=-1)
     data_shape = data.shape
     data_type = 'traffic'
-    resolution = '5mins'
+    resolution = '5T'
     return data, data_shape, data_type, raw_shape, resolution
 def ETT_hour_data():
     scaler = StandardScaler()
@@ -327,7 +327,7 @@ def ETT_hour_data():
     raw_shape = df_data.shape
     data_type = 'energy'
     data = np.expand_dims(data, axis=-1)
-    resolution = '1hour'
+    resolution = '1H'
     return data, data.shape, data_type, raw_shape, resolution
 def electricity_data():
     df = pd.read_csv(os.path.join(dataset_dir,'electricity','electricity.csv'))
@@ -341,7 +341,7 @@ def electricity_data():
     raw_shape = data.shape
     data = np.expand_dims(data, axis=-1)
     data_type = 'energy'
-    resolution = '1hour'
+    resolution = '1H'
     return data, data.shape, data_type, raw_shape, resolution
 
 def JONAS_NYC_data(type):
@@ -412,7 +412,8 @@ def PEMS_data(d_type):
         raw_shape = data.shape
         data = np.expand_dims(data, axis=-1)
     data_type = 'traffic'
-    data_resolution = '5mins'
+    # data_resolution = '5T'
+    data_resolution = '5T'
     # data = np.expand_dims(data, axis=-1)
     return data, data.shape, data_type, raw_shape, data_resolution
 
