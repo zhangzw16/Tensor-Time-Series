@@ -97,6 +97,8 @@ class NET3_TensorModel(TensorModelBase):
         self.init_others()
 
     def init_model(self, args={}) -> NET3:
+        self.his_len = self.configs['his_len']
+        self.pred_len = self.configs['pred_len']
         model_configs_yaml = os.path.join( os.path.dirname(__file__), 'model.yml' )
         model_configs = yaml.safe_load(open(model_configs_yaml))
         self.orthogonal_weight = 1e-3
@@ -135,17 +137,19 @@ class NET3_TensorModel(TensorModelBase):
         dim2 = self.model.configs['mode_dims'][1]
         value = value[:, :dim1, :dim2, :]   # ensure the correct shape (test)
         # in_value = self.normalizer.transform(value[...,:-1])
-        in_value = value[...,:-1]
+        in_value = value
+        truth = value[..., self.his_len:]
+        indicators = torch.zeros_like(in_value, dtype=torch.float)
+        indicators[..., :self.his_len] = 1
         adj = self.network
-        pred, hx = self.model(values=in_value, adj=adj)        
+        pred, hx = self.model(values=in_value, adj=adj, indicators=indicators)        
         # print(f"out: pred:{pred.shape}, truth: {value.shape}");exit()
-        if value.shape[0] != pred.shape[0]:
-            d1, d2, d3, d4 = value.size()
-            pred = pred.view((d1,d2,d3,d4-1))
+        # if value.shape[0] != pred.shape[0]:
+        #     d1, d2, d3, d4 = value.size()
+        #     pred = pred.view((d1,d2,d3,d4-1))
         # model_pred = self.normalizer.inverse_transform(pred)
-        model_pred = pred[..., -1]
-        truth = value[..., -1]
-        # print(model_pred.shape, truth.shape);exit()
+        model_pred = pred[..., self.his_len:]
+        print(model_pred.shape, truth.shape);exit()
         return model_pred, truth
     
     def backward(self, loss):

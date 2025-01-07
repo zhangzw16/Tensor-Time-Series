@@ -21,8 +21,8 @@ def EnsureDir(output_dir:str):
 # "TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID"
 if __name__=='__main__':
     # set model and dataset
-    model_name = 'HM'
-    dataset_name = 'weather'
+    model_name = 'NET3'
+    dataset_name = 'JONAS_NYC_taxi'
     basic_config = get_config_template(model_name)
     # update basic_config
     # DATASET_BASE = 
@@ -40,9 +40,9 @@ if __name__=='__main__':
     basic_config['dataset_name'] = dataset_name
     basic_config['his_len'] = 48
     basic_config['pred_len'] = 96
-    basic_config['lag_input'] = [1,3,5]
-    basic_config['data_mode'] = 512
-    basic_config['batch_size'] = 2
+    basic_config['lag_input'] = []
+    basic_config['data_mode'] = 0
+    basic_config['batch_size'] = 16
     basic_config['normalizer'] = 'sklearn'
     
     # ---- 3. Training Configuration -----

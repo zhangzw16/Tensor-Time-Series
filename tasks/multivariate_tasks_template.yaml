@@ -21,10 +21,10 @@ model_path: '' # the model parameters loaded in test phase. Setting '' is equal 
 dataset_pkl: '/nas/datasets/Tensor-Time-Series-Dataset/Processed_Data/ETT_hour/ETT_hour.pkl'
 # the shape of data read from .pkl is (T, N, M),
 # set data mode to change the shape
-# - 0: Channel-Modality-Mixing      (T, NxM, 1)       (Train one model)
-# - 1: Channel-Modality-Independent (T x N x M, 1, 1) (Train one model)
-# - 2: Modality-Independent         (T x M, N)        (Trian one model)
-# - 3: Modality-Individual          (T, N) x M        (Train M models)
+# - 0: Channel-Modality-Mixing      (1, T, NxM, 1)       (Train one model)
+# - 1: Channel-Modality-Independent (N x M, T, 1, 1)     (Train one model)
+# - 2: Modality-Independent         (M, T, N)        (Trian one model)
+# - 3: Modality-Individual          (1, T, N) x M        (Train M models)
 data_mode: 0
 batch_size: 64
 his_len:  96    # input length, if lag_input is not empty, this parameter is invalid
