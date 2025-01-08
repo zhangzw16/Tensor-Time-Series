@@ -21,9 +21,9 @@ model_path: '' # for test only, load model paramters from this path
 dataset_pkl: '/home/zhuangjiaxin/workspace/Tensor-Time-Series/Tensor-Time-Series/datasets/Tensor-Time-Series-Dataset/Processed_Data/METRO_SH/METRO_SH.pkl'
 # the shape of data read from .pkl is (T, N, M),
 # set data mode to change the shape
-# - 0: Tensor Direct        (T, N, M)
-# - 1: Modality-Independent (T x M, N, 1)
-# - 2: Modality-Individual  (T, N, 1) x M
+# - 0: Tensor Direct        (1, T, N, M)
+# - 1: Modality-Independent (M, T, N, 1)
+# - 2: Modality-Individual  (1, T, N, 1) x M
 data_mode: 0
 batch_size: 64
 his_len:  96    # input length, if lag_input is not empty, this parameter is invalid

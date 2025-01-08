@@ -99,6 +99,7 @@ class NET3_TensorModel(TensorModelBase):
     def init_model(self, args={}) -> NET3:
         self.his_len = self.configs['his_len']
         self.pred_len = self.configs['pred_len']
+        self.batch_size = self.configs['batch_size']
         model_configs_yaml = os.path.join( os.path.dirname(__file__), 'model.yml' )
         model_configs = yaml.safe_load(open(model_configs_yaml))
         self.orthogonal_weight = 1e-3
@@ -149,7 +150,11 @@ class NET3_TensorModel(TensorModelBase):
         #     pred = pred.view((d1,d2,d3,d4-1))
         # model_pred = self.normalizer.inverse_transform(pred)
         model_pred = pred[..., self.his_len:]
-        print(model_pred.shape, truth.shape);exit()
+        if self.batch_size == 1:
+            model_pred = model_pred.unsqueeze(0)
+        batch, n, m, t = truth.shape
+        model_pred = model_pred.view(batch, n, m, t)
+        # print(model_pred.shape, truth.shape, value.shape, self.batch_size, batch, n, m, t);exit()
         return model_pred, truth
     
     def backward(self, loss):

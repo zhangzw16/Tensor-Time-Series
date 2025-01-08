@@ -295,3 +295,69 @@ STID:
     - 6  # pred=6
     - 6  # pred=12
     - 6  # pred=24
+HM_TTS:
+  JONAS_NYC_taxi:
+    - 12  # pred=12
+    - 48  # pred=48
+    - 96  # pred=96
+  COVID_CHI:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  METRO_HZ:
+    - 12  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  ETT_hour:
+    - 48  # pred=12
+    - 48  # pred=48
+    - 48  # pred=96
+  weather:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  crypto12:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  stocknet:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  COVID_DEATHS:
+    - 6  # pred=6
+    - 6  # pred=12
+    - 6  # pred=24
+HM_MTS:
+  JONAS_NYC_taxi:
+    - 12  # pred=12
+    - 48  # pred=48
+    - 96  # pred=96
+  COVID_CHI:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  METRO_HZ:
+    - 12  # pred=12
+    - 96  # pred=48
+    - 96  # pred=96
+  ETT_hour:
+    - 48  # pred=12
+    - 48  # pred=48
+    - 48  # pred=96
+  weather:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  crypto12:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  stocknet:
+    - 12  # pred=12
+    - 12  # pred=48
+    - 12  # pred=96
+  COVID_DEATHS:
+    - 6  # pred=6
+    - 6  # pred=12
+    - 6  # pred=24

@@ -21,6 +21,7 @@ ModelType:
     - GCLSTM
     - Mamba
     - STC_GNN
+    - HM_TTS
 
   MultiVar:
     - TimesNet
@@ -34,6 +35,7 @@ ModelType:
     - NLinear
     - STID
     - STWA
+    - HM_MTS
     
   Stat:
     - HM

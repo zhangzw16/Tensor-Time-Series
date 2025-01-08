@@ -4,16 +4,17 @@ task_name="SearchInput-${seed}"
 # 获取环境变量
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source $SCRIPT_DIR/env.sh
-
+data_mode=0
 # 模型配置
 # ModelList=("AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" )
-ModelList=("Mamba" "MTGNN" "ST_Norm" "TTS_Norm" "TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID" "DCRNN" "STWA" "NET3")
+# ModelList=("Mamba" "MTGNN" "ST_Norm" "TTS_Norm" "TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID" "DCRNN" "STWA" "NET3")
+ModelList=("NET3")
 
 
 # ==================== Nature Datasets ====================
 HisLenList=(6 12 24)
 PredLenList=(6 12 24)
-batch_size=1  # 设置 1
+batch_size=2  # 设置 1
 DatasetList=('COVID_DEATHS')
 
 for pred_len in ${PredLenList[@]}; do

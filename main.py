@@ -22,50 +22,50 @@ def EnsureDir(output_dir:str):
 if __name__=='__main__':
     # set model and dataset
     model_name = 'NET3'
-    dataset_name = 'JONAS_NYC_taxi'
+    dataset_name = 'COVID_DEATHS'
     basic_config = get_config_template(model_name)
     # update basic_config
     # DATASET_BASE = 
     DATASET_BASE = '/nas/datasets/Tensor-Time-Series-Dataset/Processed_Data'
     # ---- 1. Basic Configuration -----
-    basic_config['project_name'] = 'main_debug'
+    basic_config['project_name'] = 'SearchInput-NET3-42'
     output_dir = '/data4t/zjx_dataset/workspace/Tensor-Time-Series/nas_logs'
     basic_config['output_dir'] = os.path.join(output_dir, basic_config['project_name'])
-    basic_config['mode'] = 'train'
+    basic_config['mode'] = 'test'
     basic_config['debug'] = True
     basic_config['logger'] = 'none'
     basic_config['task_device'] = 'cuda'
 
     # ---- 2. Dataset Configuration -----
     basic_config['dataset_name'] = dataset_name
-    basic_config['his_len'] = 48
-    basic_config['pred_len'] = 96
+    basic_config['his_len'] = 6
+    basic_config['pred_len'] = 12
     basic_config['lag_input'] = []
     basic_config['data_mode'] = 0
-    basic_config['batch_size'] = 16
+    basic_config['batch_size'] = 1
     basic_config['normalizer'] = 'sklearn'
     
     # ---- 3. Training Configuration -----
     basic_config['model_name'] = model_name
     basic_config['model_path'] = ''
-    basic_config['graph_init'] = 'unit'
+    basic_config['graph_init'] = 'pearson'
     basic_config['seed'] = 2024
-    basic_config['max_epoch'] = 2024
+    basic_config['max_epoch'] = 3
     basic_config['early_stop_max'] = 32
     basic_config['early_stop_start_epoch'] = 0
-    basic_config['lr_finder'] = True 
+    basic_config['lr_finder'] = False 
     # basic_config['lr'] = '1e-7'
     basic_config['lr'] = '1e-4'
     basic_config['eps'] = '1e-8'
     basic_config['weight_decay'] = '1e-3'
-    basic_config['scheduler'] = 'ReduceLROnPlateau'
-    basic_config['model_path'] = '/home/ysc/workspace/output/main/checkpoints/weather-PatchTST-512-96-0-std-2024-11-14-15:09:45/run_0/checkpoint_30.pth'
+    basic_config['scheduler'] = 'ReduceLROnPlateau' # none
+    basic_config['model_path'] = '/data4t/zjx_dataset/workspace/Tensor-Time-Series/nas_logs/SearchInput-NET3-42/checkpoints/COVID_DEATHS-NET3-0-6-12-pearson-sklearn-2025-01-08-15:01:56/model.pth'
 
     # double check
     if basic_config['mode'] == 'train':
         basic_config['model_path'] = ''
     elif basic_config['mode'] == 'test':
-        if basic_config['model_path'] == '':
+        if basic_config['model_path'] == '' and basic_config['model_name'] not in ['HM_TTS', 'HM_MTS', 'HM']:
             raise ValueError("In test mode, model_path should not be empty.")
     if basic_config['lag_input'] != []:
         basic_config['his_len'] = sum(basic_config['lag_input'])
@@ -74,7 +74,8 @@ if __name__=='__main__':
         lag_input_str = ""
     else:
         lag_input_str = '-['+"-".join([str(i) for i in lag_input])+']'
-
+    if basic_config['model_name'] in ['HM_TTS', 'HM_MTS', 'HM']:
+        basic_config['scheduler'] = 'None'
     # timestamp
     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
     basic_config['timestamp'] = timestamp

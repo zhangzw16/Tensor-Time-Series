@@ -320,10 +320,11 @@ class TensorTask(TaskBase):
         # load model
         if not os.path.exists(self.model_path):
             self.model_path = os.path.join(self.output_dir, 'model.pth')
-            if not os.path.exists(self.model_path):
+            if not os.path.exists(self.model_path) and self.configs['model_name'] not in ['HM_TTS', 'HM_MTS', 'HM']:
                 raise FileExistsError(f"can not find .pth file... {self.model_path}")
         print(f'load model from {self.model_path}')
-        self.model.load_model(self.model_path)
+        if self.configs['model_name'] not in ['HM_TTS', 'HM_MTS', 'HM']:
+            self.model.load_model(self.model_path)
         print(f'model loaded...')
         # eval mode
         self.model.eval()

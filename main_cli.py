@@ -138,7 +138,7 @@ if __name__=='__main__':
     if basic_config['mode'] == 'train':
         basic_config['model_path'] = ''
     elif basic_config['mode'] == 'test':
-        if basic_config['model_path'] == '':
+        if basic_config['model_path'] == '' and basic_config['model_name'] not in ['HM_TTS', 'HM_MTS', 'HM']:
             raise ValueError("In test mode, model_path should not be empty.")
     if basic_config['lag_input'] != []:
         basic_config['his_len'] = sum(basic_config['lag_input'])
@@ -146,7 +146,8 @@ if __name__=='__main__':
     NatureList = ['COVID_DEATHS', 'COVID_CHI', 'COVID_US']
     if basic_config['dataset_name'] in NatureList:
         basic_config['bacth_size'] = 1
-
+    if basic_config['model_name'] in ['HM_TTS', 'HM_MTS', 'HM']:
+        basic_config['scheduler'] = 'None'
     # print("=====================================")
     # print("Configs:")
     # for k, v in basic_config.items():

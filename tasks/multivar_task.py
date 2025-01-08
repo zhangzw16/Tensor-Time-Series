@@ -337,12 +337,13 @@ class MultivarTask(TaskBase):
                 trained_model_path = os.path.join(run_dir, 'model.pth')
             else:
                 trained_model_path = self.model_path
-            if not os.path.exists(trained_model_path):
+            if not os.path.exists(trained_model_path) and self.configs['model_name'] not in ['HM_TTS', 'HM_MTS', 'HM']:
                 print(f"can not find .pth file: {trained_model_path}")
                 continue
-            print(f'Load model from {trained_model_path}')
-            self.model.load_model(trained_model_path)
-            print(f'model loaded...')
+            if self.configs['model_name'] not in ['HM_TTS', 'HM_MTS', 'HM']:
+                print(f'Load model from {trained_model_path}')
+                self.model.load_model(trained_model_path)
+                print(f'model loaded...')
             # eval mode
             self.model.eval()
             with torch.no_grad():
