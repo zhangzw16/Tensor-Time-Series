@@ -45,18 +45,18 @@ def read_yaml(file_path):
     return config
 
 if __name__=='__main__':
-    TTS_1_models = ['NET3', 'MTGNN']
+    TTS_1_models = ['GCGRU', 'MTGNN']
     TTS_2_models = ['AGCRN', 'GraphWaveNet']
     MTS_models = ['DLinear', 'STID', 'TimesNet', 'PatchTST']
     Datasets = ['JONAS_NYC_taxi', 'COVID_CHI', 'METRO_HZ', 'ETT_hour', 'weather', 'crypto12', 'stocknet']
     # 读取配置文件
     best_his = read_yaml(os.path.join(current_path, 'best_input.yaml'))
     # print(best_his['NET3']['JONAS_NYC_taxi'])
-    task_name = 'ModeEXP-MTS'
-    model_list = MTS_models
-    data_mode = 3
+    task_name = 'ModeEXP-TTS-1'
+    model_list = TTS_1_models
+    data_mode = 1
     batch_size = 0  # enable AutoBatch
-    SavePath = os.path.join(current_path, f'Mode-{data_mode}-MTS.sh')
+    SavePath = os.path.join(current_path, f'Mode-{data_mode}-TTS-1.sh')
 
     # header
     data_mode = str(data_mode)

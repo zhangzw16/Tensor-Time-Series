@@ -11,8 +11,8 @@ data_mode=0
 
 # ====== Task0 ======
 dataset='JONAS_NYC_taxi'
-model='NET3'
-his_len=12
+model='GCGRU'
+his_len=48
 pred_len=12
 batch_size=0
 source $SCRIPT_DIR/run_task.sh
@@ -21,7 +21,7 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task1 ======
 dataset='JONAS_NYC_taxi'
-model='NET3'
+model='GCGRU'
 his_len=48
 pred_len=48
 batch_size=0
@@ -31,8 +31,8 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task2 ======
 dataset='JONAS_NYC_taxi'
-model='NET3'
-his_len=96
+model='GCGRU'
+his_len=48
 pred_len=96
 batch_size=0
 source $SCRIPT_DIR/run_task.sh
@@ -41,7 +41,7 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task3 ======
 dataset='COVID_CHI'
-model='NET3'
+model='GCGRU'
 his_len=12
 pred_len=12
 batch_size=0
@@ -51,8 +51,8 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task4 ======
 dataset='COVID_CHI'
-model='NET3'
-his_len=12
+model='GCGRU'
+his_len=48
 pred_len=48
 batch_size=0
 source $SCRIPT_DIR/run_task.sh
@@ -61,8 +61,8 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task5 ======
 dataset='COVID_CHI'
-model='NET3'
-his_len=12
+model='GCGRU'
+his_len=96
 pred_len=96
 batch_size=0
 source $SCRIPT_DIR/run_task.sh
@@ -71,8 +71,8 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task6 ======
 dataset='METRO_HZ'
-model='NET3'
-his_len=48
+model='GCGRU'
+his_len=96
 pred_len=12
 batch_size=0
 source $SCRIPT_DIR/run_task.sh
@@ -81,8 +81,8 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task7 ======
 dataset='METRO_HZ'
-model='NET3'
-his_len=48
+model='GCGRU'
+his_len=96
 pred_len=48
 batch_size=0
 source $SCRIPT_DIR/run_task.sh
@@ -91,7 +91,7 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task8 ======
 dataset='METRO_HZ'
-model='NET3'
+model='GCGRU'
 his_len=96
 pred_len=96
 batch_size=0
@@ -101,8 +101,8 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task9 ======
 dataset='ETT_hour'
-model='NET3'
-his_len=48
+model='GCGRU'
+his_len=96
 pred_len=12
 batch_size=0
 source $SCRIPT_DIR/run_task.sh
@@ -111,8 +111,8 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task10 ======
 dataset='ETT_hour'
-model='NET3'
-his_len=12
+model='GCGRU'
+his_len=48
 pred_len=48
 batch_size=0
 source $SCRIPT_DIR/run_task.sh
@@ -121,8 +121,8 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task11 ======
 dataset='ETT_hour'
-model='NET3'
-his_len=96
+model='GCGRU'
+his_len=12
 pred_len=96
 batch_size=0
 source $SCRIPT_DIR/run_task.sh
@@ -131,8 +131,8 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task12 ======
 dataset='weather'
-model='NET3'
-his_len=48
+model='GCGRU'
+his_len=96
 pred_len=12
 batch_size=0
 source $SCRIPT_DIR/run_task.sh
@@ -141,8 +141,8 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task13 ======
 dataset='weather'
-model='NET3'
-his_len=48
+model='GCGRU'
+his_len=96
 pred_len=48
 batch_size=0
 source $SCRIPT_DIR/run_task.sh
@@ -151,7 +151,7 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task14 ======
 dataset='weather'
-model='NET3'
+model='GCGRU'
 his_len=96
 pred_len=96
 batch_size=0
@@ -161,8 +161,8 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task15 ======
 dataset='crypto12'
-model='NET3'
-his_len=96
+model='GCGRU'
+his_len=12
 pred_len=12
 batch_size=0
 source $SCRIPT_DIR/run_task.sh
@@ -171,8 +171,8 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task16 ======
 dataset='crypto12'
-model='NET3'
-his_len=96
+model='GCGRU'
+his_len=12
 pred_len=48
 batch_size=0
 source $SCRIPT_DIR/run_task.sh
@@ -181,8 +181,8 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task17 ======
 dataset='crypto12'
-model='NET3'
-his_len=96
+model='GCGRU'
+his_len=12
 pred_len=96
 batch_size=0
 source $SCRIPT_DIR/run_task.sh
@@ -191,8 +191,8 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task18 ======
 dataset='stocknet'
-model='NET3'
-his_len=96
+model='GCGRU'
+his_len=48
 pred_len=12
 batch_size=0
 source $SCRIPT_DIR/run_task.sh
@@ -201,7 +201,7 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task19 ======
 dataset='stocknet'
-model='NET3'
+model='GCGRU'
 his_len=96
 pred_len=48
 batch_size=0
@@ -211,7 +211,7 @@ source $SCRIPT_DIR/run_task.sh
 
 # ====== Task20 ======
 dataset='stocknet'
-model='NET3'
+model='GCGRU'
 his_len=96
 pred_len=96
 batch_size=0
