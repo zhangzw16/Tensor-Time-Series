@@ -4,7 +4,6 @@ python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test
                     --normalizer $normalizer --graph_init $graph_init \
                     --dataset_base $dataset_base \
                     --scheduler $scheduler \
-                    --lr_finder \
                     --logger $logger \
                     --seed $seed \
                     --dataset $dataset --model $model

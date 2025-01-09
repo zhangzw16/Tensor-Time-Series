@@ -8,11 +8,11 @@ data_mode=0
 # 模型配置
 # ModelList=("AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" )
 # ModelList=("Mamba" "MTGNN" "ST_Norm" "TTS_Norm" "TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID" "DCRNN" "STWA" "NET3")
-ModelList=("NET3")
+ModelList=("PatchTST")
 
 
 # ==================== Nature Datasets ====================
-HisLenList=(6 12 24)
+HisLenList=(6)
 PredLenList=(6 12 24)
 batch_size=2  # 设置 1
 DatasetList=('COVID_DEATHS')

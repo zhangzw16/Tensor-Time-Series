@@ -1,7 +1,9 @@
 import os
 import yaml
 import time
-
+import numpy as np
+import torch
+import random
 from models import ModelManager
 from tasks.task_manager import TaskManager, TEMPLATE_PATH
 
@@ -19,6 +21,16 @@ def EnsureDir(output_dir:str):
 # "NET3" "DCRNN" "AGCRN" "STC_GNN" "GraphWaveNet"
 # "MTGNN" "ST_Norm" "TTS_Norm" "GMRL" "GCGRU" "Mamba"
 # "TimesNet" "StemGNN" "AutoFormer" "CrossFormer" "PatchTST" "DLinear" "NLinear" "STID"
+def set_random_seed(seed: int):
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    random.seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
 if __name__=='__main__':
     # set model and dataset
     model_name = 'NET3'
@@ -83,6 +95,7 @@ if __name__=='__main__':
     log_dir = os.path.join(basic_config['output_dir'], 'log')
     EnsureDir(log_dir)
 
+    set_random_seed(basic_config['seed'])
     task_manager = TaskManager('checkpoints', basic_config['output_dir'], dataset_path=DATASET_BASE)
     only_test = True if basic_config['mode']=='test' else False
     res = task_manager.TaskRun(basic_config['dataset_name'], basic_config['model_name'], basic_config, only_test=only_test)
