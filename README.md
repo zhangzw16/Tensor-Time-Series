@@ -21,7 +21,7 @@ Here is the list of papers organized in the requested format:
 - `Graph Wavenet` Graph WaveNet for Deep Spatial-Temporal Graph Modeling (IJCAI 2019) [[paper](https://arxiv.org/abs/1906.00121)] [[code](https://github.com/nnzhan/Graph-WaveNet)]
 - `DCRNN` Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting (ICLR 2018) [[paper](https://arxiv.org/abs/1707.01926)] [[code](https://github.com/liyaguang/DCRNN)]
 - `STGCN` Spatio-Temporal Graph Convolutional Networks: A Deep Learning Framework for Traffic Forecasting (IJCAI 2018) [[paper](https://arxiv.org/abs/1709.04875)] [[code](https://github.com/VeritasYin/STGCN_IJCAI-18)]
-- `GCGRU`  [[code](https://github.com/XDZhelheim/Torch-MTS)]
+- `GCGRU`  [[code](https://github.com/XDZhelheim/Torch-MTS)][[paper](https://arxiv.org/abs/2005.04955)]
 - `GCLSTM` GC-LSTM: Graph Convolution Embedded LSTM for Dynamic Link Prediction (Applied Intelligence 2022) [[paper](https://arxiv.org/abs/1812.04206)] [[code](https://github.com/XDZhelheim/Torch-MTS)]
 - `HI` Historical Inertia: A Neglected but Powerful Baseline for Long Sequence Time-series Forecasting (CIKM 2021) [[paper](https://dl.acm.org/doi/abs/10.1145/3459637.3482120)] [[code](https://github.com/XDZhelheim/Torch-MTS)]
 - `STID` Spatial-Temporal Identity: A Simple yet Effective Baseline for Multivariate Time Series Forecasting (CIKM 2022) [[paper](https://arxiv.org/abs/2208.05233)] [[code](https://github.com/XDZhelheim/Torch-MTS)]
