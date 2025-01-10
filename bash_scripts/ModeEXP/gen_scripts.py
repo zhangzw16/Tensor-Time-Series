@@ -49,14 +49,16 @@ if __name__=='__main__':
     TTS_2_models = ['AGCRN', 'GraphWaveNet']
     MTS_models = ['DLinear', 'STID', 'TimesNet', 'PatchTST']
     Datasets = ['JONAS_NYC_taxi', 'COVID_CHI', 'METRO_HZ', 'ETT_hour', 'weather', 'crypto12', 'stocknet']
+    Datasets = ['ETT_hour', 'weather']
+    # Datasets = ['COVID_DEATHS']
     # 读取配置文件
     best_his = read_yaml(os.path.join(current_path, 'best_input.yaml'))
     # print(best_his['NET3']['JONAS_NYC_taxi'])
-    task_name = 'ModeEXP-TTS-1'
-    model_list = TTS_1_models
+    task_name = 'ModeEXP-TTS-1e-4'
+    model_list = TTS_2_models
     data_mode = 1
     batch_size = 0  # enable AutoBatch
-    SavePath = os.path.join(current_path, f'Mode-{data_mode}-TTS-1.sh')
+    SavePath = os.path.join(current_path, f'Mode-{data_mode}-TTS-1e-4.sh')
 
     # header
     data_mode = str(data_mode)
@@ -66,6 +68,7 @@ if __name__=='__main__':
     task_list = []
     task_count = 0
     pred_len_list = [12, 48, 96]
+    # pred_len_list = [6, 12, 24]
     for model in model_list:
         for dataset in Datasets:
             his_len_list = best_his[model][dataset]

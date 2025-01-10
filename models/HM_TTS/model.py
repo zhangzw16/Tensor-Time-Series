@@ -16,9 +16,8 @@ class HM(nn.Module):
     def forward(self, x):
         # (batch, time, dim1, dim2)
         batch, time, x_d1, x_d2 = x.size()
-        mean = torch.mean(x,dim=(0,1))
-        pred = torch.ones((batch, self.pred_len, x_d1, x_d2)).to(x.device)
-        pred[:, :] = mean
+        mean = torch.mean(x, dim=1, keepdim=True)
+        pred = mean.repeat(1, self.pred_len, 1, 1)
         return pred
 
 '''

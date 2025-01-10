@@ -115,6 +115,7 @@ class TaskManager:
             result = self.format_result(result)
         except Exception as exp:
             result = str(exp)
+        self.lr = task.lr
         return result
     
     '''
@@ -156,6 +157,7 @@ class TaskManager:
             result = self.format_result(result)
         except Exception as exp:
             result = str(exp)
+        self.lr = task.lr
         return result
     
     def StatTaskRun(self, dataset_name:str, model_name:str, configs:dict={}, only_test:bool=False):

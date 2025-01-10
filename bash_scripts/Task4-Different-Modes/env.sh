@@ -4,7 +4,7 @@
 # export dataset_base='/data/Blob_EastUS/v-zhenwzhang/tensor_ts_datasets/Processed_Data/'
 # export output_dir='/data/Blob_EastUS/v-zhenwzhang/log/tensor_ts_log/20241110/'
 export dataset_base='/nas/datasets/Tensor-Time-Series-Dataset/Processed_Data'
-export output_dir='/data4t/zjx_dataset/workspace/Tensor-Time-Series/nas_logs/42-67-109-seed'
+export output_dir='/nas/datasets/zjx/datasets/TensorTSL_Output'
 # ==== 任务配置 ====
 export device='cuda'
 export train_test='train'

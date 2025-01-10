@@ -47,6 +47,7 @@ class TensorTask(TaskBase):
         self.normalizer_name = configs['normalizer']
         self.model_type = configs['model_type']
         self.model_name = configs['model_name']
+        self.lr = configs['lr']
         self.show_start_info()
         # backup configs
         self.configs = configs.copy()
@@ -130,9 +131,11 @@ class TensorTask(TaskBase):
             print(f"plot is saved in {self.output_dir}/lr_finder.png")
             # lr_finder_manager.set_optim_with_lr(self.model, best_mean_lr)
             self.configs['lr'] = best_mean_lr
+            self.lr = best_mean_lr
             del lr_finder_manager
             gc.collect()
             torch.cuda.empty_cache()
+            
 
         # model
         test_model.set_device('cpu')

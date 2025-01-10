@@ -7,3 +7,4 @@ python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test
                     --logger $logger \
                     --seed $seed \
                     --dataset $dataset --model $model
+                    # --lr_finder

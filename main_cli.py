@@ -5,6 +5,9 @@ import os
 
 from models import ModelManager
 from tasks.task_manager import TaskManager, TEMPLATE_PATH
+import numpy as np
+import torch
+import random
 
 # Set dataset_path or use cmd line args
 DATASET_BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datasets', 'data')
@@ -65,7 +68,7 @@ def parse_args():
                         help='[optional] int, early_stop_start_epoch, ignore early stop in first X epoches, default=0')
     parser.add_argument('--lr_finder', default=False, action='store_true', required=False,
                         help='[optional] bool, enable lr_finder, if lr_finder is enabled, the lr will be set automatically.')
-    parser.add_argument('--lr', type=str, default='', required=False,
+    parser.add_argument('--lr', type=str, default='1e-4', required=False,
                         help='[optional] str, learning rate, set \'\' to use default value')
     parser.add_argument('--eps', type=str, default='', required=False,
                         help='[optional] str, set \'\' to use default value')
@@ -88,6 +91,16 @@ def get_config_template(model_name:str):
 def EnsureDir(output_dir:str):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
+
+def set_random_seed(seed: int):
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    random.seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
 if __name__=='__main__':
     args = parse_args()
@@ -191,11 +204,11 @@ if __name__=='__main__':
     # start
     log_dir = os.path.join(basic_config['output_dir'], 'log')
     EnsureDir(log_dir)
-
+    set_random_seed(basic_config['seed'])
     task_manager = TaskManager('checkpoints', basic_config['output_dir'], dataset_path=basic_config['dataset_base'])
     only_test = True if basic_config['mode']=='test' else False
     res = task_manager.TaskRun(basic_config['dataset_name'], basic_config['model_name'], basic_config, only_test=only_test)
-
+    lr = task_manager.lr
     task_result = {
         'model_name': basic_config['model_name'],
         'dataset_name': basic_config['dataset_name'],
@@ -203,6 +216,7 @@ if __name__=='__main__':
         'graph_init': basic_config['graph_init'],
         'seed': basic_config['seed'],
         'batch_szie': basic_config['batch_size'],
+        'lr': lr,
         'his_len': basic_config['his_len'],
         'pred_len': basic_config['pred_len'],
         'lag_input': basic_config['lag_input'],

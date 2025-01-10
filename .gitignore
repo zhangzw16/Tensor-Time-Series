@@ -16,6 +16,7 @@ Tensor_output
 visual
 graph_generate.py
 nas_logs
+TaskLogs
 # *.sh
 *.html
 *.tex

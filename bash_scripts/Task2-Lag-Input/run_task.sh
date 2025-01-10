@@ -6,4 +6,6 @@ python3 main_cli.py --task_name $task_name --output_dir $output_dir --train_test
                     --scheduler $scheduler \
                     --logger $logger \
                     --seed $seed \
-                    --dataset $dataset --model $model
+                    --dataset $dataset --model $model \
+                    --lag_input $lag_input
+                    # --lr_finder
