@@ -159,3 +159,11 @@ if __name__ == '__main__':
     file_name = 'run_MTS-[StemGNN,STWA]-Nature.sh'
     generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, pred_len, batch_size)
     # =============================================================================================
+
+
+    model_list = ['AutoFormer']
+    his_len = [96]
+    pred_len = [12]
+    file_name = 'run_AutoFormer.sh'
+    dataset_list = ['crypto12', 'METRO_HZ', 'COVID_CHI', 'ETT_hour', 'weather', 'JONAS_NYC_taxi', 'stocknet']
+    generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, pred_len, batch_size)
