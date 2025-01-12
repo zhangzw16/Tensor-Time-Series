@@ -208,7 +208,10 @@ if __name__=='__main__':
     task_manager = TaskManager('checkpoints', basic_config['output_dir'], dataset_path=basic_config['dataset_base'])
     only_test = True if basic_config['mode']=='test' else False
     res = task_manager.TaskRun(basic_config['dataset_name'], basic_config['model_name'], basic_config, only_test=only_test)
-    lr = task_manager.lr
+    try:
+        lr = task_manager.lr
+    except:
+        lr = basic_config['lr']
     task_result = {
         'model_name': basic_config['model_name'],
         'dataset_name': basic_config['dataset_name'],
