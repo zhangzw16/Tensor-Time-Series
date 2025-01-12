@@ -124,8 +124,10 @@ if __name__ == '__main__':
     # TTS - mode 0 and 1
     data_mode = 1
     pass
+
+
     # -------------------------------
-    model_list = ['PatchTST', 'STID', 'TimesNet', 'CrossFormer', 'DLinear']
+    model_list = ['PatchTST', 'STID']
     # MTS -mode 0, 1, 2, 3
     script_helper = SctriptHelper(task_name)
     data_mode = 1
@@ -133,9 +135,9 @@ if __name__ == '__main__':
     for model in model_list:
         for dataset_name in dataset_list:
             for pred in pred_len:
-                input_len = best_input_reader.get_best_input(model, pred)
+                input_len = best_input_reader.get_best_input(dataset_name, model, pred)
                 script_helper.add_task([dataset_name], [model], data_mode, [input_len], [pred], batch_size)
-    script_helper.save_to_file(f'run_MTS-mode-{data_mode}.sh')
+    script_helper.save_to_file(f'run_MTS-[PatchTST,STID]-mode-{data_mode}.sh')
     # -------------------------------
     script_helper = SctriptHelper(task_name)
     data_mode = 2
@@ -143,9 +145,9 @@ if __name__ == '__main__':
     for model in model_list:
         for dataset_name in dataset_list:
             for pred in pred_len:
-                input_len = best_input_reader.get_best_input(model, pred)
+                input_len = best_input_reader.get_best_input(dataset_name, model, pred)
                 script_helper.add_task([dataset_name], [model], data_mode, [input_len], [pred], batch_size)
-    script_helper.save_to_file(f'run_MTS-mode-{data_mode}.sh')
+    script_helper.save_to_file(f'run_MTS-[PatchTST,STID]-mode-{data_mode}.sh')
     # -------------------------------
     script_helper = SctriptHelper(task_name)
     data_mode = 3
@@ -153,8 +155,40 @@ if __name__ == '__main__':
     for model in model_list:
         for dataset_name in dataset_list:
             for pred in pred_len:
-                input_len = best_input_reader.get_best_input(model, pred)
+                input_len = best_input_reader.get_best_input(dataset_name, model, pred)
                 script_helper.add_task([dataset_name], [model], data_mode, [input_len], [pred], batch_size)
-    script_helper.save_to_file(f'run_MTS-mode-{data_mode}.sh')
+    script_helper.save_to_file(f'run_MTS-[PatchTST,STID]-mode-{data_mode}.sh')
     
 
+    # 'TimesNet', 'CrossFormer', 'DLinear'
+    model_list = ['TimesNet', 'CrossFormer', 'DLinear']
+    # MTS -mode 0, 1, 2, 3
+    script_helper = SctriptHelper(task_name)
+    data_mode = 1
+    batch_size = 0
+    for model in model_list:
+        for dataset_name in dataset_list:
+            for pred in pred_len:
+                input_len = best_input_reader.get_best_input(dataset_name, model, pred)
+                script_helper.add_task([dataset_name], [model], data_mode, [input_len], [pred], batch_size)
+    script_helper.save_to_file(f'run_MTS-[TimesNet,CrossFormer,DLinear]-mode-{data_mode}.sh')
+    # -------------------------------
+    script_helper = SctriptHelper(task_name)
+    data_mode = 2
+    batch_size = 0
+    for model in model_list:
+        for dataset_name in dataset_list:
+            for pred in pred_len:
+                input_len = best_input_reader.get_best_input(dataset_name, model, pred)
+                script_helper.add_task([dataset_name], [model], data_mode, [input_len], [pred], batch_size)
+    script_helper.save_to_file(f'run_MTS-[TimesNet,CrossFormer,DLinear]-mode-{data_mode}.sh')
+    # -------------------------------
+    script_helper = SctriptHelper(task_name)
+    data_mode = 3
+    batch_size = 0
+    for model in model_list:
+        for dataset_name in dataset_list:
+            for pred in pred_len:
+                input_len = best_input_reader.get_best_input(dataset_name, model, pred)
+                script_helper.add_task([dataset_name], [model], data_mode, [input_len], [pred], batch_size)
+    script_helper.save_to_file(f'run_MTS-[TimesNet,CrossFormer,DLinear]-mode-{data_mode}.sh')
