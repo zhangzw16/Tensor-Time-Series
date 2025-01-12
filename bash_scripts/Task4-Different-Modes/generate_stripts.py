@@ -1,4 +1,5 @@
 import os
+import yaml
 
 current_path = os.path.dirname(__file__)
 
@@ -52,9 +53,6 @@ def make_task(task_idx, dataset, model, data_mode, his_len, pred_len, batch_size
     task = task.replace('<BATCH_SIZE>', str(batch_size))
     return task
 
-def single_task():
-    pass
-
 def generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len_list, pred_len_list, batch_size=0):
     save_path = os.path.join(current_path, f'{file_name}')
     # make header
@@ -77,26 +75,86 @@ def generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, 
             f.write(task)
     print(f'Save to {save_path}')
 
+class BestInputReader:
+    def __init__(self, path:str):
+        # best_input_path = os.path.join(current_path, 'best_input.yaml')
+        self.best_input = yaml.safe_load(open(path, 'r'))
+    def get_best_input(self, dataset:str, model_name:str, pred_len:list):
+        pred_len_list = [12, 48, 96]
+        input_len_list = self.best_input[model_name][dataset]
+        idx = pred_len_list.index(pred_len)
+        return input_len_list[idx]
+
+class SctriptHelper:
+    def __init__(self, task_name:str):
+        header = make_header(task_name)
+        self.header = header
+        self.task_list = []
+        self.task_idx = 0
+    
+    def add_task(self, dataset_list, model_list, data_mode, his_len_list, pred_len_list, batch_size=0):
+        for model in model_list:
+            for dataset in dataset_list:
+                for his_len in his_len_list:
+                    for pred_len in pred_len_list:
+                        task = make_task(self.task_idx, dataset, model, data_mode, his_len, pred_len, batch_size)
+                        self.task_list.append(task)
+                        self.task_idx += 1
+    
+    def save_to_file(self, file_name:str):
+        save_path = os.path.join(current_path, f'{file_name}')
+        with open(save_path, 'w') as f:
+            f.write(self.header)
+            for task in self.task_list:
+                task = '\n' + task
+                f.write(task)
+        print(f'Save to {save_path}')
+
 if __name__ == '__main__':
-    import yaml
+    
     # =============================================================================================
     # Different Modes tasks -- Traffic, Energy, Finance, Weather
     best_input_path = os.path.join(current_path, 'best_input.yaml')
-    best_input = yaml.safe_load(open(best_input_path, 'r'))
+    # best_input = yaml.safe_load(open(best_input_path, 'r'))
+    best_input_reader = BestInputReader(best_input_path)
     task_name = 'Task4-Different-Modes'
     pred_len = [12, 48, 96]
+    dataset_list = ['crypto12', 'METRO_HZ', 'COVID_CHI', 'ETT_hour', 'weather', 'JONAS_NYC_taxi', 'stocknet']
     # ===============================
     # TTS - mode 0 and 1
     data_mode = 1
-    
+    pass
     # -------------------------------
+    model_list = ['PatchTST', 'STID', 'TimesNet', 'CrossFormer', 'DLinear']
     # MTS -mode 0, 1, 2, 3
+    script_helper = SctriptHelper(task_name)
     data_mode = 1
-    
-
+    batch_size = 0
+    for model in model_list:
+        for dataset_name in dataset_list:
+            for pred in pred_len:
+                input_len = best_input_reader.get_best_input(model, pred)
+                script_helper.add_task([dataset_name], [model], data_mode, [input_len], [pred], batch_size)
+    script_helper.save_to_file(f'run_MTS-mode-{data_mode}.sh')
+    # -------------------------------
+    script_helper = SctriptHelper(task_name)
     data_mode = 2
-
-
+    batch_size = 0
+    for model in model_list:
+        for dataset_name in dataset_list:
+            for pred in pred_len:
+                input_len = best_input_reader.get_best_input(model, pred)
+                script_helper.add_task([dataset_name], [model], data_mode, [input_len], [pred], batch_size)
+    script_helper.save_to_file(f'run_MTS-mode-{data_mode}.sh')
+    # -------------------------------
+    script_helper = SctriptHelper(task_name)
     data_mode = 3
+    batch_size = 0
+    for model in model_list:
+        for dataset_name in dataset_list:
+            for pred in pred_len:
+                input_len = best_input_reader.get_best_input(model, pred)
+                script_helper.add_task([dataset_name], [model], data_mode, [input_len], [pred], batch_size)
+    script_helper.save_to_file(f'run_MTS-mode-{data_mode}.sh')
     
 

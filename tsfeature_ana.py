@@ -11,12 +11,13 @@ import pandas as pd
 
 root_path = '/home/ysc/workspace/Tensor-Time-Series/datasets/data/'
 dataset_freq = {
-        #'JONAS_NYC_bike': '30T', 'JONAS_NYC_taxi': '30T', 'Metr-LA': '5T', 'METRO_HZ': '15T', 
-        #'METRO_SH': '15T', 'PEMSBAY': '5T', 
-        # 'COVID_CHI': '1H', 'COVID_US': '1H',
-        # 'COVID_DEATHS': '1D', 'ETT_hour': '1H', 'electricity': '1H',
-        # 'weather': '15T', 'Jena_climate': '10T', 
-        'nasdaq100': '1T', 'stocknet': '1H', 'crypto12': '1H'}
+        'JONAS_NYC_bike': '30T', 'JONAS_NYC_taxi': '30T', 'Metr-LA': '5T', 'METRO_HZ': '15T', 
+        'METRO_SH': '15T', 'PEMSBAY': '5T', 
+        'COVID_CHI': '1H', 'COVID_US': '1H',
+        'COVID_DEATHS': '1D', 'ETT_hour': '1H', 'electricity': '1H',
+        'weather': '15T', 'Jena_climate': '10T', 
+        'nasdaq100': '1T', 
+        'stocknet': '1H', 'crypto12': '1H'}
 Datasets =  ['JONAS_NYC_bike', 'JONAS_NYC_taxi', 'Metr-LA','METRO_HZ', 'METRO_SH',#'PEMS03', 'PEMS07', 'PEMS20', 
              'COVID_CHI', 'COVID_US',
                 'COVID_DEATHS',
@@ -35,7 +36,7 @@ dataset_res = {}
 from tqdm import tqdm
 
 class tsfDataAnalysis():
-    def __init__(self, pkl_path, read_features = True, feature_read_path = '/nas/datasets/ysc/Tensor_output/output/tsfeatures'):
+    def __init__(self, pkl_path, read_features = True, feature_read_path = '/nas/datasets/ysc/Tensor-Time-Series/output/tsfeatures'):
         self.pkl_path = pkl_path
         self.dataset = pkl_path.split('/')[-2]
         self.data = self.load_data()
@@ -49,8 +50,9 @@ class tsfDataAnalysis():
             if os.path.exists(os.path.join(feature_read_path,self.dataset+'.csv')):
                 self.tsfdf = pd.read_csv(os.path.join(feature_read_path,self.dataset+'.csv'))
             else:
-                self.tsfdf = self.get_all_features(feature_read_path)
-                self.tsfdf = pd.read_csv(os.path.join(feature_read_path,self.dataset+'.csv'))
+                print('No features found, calculating...')
+                # self.tsfdf = self.get_all_features(feature_read_path)
+                # self.tsfdf = pd.read_csv(os.path.join(feature_read_path,self.dataset+'.csv'))
         # self.tsfdf = self.reshape_timeseries()
 
 
@@ -66,7 +68,7 @@ class tsfDataAnalysis():
             print(f"Key '{key}' added to the pkl file.")
         else:
             print(f"Key '{key}' already exists in the pkl file.")
-            
+
     def get_row_as_dict(self, df, unique_id_value):
         # 找到 unique_id 列等于 unique_id_value 的行
         row = df[df['unique_id'] == unique_id_value]
@@ -76,25 +78,33 @@ class tsfDataAnalysis():
         
         # 将这一行不为空的值及其对应的列名以字典的形式返回
         row_dict = row.dropna(axis=1).to_dict(orient='records')[0]
+        for key, value in row_dict.items():
+            if isinstance(value, float):
+                row_dict[key] = round(value, 3)
         return row_dict
     
-    def plot_single_ts(self, pack = {'N':0, 'M':0,'start':0,'end':None}):
-        N = pack['N']
-        M = pack['M']
-        start = pack['start']
-        end = pack['end']
-        if end is None:
+    def plot_single_ts(self, N = 0, M = 0, start = 0, end = None):
+        if end is None or end > self.ts.shape[0]:
             series = self.ts[start:, N, M]
+            x = np.arange(start, start + len(series))
         else:
             series = self.ts[start:end, N, M]
-        plt.plot(series)
-        plt.show()
-
-    def avaliable_features(self,pack = {'N':0,'M':0}):
-        N = pack['N']
-        M = pack['M']
+            x = np.arange(start, end)
+        return x, series
+    
+    def plot_all_modality(self, N = 0, M = 0, start = 0, end = None):
+        if end is None or end > self.ts.shape[0]:
+            series = self.ts[start:, N, :]
+            x = np.arange(start, start + len(series))
+        else:
+            series = self.ts[start:end, N, :]
+            x = np.arange(start, end)
+        return x, series
+            
+    def avaliable_features(self,N = 0,M = 0):
         features = self.get_row_as_dict(self.tsfdf, f'N_{N}_M_{M}')
         return features
+    
 
         
     def get_single_ts(self, node, feature):
@@ -105,7 +115,8 @@ class tsfDataAnalysis():
         df = pd.DataFrame({'unique_id': id_series, 'ds': ds, 'y': series})
         return df
     
-    def get_all_features(self,outpath):
+    def get_all_features(self):
+        outpath = self.feature_read_path
         time_steps, nodes, features = self.data_shape
         # nodes = 2
         # features = 2
@@ -124,6 +135,13 @@ class tsfDataAnalysis():
         df_avgfeatures['M'] = self.data_shape[2]
         df_avgfeatures.to_csv(os.path.join(outpath,self.dataset+'_avg.csv'), index=False)
         return df_avgfeatures
+    
+    def aggregate_features(self):
+        import glob
+        all_files = glob.glob('/nas/datasets/ysc/Tensor-Time-Series/output/tsfeatures/*_avg.csv')
+        df_all = pd.concat([pd.read_csv(file) for file in all_files])
+        df_all.to_csv('/nas/datasets/ysc/Tensor-Time-Series/output/tsfeatures/all_datasets.csv', index=False)
+        return df_all
         
     def reshape_timeseries(self):
         time_steps, nodes, features = self.data_shape
@@ -155,23 +173,25 @@ class tsfDataAnalysis():
 
 if __name__ == '__main__':
     # for dataset in Datasets:
-    # dataset = 'METRO_HZ'
-    # pkl_path = root_path + dataset + '/' + dataset + '.pkl'
+    dataset = 'METRO_HZ'
+    pkl_path = root_path + dataset + '/' + dataset + '.pkl'
+    data_analysis = tsfDataAnalysis(pkl_path)
+    data_analysis.aggregate_features()
     # data_analysis = tsfDataAnalysis(pkl_path)
     # print(data_analysis.data_shape)
     # print(data_analysis.data['temporal_resolution'])
     # data_analysis.get_all_features('/home/ysc/workspace/Tensor-Time-Series/output/tsfeatures')
-    all_data_features = []
-    for dataset in tqdm(dataset_freq.keys()):
-        pkl_path = root_path + dataset + '/' + dataset + '.pkl'
-        data_analysis = tsfDataAnalysis(pkl_path)
-        print(data_analysis.dataset)
-        print(data_analysis.data_shape)
-        print(data_analysis.interval)
-        avg = data_analysis.get_all_features('/home/ysc/workspace/Tensor-Time-Series/output/tsfeatures')
-        all_data_features.append(avg)
-    df_all = pd.concat(all_data_features)
-    df_all.to_csv('/home/ysc/workspace/Tensor-Time-Series/output/tsfeatures/all_datasets.csv', index=False)
+    # all_data_features = []
+    # for dataset in tqdm(dataset_freq.keys()):
+    #     pkl_path = root_path + dataset + '/' + dataset + '.pkl'
+    #     data_analysis = tsfDataAnalysis(pkl_path)
+    #     print(data_analysis.dataset)
+    #     print(data_analysis.data_shape)
+    #     print(data_analysis.interval)
+    #     avg = data_analysis.get_all_features('/home/ysc/workspace/Tensor-Time-Series/output/tsfeatures')
+    #     all_data_features.append(avg)
+    # df_all = pd.concat(all_data_features)
+    # df_all.to_csv('/home/ysc/workspace/Tensor-Time-Series/output/tsfeatures/all_datasets.csv', index=False)
     # df = data_analysis.get_single_ts(0, 0)
     # features = tsfeatures(df,freq = FREQS[data_analysis.interval])
     # print(df)
@@ -179,37 +199,4 @@ if __name__ == '__main__':
     
     # data_analysis = tsfDataAnalysis(pkl_path)
     # print(data_analysis.data_shape)
-    # print(data_analysis.find_periods(k = 1))
-    # print(data_analysis.find_periods(k = 2))
-    # print(data_analysis.find_periods(k = 3))
-    # print(data_analysis.find_periods(k = 4))
-    # print(data_analysis.find_periods(k = 5))
-    # print(data_analysis.find_periods(k = 6))
-    # print(data_analysis.find_periods(k = 7))
-    # print(data_analysis.find_periods(k = 8))
-    # print(data_analysis.find_periods(k = 9))
-    # print(data_analysis.find_periods(k = 10))
-    # print(data_analysis.find_periods(k = 11))
-    # print(data_analysis.find_periods(k = 12))
-    # print(data_analysis.find_periods(k = 13))
-    # print(data_analysis.find_periods(k = 14))
-    # print(data_analysis.find_periods(k = 15))
-    # print(data_analysis.find_periods(k = 16))
-    # print(data_analysis.find_periods(k = 17))
-    # print(data_analysis.find_periods(k = 18))
-    # print(data_analysis.find_periods(k = 19))
-    # print(data_analysis.find_periods(k = 20))
-    # print(data_analysis.find_periods(k = 21))
-    # print(data_analysis.find_periods(k = 22))
-    # print(data_analysis.find_periods(k = 23))
-    # print(data_analysis.find_periods(k = 24))
-    # print(data_analysis.find_periods(k = 25))
-    # print(data_analysis.find_periods(k = 26))
-    # print(data_analysis.find_periods(k = 27))
-    # print(data_analysis.find_periods(k = 28))
-    # print(data_analysis.find_periods(k = 29))
-    # print(data_analysis.find_periods(k = 30))
-    # print(data_analysis.find_periods(k = 31))
-    # print(data_analysis.find_periods(k = 32))
-    # print(data_analysis.find_periods(k = 33))
-    # print(data
+   

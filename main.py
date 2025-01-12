@@ -33,8 +33,8 @@ def set_random_seed(seed: int):
 
 if __name__=='__main__':
     # set model and dataset
-    model_name = 'NET3'
-    dataset_name = 'COVID_DEATHS'
+    model_name = 'GraphWaveNet_wo_GCN_TCN'
+    dataset_name = 'crypto12'
     basic_config = get_config_template(model_name)
     # update basic_config
     # DATASET_BASE = 
@@ -43,14 +43,14 @@ if __name__=='__main__':
     basic_config['project_name'] = 'SearchInput-NET3-42'
     output_dir = '/data4t/zjx_dataset/workspace/Tensor-Time-Series/nas_logs'
     basic_config['output_dir'] = os.path.join(output_dir, basic_config['project_name'])
-    basic_config['mode'] = 'test'
+    basic_config['mode'] = 'train'
     basic_config['debug'] = True
     basic_config['logger'] = 'none'
     basic_config['task_device'] = 'cuda'
 
     # ---- 2. Dataset Configuration -----
     basic_config['dataset_name'] = dataset_name
-    basic_config['his_len'] = 6
+    basic_config['his_len'] = 13
     basic_config['pred_len'] = 12
     basic_config['lag_input'] = []
     basic_config['data_mode'] = 0

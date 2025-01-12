@@ -85,8 +85,8 @@ if __name__ == '__main__':
     pred_len = [12, 48, 96]
     data_mode = 0
     task_name = 'Task3-Search-Borderly'
-    dataset_list = ['stocknet', 'weather']
-    # # TTS-1
+    dataset_list = ['crypto12', 'COVID_CHI', 'weather', 'stocknet']
+    # TTS-1
     # model_list = ['GraphWaveNet', 'AGCRN']
     # file_name = 'run_TTS-[GraphWaveNet,AGCRN].sh'
     # generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, pred_len)
@@ -94,12 +94,8 @@ if __name__ == '__main__':
     # model_list = ['GCGRU', 'MTGNN']
     # file_name = 'run_TTS-[GCGRU,MTGNN].sh'
     # generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, pred_len)
-    # # MTS
-    # model_list = ['DLinear', 'TimesNet', 'PatchTST', 'STID']
-    # file_name = 'run_MTS-[DLinear,TimesNet,PatchTST,STID].sh'
-    # generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, pred_len)
+    # MTS
     model_list = ['DLinear', 'TimesNet', 'PatchTST', 'STID', 'CrossFormer']
     file_name = 'run_MTS-[DLinear,TimesNet,PatchTST,STID,CrossFormer].sh'
-    batch_size = 128
-    generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, pred_len, batch_size)
+    generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, pred_len)
     

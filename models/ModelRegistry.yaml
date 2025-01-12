@@ -9,6 +9,7 @@ ModelType:
     - GraphWaveNet
     - GraphWaveNet_unit
     - GraphWaveNet_wo_GCN
+    - GraphWaveNet_wo_TCN
     - GraphWaveNet_wo_GCN_TCN
     - AGCRN
     - MTGNN
@@ -18,6 +19,9 @@ ModelType:
     - ST_Norm
     - GMRL
     - GCGRU
+    - GCGRU_wo_GCN
+    - GCGRU_wo_GRU
+    - GCGRU_wo_GCN_GRU
     - GCLSTM
     - Mamba
     - STC_GNN
