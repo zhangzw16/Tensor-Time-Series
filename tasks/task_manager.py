@@ -113,9 +113,9 @@ class TaskManager:
                 task.train()
             result = task.test()
             result = self.format_result(result)
+            self.lr = task.lr
         except Exception as exp:
             result = str(exp)
-        self.lr = task.lr
         return result
     
     '''

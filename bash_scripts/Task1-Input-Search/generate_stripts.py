@@ -98,10 +98,44 @@ if __name__ == '__main__':
     model_list = ['Mamba', 'DCRNN']
     file_name = 'run_TTS-[Mamba,DCRNN].sh'
     generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, pred_len)
+    dcrnn_pred_len = [12]
+    model_list = ['DCRNN']
+    file_name = 'run_TTS-[DCRNN]-12.sh'
+    generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, dcrnn_pred_len)
+    dcrnn_pred_len = [48]
+    model_list = ['DCRNN']
+    file_name = 'run_TTS-[DCRNN]-48.sh'
+    generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, dcrnn_pred_len)
+    dcrnn_pred_len = [96]
+    model_list = ['DCRNN']
+    file_name = 'run_TTS-[DCRNN]-96.sh'
+    generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, dcrnn_pred_len)
     # TTS-4
-    model_list = ['ST_Norm', 'NET3']
-    file_name = 'run_TTS-[ST_Norm,NET3].sh'
-    generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, pred_len)
+    st_norm_pred_len = [12]
+    model_list = ['ST_Norm']
+    file_name = 'run_TTS-[ST_Norm]-12.sh'
+    generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, st_norm_pred_len)
+    st_norm_pred_len = [48]
+    model_list = ['ST_Norm']
+    file_name = 'run_TTS-[ST_Norm]-48.sh'
+    generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, st_norm_pred_len)
+    st_norm_pred_len = [96]
+    model_list = ['ST_Norm']
+    file_name = 'run_TTS-[ST_Norm]-96.sh'
+    generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, st_norm_pred_len)
+
+    net3_pred_len = [12]
+    model_list = ['NET3']
+    file_name = 'run_TTS-[NET3]-12.sh'
+    generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, net3_pred_len)
+    net3_pred_len = [48]
+    model_list = ['NET3']
+    file_name = 'run_TTS-[NET3]-48.sh'
+    generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, net3_pred_len)
+    net3_pred_len = [96]
+    model_list = ['NET3']
+    file_name = 'run_TTS-[NET3]-96.sh'
+    generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, net3_pred_len)
     # MTS-1
     model_list = ['DLinear', 'STID']
     file_name = 'run_MTS-[DLinear,STID].sh'
@@ -137,10 +171,16 @@ if __name__ == '__main__':
     # TTS-3
     model_list = ['Mamba', 'DCRNN']
     file_name = 'run_TTS-[Mamba,DCRNN]-Nature.sh'
+    # generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, pred_len, batch_size)
+    model_list = ['DCRNN']
+    file_name = 'run_TTS-[DCRNN]-Nature.sh'
     generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, pred_len, batch_size)
     # TTS-4
-    model_list = ['ST_Norm', 'NET3']
-    file_name = 'run_TTS-[ST_Norm,NET3]-Nature.sh'
+    model_list = ['ST_Norm']
+    file_name = 'run_TTS-[ST_Norm]-Nature.sh'
+    generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, pred_len, batch_size)
+    model_list = ['NET3']
+    file_name = 'run_TTS-[NET3]-Nature.sh'
     generate_stripts(file_name, task_name, dataset_list, model_list, data_mode, his_len, pred_len, batch_size)
     # MTS-1
     model_list = ['DLinear', 'STID']
