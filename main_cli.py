@@ -45,7 +45,7 @@ def parse_args():
     parser.add_argument('--dataset_base', type=str, default=DATASET_BASE, required=False,
                         help='[optional] str, dataset base path, default=DATASET_BASE')
     # [optional]
-    parser.add_argument('--batch_size', type=int, default=256, required=False,
+    parser.add_argument('--batch_size', type=int, default=16, required=False,
                         help='[optional] int, batch size, default=256, for some dataset, the batch size should small.')
     parser.add_argument('--normalizer', type=str, default='std', required=False,
                         help='[optional] str, normalizer, chose one from [\'none\', \'std\', \'sklearn\'], default=\'std\'')

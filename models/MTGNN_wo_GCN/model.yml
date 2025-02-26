@@ -1,6 +1,6 @@
 # parameters
-gcn_enable: false  # whether to add graph convolution layer
-buildA_enable: true # whether to construct adaptive adjacency matrix
+gcn_enable: False  # whether to add graph convolution layer
+buildA_enable: False # whether to construct adaptive adjacency matrix
 
 dropout: 0.3
 gcn_depth: 2      # graph convolution depth

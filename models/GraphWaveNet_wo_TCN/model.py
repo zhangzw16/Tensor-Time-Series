@@ -41,7 +41,7 @@ class GraphWaveNet_wo_TCN_TensorModel(TensorModelBase):
         # blocks: abs(his_len-pre_len)<=block * (2**layer-1)
         delta = abs(self.his_len - self.pred_len) + 1
         exp_layer = 2**self.layers-1
-        self.blocks = math.ceil(delta/exp_layer)
+        self.blocks = max(math.ceil(delta/exp_layer),12)
         self.clip = 5
         # graph
         if self.aptinit:

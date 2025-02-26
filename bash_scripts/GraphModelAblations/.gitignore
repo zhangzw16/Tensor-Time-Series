@@ -1,0 +1,3 @@
+*.sh
+!env.sh
+!run_task.sh

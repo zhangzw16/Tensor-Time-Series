@@ -33,7 +33,7 @@ def set_random_seed(seed: int):
 
 if __name__=='__main__':
     # set model and dataset
-    model_name = 'GraphWaveNet_wo_GCN_TCN'
+    model_name = 'MTGNN_wo_GCN'
     dataset_name = 'crypto12'
     basic_config = get_config_template(model_name)
     # update basic_config
@@ -50,7 +50,7 @@ if __name__=='__main__':
 
     # ---- 2. Dataset Configuration -----
     basic_config['dataset_name'] = dataset_name
-    basic_config['his_len'] = 13
+    basic_config['his_len'] = 12
     basic_config['pred_len'] = 12
     basic_config['lag_input'] = []
     basic_config['data_mode'] = 0
@@ -60,7 +60,7 @@ if __name__=='__main__':
     # ---- 3. Training Configuration -----
     basic_config['model_name'] = model_name
     basic_config['model_path'] = ''
-    basic_config['graph_init'] = 'pearson'
+    basic_config['graph_init'] = 'unit'
     basic_config['seed'] = 2024
     basic_config['max_epoch'] = 3
     basic_config['early_stop_max'] = 32

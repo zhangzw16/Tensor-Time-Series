@@ -33,8 +33,16 @@ class MTGNN_wo_GCN_TensorModel(TensorModelBase):
         self.layers = model_configs['layers']
         self.subgraph_size = model_configs['subgraph_size']
         self.dilation_exponential = model_configs['dilation_exponential']
-        self.predefined_A = None
-        # self.predefined_A = model_configs['pedefined_A']
+        # self.predefined_A = None
+        predefined_A = self.configs['graphGenerator'].load_graph(n_dim=0, normal=True)
+        # self.predefined_A = torch.from_numpy(self.predefined_A).float()
+        # self.predefined_A = self.predefined_A.to(self.device)
+        self.predefined_A = torch.eye(predefined_A.shape[0]).to(self.device)
+        self.predefined_A.requires_grad = False
+        self.buildA_enable = False
+        print('-'*20)
+        print('Use Identity matrix as A')
+        print('-'*20) 
         # if self.predefined_A != None:
         #     pass
         
@@ -53,20 +61,8 @@ class MTGNN_wo_GCN_TensorModel(TensorModelBase):
         self.prop_alpha = model_configs['prop_alpha']
         self.tanh_alpha = model_configs['tanh_alpha']
         self.layer_norm_affline = model_configs['layer_norm_affline']
-        self.varient = self.configs['varient']
-        # if self.varient != 0:
-        #     if self.varient == 1:
-        #         self.predefined_A = torch.eye(self.tensor_shape[1]).to(self.device)
-        #         self.predefined_A.requires_grad = False
-        #         self.buildA_enable = False
-        #         print('-'*20)
-        #         print('Use Identity matrix as A')
-        #         print('-'*20)
-        #     elif self.varient == 2:
-        self.gcn_enable = False
-        print('-'*20)
-        print('Do not use GCN')
-        print('-'*20)       
+        
+          
 
         self.model = gtnet(self.gcn_enable, self.buildA_enable, self.gcn_depth, self.tensor_shape[0],
                            self.device, predefined_A=self.predefined_A, dropout=self.dropout, subgraph_size=self.subgraph_size,
